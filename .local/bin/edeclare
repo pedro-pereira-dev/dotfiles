@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# ---------------------------------------------------------------------
+# installs and removes packages from portage declarative
+# by reading the configuration file /etc/portage/package.declare
+#     usage: edeclare (--unsupervised)
+# ---------------------------------------------------------------------
+
+# checks required dependencies
+[[ -z $(command -v doas) ]] && echo 'Missing command "doas"' && exit 1
+[[ -z $(command -v emerge) ]] && echo 'Missing command "emerge"' && exit 1
+[[ -z $(command -v equery) ]] && echo 'Missing command "equery"' && exit 1
+# checks required files
+[[ ! -f '/etc/portage/package.declare' ]] && echo 'Missing file "/etc/portage/package.declare"' && exit 1
+
+# checks arguments and shell permissions
+[[ $# -gt 1 ]] && echo "Usage: edeclare (--unsupervised)" && exit 1
+[[ $1 == '--unsupervised' ]] && UNSUPERVISED=$1
+[[ ${EUID} -ne 0 ]] && exec doas $0 ${UNSUPERVISED}
+# after this point, the script is running as root
+
+INSTALLED_PACKAGES=$(equery --quiet list @selected | cut -d ' ' -f 5 | sed -n 's/-[0-9]\{1,\}.*$//p')
+DECLARED_PACKAGES=$(cat /etc/portage/package.declare | sed -E '/^[[:blank:]]*(#|$)/d; s/#.*//')
+ALL_PACKAGES=$(echo -e "${INSTALLED_PACKAGES}\n${DECLARED_PACKAGES}" | sort -u)
+
+# iterates all packages
+SHOULD_INSTALL=()
+SHOULD_CLEAN=()
+for PACKAGE in ${ALL_PACKAGES}; do
+  IS_INSTALLED=($([[ ${INSTALLED_PACKAGES} =~ ${PACKAGE} ]] && echo 'yes' || echo ''))
+  IS_DECLARED=($([[ ${DECLARED_PACKAGES} =~ ${PACKAGE} ]] && echo 'yes' || echo ''))
+  # installs package if not installed but declared
+  if [[ -z ${IS_INSTALLED} && ! -z ${IS_DECLARED} ]]; then
+    SHOULD_INSTALL+=(${PACKAGE})
+  # removes package if installed but not declared
+  elif [[ ! -z ${IS_INSTALLED} && -z ${IS_DECLARED} ]]; then
+    SHOULD_CLEAN+=(${PACKAGE})
+  fi
+done
+
+[[ ! -z ${UNSUPERVISED} ]] && ASK='--ask=n'
+# installs packages
+if [[ ! -z ${SHOULD_INSTALL} ]]; then
+  emerge ${ASK} --noreplace ${SHOULD_INSTALL[@]}
+fi
+# cleans removed packages
+if [[ ! -z ${SHOULD_CLEAN} ]]; then
+  emerge ${ASK} --deselect ${SHOULD_CLEAN[@]} && emerge ${ASK} --depclean >/dev/null
+fi

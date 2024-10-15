@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# ---------------------------------------------------------------------
+# bootstraps dotfiles for gentoo-laptop-msi-es
+# any non-root action will be executed as the user 'chuck'
+#     usage: bootstrap-gentoo-laptop-msi-es (--unsupervised?)
+# ---------------------------------------------------------------------
+
+# checks required dependencies
+[[ -z $(command -v dispatch-conf) ]] && echo 'Missing command "dispatch-conf"' && exit 1
+[[ -z $(command -v doas) ]] && echo 'Missing command "doas"' && exit 1
+[[ -z $(command -v dracut) ]] && echo 'Missing command "dracut"' && exit 1
+[[ -z $(command -v emerge) ]] && echo 'Missing command "emerge"' && exit 1
+[[ -z $(command -v eselect) ]] && echo 'Missing command "eselect"' && exit 1
+[[ -z $(command -v grub-mkconfig) ]] && echo 'Missing command "grub-mkconfig"' && exit 1
+
+# checks arguments and shell permissions
+[[ $# -gt 1 ]] && echo "Usage: bootstrap-gentoo-laptop-msi-es (--unsupervised?)" && exit 1
+[[ $1 == '--unsupervised' ]] && UNSUPERVISED=$1
+[[ ${EUID} -ne 0 ]] && exec doas $0 ${UNSUPERVISED}
+# after this point, the script is running as root
+
+# installs required dependencies
+function install() { (equery --quiet list $1 >/dev/null) || emerge --ask=n --noreplace $1; }
+install app-admin/eclean-kernel
+install app-admin/stow
+install app-admin/yadm
+install app-portage/gentoolkit
+install dev-vcs/git
+
+# symlinks root directory
+bash /home/chuck/.local/bin/stow-root gentoo-laptop-msi-es chuck
+# sets up secrets if not unsupervised
+[[ -z ${UNSUPERVISED} ]] && bash /home/chuck/.local/bin/setup-secrets gentoo-laptop-msi-es chuck
+
+# sets up defailt editor
+if [[ -z $(eselect editor list | grep '*' | grep /usr/bin/nvim) ]]; then
+  eselect editor set '/usr/bin/nvim'
+  env-update && source /etc/profile
+fi

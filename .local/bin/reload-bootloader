@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# ---------------------------------------------------------------------
+# regenerates initramfs with dracut and
+# updates grub bootloader configurations
+#     usage: reload-bootloader (--force)
+# ---------------------------------------------------------------------
+
+# checks required dependencies
+[[ -z $(command -v doas) ]] && echo 'Missing command "doas"' && exit 1
+[[ -z $(command -v dracut) ]] && echo 'Missing command "dracut"' && exit 1
+[[ -z $(command -v eselect) ]] && echo 'Missing command "eselect"' && exit 1
+[[ -z $(command -v grub-mkconfig) ]] && echo 'Missing command "grub-mkconfig"' && exit 1
+
+# checks arguments and shell permissions
+[[ $# -gt 1 ]] && echo "Usage: reload-bootloader (--force)" && exit 1
+[[ $1 == '--force' ]] && FORCE=$1
+[[ ${EUID} -ne 0 ]] && exec doas $0 ${FORCE}
+# after this point, the script is running as root
+
+# regenerates initramfs and bootloader
+dracut ${FORCE} --quiet --kver $(eselect kernel list | grep '*' | grep -o 'linux-.* ' | sed 's/linux-//g') &&
+  grub-mkconfig -o /boot/grub/grub.cfg

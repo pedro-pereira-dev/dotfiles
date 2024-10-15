@@ -1,0 +1,10 @@
+app-admin/doas persist
+sys-kernel/installkernel dracut grub
+
+# required by www-client/chromium
+media-libs/libvpx postproc
+dev-libs/libxml2 icu
+media-libs/harfbuzz icu
+sys-libs/zlib minizip
+net-libs/nodejs inspector
+virtual/rust profiler

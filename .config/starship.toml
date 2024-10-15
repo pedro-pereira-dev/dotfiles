@@ -1,0 +1,33 @@
+# starship prompt customization
+# https://starship.rs/config/
+
+# inserts a blank line between shell prompts
+add_newline = false
+## customize prompt
+#format = '$directory$git_branch$git_commit$git_state$git_status$cmd_duration$character'
+## https://starship.rs/config/#directory
+#[directory]
+#truncation_length = 0
+#read_only = ' ro'
+## https://starship.rs/config/#git-branch
+#[git_branch]
+#format = '[$branch(:$remote_branch)]($style) '
+#only_attached = true
+## https://starship.rs/config/#git-commit
+#[git_commit]
+#format = '[$hash](purple)[$tag]($style) '
+#style = 'bold purple'
+#tag_disabled = false
+#tag_symbol = ' '
+## https://starship.rs/config/#git-state
+#[git_state]
+#format = '[ $state( $progress_current/$progress_total)]($style) '
+## https://starship.rs/config/#git-status
+#[git_status]
+#format = '([$conflicted$stashed]($style)[$deleted$renamed$modified$typechanged$staged$untracked](bold yellow)[$ahead_behind](bold cyan) )'
+#conflicted = '!'
+#modified = '*'
+## https://starship.rs/config/#command-duration
+#[cmd_duration]
+#format = '[$duration]($style) '
+#style = 'bold yellow'

@@ -1,12 +1,27 @@
 #!/bin/bash
 
-export BOOTSTRAPPER_DIR="/home/chuck/.bootstrapper"
-export HOST_DIR="${BOOTSTRAPPER_DIR}/hosts/$(uname -n)"
-export HOST_SCRIPTS_DIR="${HOST_DIR}/scripts"
-export STOWABLES_DIR="${HOST_DIR}/stowables"
-export SHARED_DIR="${BOOTSTRAPPER_DIR}/hosts/shared"
-export SHARED_SCRIPTS_DIR="${SHARED_DIR}/scripts"
+# ---------------------------------------------------------------------
+# executes the bootstrap script for the specified hostname
+# if the argument hostname is empty it will default to 'uname -n'
+#     usage: bootstrap <hostname | uname -n> (--unsupervised?)
+# ---------------------------------------------------------------------
 
-source "${SHARED_SCRIPTS_DIR}/admin/execute-as-root.sh"
-source "${SHARED_SCRIPTS_DIR}/admin/stow-portage.sh"
-source "${HOST_SCRIPTS_DIR}/installation/install-base-dependencies.sh"
+# checks arguments
+[[ $# -gt 2 ]] && echo "Usage: bootstrap <hostname | uname -n> (--unsupervised?)" && exit 1
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  --unsupervised) UNSUPERVISED='--unsupervised' ;;
+  *) POSITIONAL_ARGS+=($1) ;;
+  esac
+  shift
+done
+set -- "${POSITIONAL_ARGS[@]}"
+HOSTNAME=${1:-$(uname -n)}
+
+# checks if script exists
+SCRIPT=$(dirname $(readlink -f $0))/bootstrap-${HOSTNAME}
+[[ ! -f ${SCRIPT} ]] && echo "No bootstrap script for host: ${HOSTNAME}, ${SCRIPT} does not exist" && exit 1
+
+# runs bootstrap-<hostname>
+${SCRIPT} ${UNSUPERVISED}

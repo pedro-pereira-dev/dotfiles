@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# ---------------------------------------------------------------------
+# stows a directory as root directory overriding any overlapping files
+# in case any file was overriden it is discarded with yadm
+# if the argument hostname is empty it will default to 'uname -n'
+# if the argument username is empty it will default to 'whoami'
+#     usage: stow-root <hostname | uname -n> <username | whoami>
+# ---------------------------------------------------------------------
+
+# checks required dependencies
+[[ -z $(command -v doas) ]] && echo 'Missing command "doas"' && exit 1
+[[ -z $(command -v stow) ]] && echo 'Missing command "stow"' && exit 1
+[[ -z $(command -v yadm) ]] && echo 'Missing command "yadm"' && exit 1
+
+# checks arguments and shell permissions
+[[ $# -gt 2 ]] && echo "Usage: stow-root <hostname | uname -n> <username | whoami>" && exit 1
+HOSTNAME=${1:-$(uname -n)}
+USERNAME=${2:-$(whoami)}
+[[ ${EUID} -ne 0 ]] && exec doas $0 ${HOSTNAME} ${USERNAME}
+# after this point, the script is running as root
+
+cd /home/${USERNAME}/.stows/${HOSTNAME}/root
+# checks if no changes are needed
+[[ -z $(stow . --target=/ --adopt --verbose --simulate 2>&1 | grep -E 'MV|LINK') ]] && exit 0
+
+# creates symlinks to root directory
+stow . --target=/ --adopt
+su ${USERNAME} -c "cd ${ROOT_DIR} && yadm restore ."
+# upgrades packages
+bash /home/${USERNAME}/.local/bin/eupgrade --unsupervised ${USERNAME}
+# reloads bootloader configurations
+bash /home/${USERNAME}/.local/bin/reload-bootloader --force

@@ -1,0 +1,32 @@
+app-admin/doas                    # sudo replacement
+app-admin/eclean-kernel           # deprecated kernel removal
+app-admin/stow                    # symlink manager
+app-admin/yadm                    # dotfiles manager
+app-editors/neovim                # text editor
+app-misc/cmatrix                  # matrix screensaver
+app-misc/neofetch                 # system information panel
+app-portage/gentoolkit            # portage tools
+app-shells/starship               # prompt customization
+app-shells/zoxide                 # cd replacement
+dev-vcs/git                       # version control
+gui-wm/hyprland                   # wayland compositor
+net-im/discord                    # chat client
+net-misc/chrony                   # ntp client
+net-misc/keychain                 # ssh-agent manager
+net-misc/networkmanager           # network manager
+sys-apps/eza                      # ls replacement
+sys-block/io-scheduler-udev-rules # disk io optimized scheduler
+sys-firmware/intel-microcode      # cpu microcode
+sys-kernel/gentoo-kernel          # gentoo distribution kernel
+sys-kernel/installkernel          # kernel installation hook
+sys-kernel/linux-firmware         # firmware
+sys-process/btop                  # system monitor
+www-client/google-chrome          # web browser
+x11-terms/alacritty               # terminal emulator
+
+gui-apps/wofi
+gui-apps/wl-clipboard
+gui-apps/waybar
+
+www-client/chromium
+www-client/firefox

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# ---------------------------------------------------------------------
+# updates, upgrades and cleans portage packages
+# if the flag --unsupervised is not present, user input is needed to continue
+#     usage: eupgrade (--unsupervised) <username | whoami>
+# ---------------------------------------------------------------------
+
+# checks required dependencies
+[[ -z $(command -v dispatch-conf) ]] && echo 'Missing command "dispatch-conf"' && exit 1
+[[ -z $(command -v doas) ]] && echo 'Missing command "doas"' && exit 1
+[[ -z $(command -v eclean) ]] && echo 'Missing command "eclean"' && exit 1
+[[ -z $(command -v eclean-kernel) ]] && echo 'Missing command "eclean-kernel"' && exit 1
+[[ -z $(command -v emaint) ]] && echo 'Missing command "emaint"' && exit 1
+[[ -z $(command -v emerge) ]] && echo 'Missing command "emerge"' && exit 1
+[[ -z $(command -v eselect) ]] && echo 'Missing command "eselect"' && exit 1
+
+# checks arguments and shell permissions
+[[ $# -gt 3 ]] && echo "Usage: eupgrade (--unsupervised) <username | whoami>" && exit 1
+POSITIONAL_ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  --unsupervised) UNSUPERVISED='--unsupervised' ;;
+  *) POSITIONAL_ARGS+=($1) ;;
+  esac
+  shift
+done
+set -- "${POSITIONAL_ARGS[@]}"
+USERNAME=${1:-$(whoami)}
+[[ ${EUID} -ne 0 ]] && exec doas $0 ${UNSUPERVISED} ${USERNAME}
+# after this point, the script is running as root
+
+function emerge_upgrade() {
+  # gets output if no packages to upgrade
+  is_empty_upgrade=$(emerge --pretend --verbose --update --deep --newuse --with-bdeps=y --backtrack=30 @world | grep 'Total: 0 packages')
+  [[ ! -z ${is_empty_upgrade} ]] && return 0
+
+  # packages to upgrade unsupervised
+  if [[ ${1} == '--unsupervised' ]]; then
+    emerge --ask=n --verbose --update --deep --newuse --with-bdeps=y --backtrack=30 @world
+  # packages to upgrade interactively
+  else
+    emerge --ask --verbose --update --deep --newuse --with-bdeps=y --backtrack=30 @world
+  fi
+}
+
+# unsupervised upgrade
+if [[ ! -z ${UNSUPERVISED} ]]; then
+  yes | emaint --auto sync >/dev/null
+  emerge_upgrade --unsupervised
+  bash /home/${USERNAME}/.local/bin/edeclare --unsupervised
+  env-update >/dev/null && source /etc/profile
+  emerge --ask=n --depclean >/dev/null
+  eclean distfiles && eclean packages && eclean-kernel -n 1
+  eselect news read >/dev/null
+
+# interactive upgrade
+else
+  emaint --auto sync
+  emerge_upgrade
+  bash /home/${USERNAME}/.local/bin/edeclare
+  dispatch-conf
+  env-update >/dev/null && source /etc/profile
+  emerge --depclean
+  eclean distfiles && eclean packages && eclean-kernel -n 2
+  eselect news read
+fi
