@@ -1,0 +1,7 @@
+#!/bin/bash
+
+net-im/discord all-rights-reserved
+sys-firmware/intel-microcode intel-ucode
+sys-kernel/linux-firmware @BINARY-REDISTRIBUTABLE
+www-client/google-chrome google-chrome
+media-fonts/nerd-fonts Vic-Fieger-License
