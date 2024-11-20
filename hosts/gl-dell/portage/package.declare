@@ -1,0 +1,55 @@
+#!/bin/bash
+
+app-admin/doas                    # sudo replacement
+app-editors/neovim                # text editor
+app-shells/starship               # prompt customization
+app-shells/zoxide                 # cd replacement
+dev-vcs/git                       # version control
+gui-wm/hyprland                   # wayland compositor
+net-misc/networkmanager           # network manager
+sys-apps/eza                      # ls replacement
+sys-block/io-scheduler-udev-rules # disk io optimized scheduler
+sys-firmware/intel-microcode      # cpu microcode
+sys-kernel/gentoo-kernel          # gentoo distribution kernel
+sys-kernel/installkernel          # kernel installation hook
+sys-kernel/linux-firmware         # firmware
+www-client/google-chrome          # web browser
+x11-terms/alacritty               # terminal emulator
+
+media-video/pipewire
+gui-apps/wofi
+sys-power/power-profiles-daemon
+sys-power/acpilight
+sys-process/btop                  # system monitor
+net-im/discord   # chat client
+gui-apps/waybar
+media-fonts/nerd-fonts
+media-fonts/noto-emoji
+media-fonts/fontawesome
+sys-apps/ripgrep
+app-misc/yazi
+app-misc/tmux
+app-admin/eclean-kernel
+app-portage/gentoolkit
+app-misc/fastfetch
+dev-vcs/lazygit
+
+dev-python/pip
+# app-admin/eclean-kernel # deprecated kernel removal
+# app-portage/gentoolkit  # portage tools
+# app-misc/cmatrix # matrix screensaver
+
+# gui-apps/wl-clipboard
+
+#net-misc/chrony                   # ntp client
+#net-misc/keychain                 # ssh-agent manager
+
+#media-libs/libpulse
+
+# www-client/vivaldi
+# www-client/chromium
+# www-client/firefox
+
+# www-client/falkon
+# www-client/epiphany
+# www-client/qutebrowser

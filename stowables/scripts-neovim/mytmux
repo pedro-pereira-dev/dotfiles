@@ -1,0 +1,28 @@
+#!/bin/bash
+
+[[ $# -gt 1 ]] && echo 'Usage: mytmux <dir>' && exit 1
+
+if [[ -z $1 ]]; then
+  TARGET_DIR=~
+  SESSION_NAME=default
+else
+  TARGET_DIR=$(realpath $1)
+  SESSION_NAME=$(basename $TARGET_DIR)
+fi
+
+function is_tmux_session() { [[ ! -z $TMUX ]] && return 0 || return 1; }
+function is_tmux_running() { [[ ! -z $(pgrep tmux) ]] && return 0 || return 1; }
+function has_tmux_session() { tmux has-session -t=$1 2> /dev/null; }
+
+if ! is_tmux_session; then
+  if ! has_tmux_session $SESSION_NAME; then
+    tmux new-session -s $SESSION_NAME -c ${TARGET_DIR:-~} "tmux source-file ~/workspace/personal/dotfiles/stowables/scripts-neovim/mytmuxinator"
+  else
+    tmux attach -t $SESSION_NAME
+  fi
+else
+  if ! has_tmux_session $SESSION_NAME; then
+    tmux new-session -d -s $SESSION_NAME -c ${TARGET_DIR:-~} "tmux source-file ~/workspace/personal/dotfiles/stowables/scripts-neovim/mytmuxinator"
+  fi
+  tmux switch-client -t $SESSION_NAME
+fi

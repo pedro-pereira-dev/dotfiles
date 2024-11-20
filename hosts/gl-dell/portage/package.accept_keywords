@@ -1,0 +1,6 @@
+#!/bin/bash
+
+app-misc/yazi ~amd64
+app-shells/zoxide ~amd64
+dev-vcs/lazygit ~amd64
+media-fonts/nerd-fonts ~amd64

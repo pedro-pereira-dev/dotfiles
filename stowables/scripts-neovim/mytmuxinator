@@ -1,0 +1,4 @@
+neww -n vim 'bash -c myvim'
+neww -n git 'bash -c lazygit'
+neww -n exp 'bash -c yazi'
+selectw -t 1
