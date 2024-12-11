@@ -301,6 +301,10 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>p<tab>", function()
 				session_picker(themes.get_ivy())
 			end, { desc = "Misc: [p]rojects [tab]le" })
+			-- TODO:
+			vim.keymap.set("n", "ço", function()
+				session_picker(themes.get_ivy())
+			end, { desc = "Misc: [p]rojects [tab]le" })
 			vim.keymap.set("n", "<leader>pl", function()
 				session_manager(themes.get_ivy())
 			end, { desc = "Misc: [p]roject [l]oad" })

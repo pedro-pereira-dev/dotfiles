@@ -1,14 +1,12 @@
 #!/bin/bash
 
 tmux send 'clear' ENTER;
-tmux rename-window 'terminal'
+tmux rename-window 'nvim'
+tmux send 'nvim-hot-reloadable' ENTER;
 
-tmux new-window
-tmux send 'vi' ENTER;
-tmux rename-window 'vi'
+tmux new-window -n 'terminal'
 
-tmux new-window
+tmux new-window -n 'git'
 tmux send 'lazygit' ENTER;
-tmux rename-window 'git'
 
-tmux select-window -t :2
+tmux select-window -t :1
