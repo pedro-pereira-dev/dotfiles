@@ -31,6 +31,7 @@ app-portage/gentoolkit # gentoo variety tools
 app-misc/fastfetch # system information
 dev-vcs/lazygit # git tool
 gui-apps/wl-clipboard
+app-misc/neofetch
 
 #net-misc/chrony                   # ntp client
 #net-misc/keychain                 # ssh-agent manager
