@@ -5,7 +5,7 @@
   "position": "bottom",
 
   // modules
-  "modules-left": ["custom/os_button", "user"],
+  "modules-left": ["custom/os_button", "hyprland/submap"],
   "modules-center": ["hyprland/workspaces"],
   "modules-right": ["backlight", "power-profiles-daemon", "battery", "clock"],
 
