@@ -7,7 +7,7 @@
   // modules
   "modules-left": ["custom/os_button", "hyprland/submap"],
   "modules-center": ["hyprland/workspaces"],
-  "modules-right": ["backlight", "power-profiles-daemon", "battery", "clock"],
+  "modules-right": ["backlight", "wireplumber", "power-profiles-daemon", "battery", "clock"],
 
 
   // modules-left
