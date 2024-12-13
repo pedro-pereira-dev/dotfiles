@@ -581,43 +581,43 @@ require("lazy").setup({
 	-- 	},
 	-- },
 
-	--	file manager
-	{
-		"stevearc/oil.nvim",
-		opts = {},
-		dependencies = { "nvim-tree/nvim-web-devicons" },
-		config = function()
-			local oil = require("oil")
-			local oil_actions = require("oil.actions")
-
-			oil.setup({
-				columns = {
-					"icon",
-					"permissions",
-				},
-				skip_confirm_for_simple_edits = true,
-				prompt_save_on_select_new_entry = false,
-				constrain_cursor = "name",
-				keymaps = {
-					["<bs>"] = "actions.parent",
-					["<c-e>"] = "actions.open_cwd",
-					["<c-r>"] = "actions.refresh",
-					["<cr>"] = "actions.select",
-					["gh"] = "<cmd>edit $HOME<cr>",
-					["gr"] = "<cmd>edit /<cr>",
-					["<esc>"] = function()
-						oil_actions.close.callback()
-					end,
-				},
-				use_default_keymaps = false,
-				view_options = {
-					show_hidden = true,
-				},
-			})
-
-			vim.keymap.set("n", "<leader>e", oil_actions.parent.callback)
-		end,
-	},
+	-- --	file manager
+	-- {
+	-- 	"stevearc/oil.nvim",
+	-- 	opts = {},
+	-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+	-- 	config = function()
+	-- 		local oil = require("oil")
+	-- 		local oil_actions = require("oil.actions")
+	--
+	-- 		oil.setup({
+	-- 			columns = {
+	-- 				"icon",
+	-- 				"permissions",
+	-- 			},
+	-- 			skip_confirm_for_simple_edits = true,
+	-- 			prompt_save_on_select_new_entry = false,
+	-- 			constrain_cursor = "name",
+	-- 			keymaps = {
+	-- 				["<bs>"] = "actions.parent",
+	-- 				["<c-e>"] = "actions.open_cwd",
+	-- 				["<c-r>"] = "actions.refresh",
+	-- 				["<cr>"] = "actions.select",
+	-- 				["gh"] = "<cmd>edit $HOME<cr>",
+	-- 				["gr"] = "<cmd>edit /<cr>",
+	-- 				["<esc>"] = function()
+	-- 					oil_actions.close.callback()
+	-- 				end,
+	-- 			},
+	-- 			use_default_keymaps = false,
+	-- 			view_options = {
+	-- 				show_hidden = true,
+	-- 			},
+	-- 		})
+	--
+	-- 		vim.keymap.set("n", "<leader>e", oil_actions.parent.callback)
+	-- 	end,
+	-- },
 
 	-- adds small independent plugins
 	{
