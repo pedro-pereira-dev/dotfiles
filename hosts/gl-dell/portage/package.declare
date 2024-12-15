@@ -35,6 +35,8 @@ app-misc/neofetch
 app-misc/cmatrix
 app-shells/fzf
 
+gui-apps/wev
+
 #net-misc/chrony                   # ntp client
 #net-misc/keychain                 # ssh-agent manager
 #media-libs/libpulse

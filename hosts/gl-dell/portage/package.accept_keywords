@@ -2,3 +2,4 @@
 app-shells/zoxide ~amd64
 dev-vcs/lazygit ~amd64
 media-fonts/nerd-fonts ~amd64
+gui-apps/wev ~amd64
