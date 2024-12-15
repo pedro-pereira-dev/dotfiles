@@ -27,6 +27,7 @@ vim.opt.termguicolors = true -- enables termguicolors on group highlights
 vim.opt.timeoutlen = 2500 -- sets wait time for mapped sequence to finish
 vim.opt.undofile = true -- enables undo history through sessions
 vim.opt.updatetime = 250 -- sets time to update
+-- vim.opt.colorcolumn = "80,100,120"
 
 -- bootstraps lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -48,13 +49,34 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 })
 
 -- defines keymaps
-vim.keymap.set("n", "<esc>", vim.cmd.nohlsearch, { desc = "Misc: remove search highlight" })
+vim.keymap.set("n", "<esc>", vim.cmd.nohlsearch) -- removes search highlight
 vim.keymap.set("n", "<tab>", function()
 	vim.cmd.buffer("#")
-end, { desc = "Misc: cycle to last recent buffer" })
-
-vim.keymap.set("n", "<leader>w", ":w<cr>")
-vim.keymap.set("n", "<leader>q", ":bdelete!<cr>", { silent = true })
+end) -- cycles to previous buffer
+vim.keymap.set("n", "<leader>R", ":cq<cr>") -- reloads nvim
+vim.keymap.set("n", "<leader>gc", ":edit ~/.config/nvim/init.lua<cr>") -- reloads nvim
+vim.keymap.set("n", "J", "mzJ`z") -- appends below line to this line and keep cursor position
+vim.keymap.set("n", "<leader>w", ":w<cr>") -- writes buffer
+vim.keymap.set("n", "<leader>q", ":bdelete!<cr>", { silent = true }) -- closes buffer
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv") -- moves selection one line down
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv") -- moves selection one line up
+vim.keymap.set("n", "<C-d>", "<C-d>zz") -- centers operation
+vim.keymap.set("n", "<C-u>", "<C-u>zz") -- centers operation
+vim.keymap.set("n", "n", "nzzzv") -- centers operation
+vim.keymap.set("n", "N", "Nzzzv") -- centers operation
+vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]]) -- copies to clipboard
+vim.keymap.set("n", "<leader>Y", [["+Y]]) -- copies to clipboard
+vim.keymap.set({ "n", "v" }, "<leader>d", '"_d') -- deletes to void
+-- vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
+-- vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
+-- vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
+-- vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
+vim.keymap.set("n", "<C-h>", "<C-w>h") -- control+h switches to left split
+vim.keymap.set("n", "<C-l>", "<C-w>l") -- control+l switches to right split
+vim.keymap.set("n", "<C-j>", "<C-w>j") -- control+j switches to bottom split
+vim.keymap.set("n", "<C-k>", "<C-w>k") -- control+k switches to top split
+vim.keymap.set("v", "<leader>gr", '"hy:%s/<C-r>h//g<left><left>') -- Replace all instances of highlighted words
+vim.keymap.set("v", "<C-s>", ":sort<CR>") -- Sort highlighted text in visual mode with Control+S
 
 -- installs plugins
 require("lazy").setup({
@@ -63,6 +85,36 @@ require("lazy").setup({
 		"blazkowolf/gruber-darker.nvim",
 		init = function()
 			vim.cmd.colorscheme("gruber-darker")
+		end,
+	},
+
+	{
+		"ThePrimeagen/harpoon",
+		branch = "harpoon2",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		config = function()
+			local harpoon = require("harpoon")
+			harpoon:setup()
+
+			vim.keymap.set("n", "<leader>a", function()
+				harpoon:list():add()
+			end)
+			vim.keymap.set("n", "<leader><leader>", function()
+				harpoon.ui:toggle_quick_menu(harpoon:list())
+			end)
+
+			vim.keymap.set("n", "<leader>1", function()
+				harpoon:list():select(1)
+			end)
+			vim.keymap.set("n", "<leader>2", function()
+				harpoon:list():select(2)
+			end)
+			vim.keymap.set("n", "<leader>3", function()
+				harpoon:list():select(3)
+			end)
+			vim.keymap.set("n", "<leader>4", function()
+				harpoon:list():select(4)
+			end)
 		end,
 	},
 
@@ -525,55 +577,6 @@ require("lazy").setup({
 	-- 	end,
 	-- },
 
-	--
-	-- {
-	-- 	"folke/flash.nvim",
-	-- 	event = "VeryLazy",
-	-- 	opts = {},
-	-- 	keys = {
-	-- 		{
-	-- 			"<leader>.",
-	-- 			mode = { "n", "x", "o" },
-	-- 			function()
-	-- 				require("flash").jump()
-	-- 			end,
-	-- 			desc = "Flash",
-	-- 		},
-	-- 		{
-	-- 			"S",
-	-- 			mode = { "n", "x", "o" },
-	-- 			function()
-	-- 				require("flash").treesitter()
-	-- 			end,
-	-- 			desc = "Flash Treesitter",
-	-- 		},
-	-- 		{
-	-- 			"r",
-	-- 			mode = "o",
-	-- 			function()
-	-- 				require("flash").remote()
-	-- 			end,
-	-- 			desc = "Remote Flash",
-	-- 		},
-	-- 		{
-	-- 			"R",
-	-- 			mode = { "o", "x" },
-	-- 			function()
-	-- 				require("flash").treesitter_search()
-	-- 			end,
-	-- 			desc = "Treesitter Search",
-	-- 		},
-	-- 		{
-	-- 			"<c-s>",
-	-- 			mode = { "c" },
-	-- 			function()
-	-- 				require("flash").toggle()
-	-- 			end,
-	-- 			desc = "Toggle Flash Search",
-	-- 		},
-	-- 	},
-	-- },
-
 	-- --	file manager
 	-- {
 	-- 	"stevearc/oil.nvim",
@@ -651,26 +654,26 @@ require("lazy").setup({
 		end,
 	},
 
-	--{
-	--"akinsho/bufferline.nvim",
-	--dependencies = "nvim-tree/nvim-web-devicons",
-	--config = function()
-	--local bufferline = require("bufferline")
-	--bufferline.setup({
-	--options = {
-	--right_mouse_command = "buffer %d", -- can be a string | function | false, see "Mouse actions"
-	--middle_mouse_command = "bdelete! %d", -- can be a string | function, | false see "Mouse actions"
-	--indicator = { style = "underline" },
-	--diagnostics = "nvim_lsp",
-	--diagnostics_update_on_event = true, -- use nvim's diagnostic handler
-	--diagnostics_indicator = function(count, level)
-	--local icon = level:match("error") and " " or " "
-	--return " " .. icon .. count
-	--end,
-	--},
-	--})
-	--end,
-	--},
+	-- {
+	-- 	"akinsho/bufferline.nvim",
+	-- 	dependencies = "nvim-tree/nvim-web-devicons",
+	-- 	config = function()
+	-- 		local bufferline = require("bufferline")
+	-- 		bufferline.setup({
+	-- 			options = {
+	-- 				right_mouse_command = "buffer %d", -- can be a string | function | false, see "Mouse actions"
+	-- 				middle_mouse_command = "bdelete! %d", -- can be a string | function, | false see "Mouse actions"
+	-- 				indicator = { style = "underline" },
+	-- 				diagnostics = "nvim_lsp",
+	-- 				diagnostics_update_on_event = true, -- use nvim's diagnostic handler
+	-- 				diagnostics_indicator = function(count, level)
+	-- 					local icon = level:match("error") and " " or " "
+	-- 					return " " .. icon .. count
+	-- 				end,
+	-- 			},
+	-- 		})
+	-- 	end,
+	-- },
 
 	{ -- Useful plugin to show you pending keybinds.
 		"folke/which-key.nvim",
@@ -823,7 +826,7 @@ require("lazy").setup({
 					-- Fuzzy find all the symbols in your current workspace.
 					--  Similar to document symbols, except searches over your entire project.
 					map(
-						"<leader>ws",
+						"<leader>fs",
 						require("telescope.builtin").lsp_dynamic_workspace_symbols,
 						"[W]orkspace [S]ymbols"
 					)
