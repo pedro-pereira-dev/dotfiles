@@ -1,5 +1,6 @@
 -- sets global vim settings
-local global_leader = " " -- sets leader key
+vim.g.mapleader = " " -- sets leader key
+vim.g.maplocalleader = " " -- sets local leader key
 vim.g.have_nerd_font = true -- enables nerd font support
 
 -- bootstraps lazy.nvim
@@ -39,9 +40,6 @@ vim.opt.timeoutlen = 2500 -- sets wait time for mapped sequence to finish
 vim.opt.undofile = true -- enables undo history through sessions
 vim.opt.updatetime = 250 -- sets time to update
 
-vim.g.mapleader = global_leader -- sets leader key
-vim.g.maplocalleader = global_leader -- sets local leader key
-
 -- defines highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
@@ -55,6 +53,9 @@ vim.keymap.set("n", "<esc>", vim.cmd.nohlsearch, { desc = "Misc: remove search h
 vim.keymap.set("n", "<tab>", function()
 	vim.cmd.buffer("#")
 end, { desc = "Misc: cycle to last recent buffer" })
+
+vim.keymap.set("n", "<leader>w", ":w<cr>")
+vim.keymap.set("n", "<leader>q", ":bdelete!<cr>")
 
 -- installs plugins
 require("lazy").setup({
