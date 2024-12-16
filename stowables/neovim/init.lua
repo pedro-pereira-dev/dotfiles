@@ -61,13 +61,30 @@ local neovim_keymaps = function()
 	vim.keymap.set("v", "<leader>s", ":sort<cr>", { silent = true, desc = "Sorts selected lines" })
 	vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true, desc = "Moves selected lines down" })
 	vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true, desc = "Moves selected lines up" })
-	-- FIXME: change this --vim.keymap.set({ "n", "v" }, "<leader>c", ":normal gc<cr>", { silent = true, desc = "Toggle line comment" })
-	-- vim.keymap.set({ "n", "v" }, "<leader>c", "gcc", { silent = true, desc = "Toggle line comment" })
+	vim.keymap.set("n", "<leader>c", ":normal gcc<cr>", { silent = true, desc = "Toggle line comment" })
+	-- FIXME: visual comments --vim.keymap.set("v", "<leader>c", "gc", { silent = true, desc = "Toggle line comment" })
 end
 -- telescope
 local telescope_keymaps = function(pickers)
-	vim.keymap.set("n", "<leader>b", pickers.find_files, { desc = "test" })
-	vim.keymap.set("n", "<leader>B", pickers.outra_coisa, { desc = "test" })
+	-- files
+	vim.keymap.set("n", "<leader>o", pickers.find_files, { desc = "Open project file" })
+	-- buffers
+	vim.keymap.set("n", "<leader><tab>", pickers.buffers, { desc = "List buffers" })
+	-- command palette
+	vim.keymap.set("n", "<leader><cr>", pickers.menu, { desc = "List custom commands" })
+
+	-- FIXME: implement project switching
+	-- vim.keymap.set("n", "<leader>p<tab>", function()
+	-- 	session_picker(themes.get_ivy())
+	-- end, { desc = "Misc: [p]rojects [tab]le" })
+	-- vim.keymap.set("n", "<leader>pl", function()
+	-- 	session_manager(themes.get_ivy())
+	-- end, { desc = "Misc: [p]roject [l]oad" })
+	-- vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Misc: [p]roject [v]iew" })
+	-- vim.keymap.set("n", "<leader>sw", builtin.live_grep, { desc = "Misc: [s]earch [w]ord" })
+	-- vim.keymap.set("n", "<leader>ff", function()
+	-- 	builtin.find_files({ cwd = "~" })
+	-- end, { desc = "Misc: [f]ind [f]iles" })
 end
 
 -- TODO: work in progress
@@ -100,6 +117,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+-- neovim custom keymaps
 neovim_keymaps()
 
 -- bootstraps lazy.nvim
@@ -373,31 +391,7 @@ require("lazy").setup({
 				cmd_palette(themes.get_ivy())
 			end
 
-			telescope_keymaps(vim.tbl_extend("force", { outra_coisa = cmd_palette_teste }, builtin))
-
-			-- custom keymaps
-			vim.keymap.set("n", "<leader>o", builtin.find_files, { desc = "Misc: [o]pen file" })
-			-- vim.keymap.set("n", "<leader>o", builtin.git_files, { desc = "Misc: [o]pen project file" })
-			vim.keymap.set("n", "<leader><tab>", builtin.buffers, { desc = "Misc: buffers [tab]le" })
-			vim.keymap.set("n", "<leader><cr>", function()
-				cmd_palette(themes.get_ivy())
-			end, { desc = "Misc: [enter] menu" })
-
-			vim.keymap.set("n", "<leader>p<tab>", function()
-				session_picker(themes.get_ivy())
-			end, { desc = "Misc: [p]rojects [tab]le" })
-			-- TODO:
-			vim.keymap.set("n", "ço", function()
-				session_picker(themes.get_ivy())
-			end, { desc = "Misc: [p]rojects [tab]le" })
-			vim.keymap.set("n", "<leader>pl", function()
-				session_manager(themes.get_ivy())
-			end, { desc = "Misc: [p]roject [l]oad" })
-			vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Misc: [p]roject [v]iew" })
-			-- vim.keymap.set("n", "<leader>sw", builtin.live_grep, { desc = "Misc: [s]earch [w]ord" })
-			-- vim.keymap.set("n", "<leader>ff", function()
-			-- 	builtin.find_files({ cwd = "~" })
-			-- end, { desc = "Misc: [f]ind [f]iles" })
+			telescope_keymaps(vim.tbl_extend("force", { menu = cmd_palette_teste }, builtin))
 		end,
 	},
 
