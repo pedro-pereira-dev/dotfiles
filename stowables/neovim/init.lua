@@ -87,8 +87,7 @@ local telescope_keymaps = function(pickers)
 	-- end, { desc = "Misc: [f]ind [f]iles" })
 end
 
--- TODO: work in progress
-
+-- FIXME: check usability of these
 -- vim.keymap.set({ "n", "v" }, "<leader>d", '"_d') -- deletes to void
 -- vim.keymap.set("v", "<leader>gr", '"hy:%s/<C-r>h//g<left><left>') -- Replace all instances of highlighted words
 -- vim.keymap.set("n", "<leader>e", ":25Lex!<cr>") -- space+e toggles netrw tree view
@@ -131,12 +130,49 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
+-- installs plugins
 require("lazy").setup({
 	-- adds colorscheme
 	{
 		"blazkowolf/gruber-darker.nvim",
 		init = function()
 			vim.cmd.colorscheme("gruber-darker")
+		end,
+	},
+
+	{
+		"ggandor/leap.nvim",
+		dependencies = { "tpope/vim-repeat" },
+		config = function()
+			require("leap").opts.safe_labels = {
+				"a",
+				"s",
+				"d",
+				"f",
+				"h",
+				"j",
+				"k",
+				"l",
+				"w",
+				"e",
+				"r",
+				"u",
+				"i",
+				"o",
+				"p",
+				"q",
+				"g",
+				"t",
+				"y",
+				"c",
+				"v",
+				"m",
+				"n",
+				"b",
+				"x",
+				"z",
+			}
+			vim.keymap.set({ "n", "x", "o" }, "<leader><leader>", "<Plug>(leap)")
 		end,
 	},
 
@@ -601,14 +637,6 @@ require("lazy").setup({
 	-- 			motion = false,
 	-- 		},
 	-- 	},
-	-- },
-
-	-- {
-	-- 	"ggandor/leap.nvim",
-	-- 	dependencies = { "tpope/vim-repeat" },
-	-- 	config = function()
-	-- 		vim.keymap.set({ "n", "x", "o" }, "<leader><leader>", "<Plug>(leap)")
-	-- 	end,
 	-- },
 
 	-- --	file manager
