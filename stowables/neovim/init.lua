@@ -1,33 +1,106 @@
-vim.g.mapleader = " " -- sets leader key
-vim.g.maplocalleader = " " -- sets local leader key
-vim.g.have_nerd_font = true -- enables nerd font support
+-- global vim options
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+vim.g.have_nerd_font = true
+-- mouse support
+vim.opt.mouse = "a"
+-- temporary files
+vim.opt.swapfile = false
+vim.opt.undofile = true
+-- panes direction
+vim.opt.splitbelow = true
+vim.opt.splitright = true
+-- visual appearance
+vim.opt.colorcolumn = "80,100,120"
+vim.opt.cursorline = true
+vim.opt.numberwidth = 5
+vim.opt.scrolloff = 15
+vim.opt.showmode = false
+vim.opt.signcolumn = "yes"
+vim.opt.termguicolors = true
+-- line numbers
+vim.opt.number = true
+vim.opt.relativenumber = true
+-- tabs as spaces
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
+vim.opt.tabstop = 2
+-- text formatting
+vim.opt.linebreak = true
+vim.opt.smartindent = true
+-- smart search
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
 
-vim.opt.breakindent = true -- enables indentation break for long wrapped lines
-vim.opt.cursorline = true -- enables highlighting of the cursor line
-vim.opt.expandtab = true -- handles tabs as spaces
-vim.opt.ignorecase = true -- enables case-insensitive search
-vim.opt.inccommand = "split" -- enables live text replacement
-vim.opt.linebreak = true -- disables word breaking when breaking lines
-vim.opt.mouse = "a" -- enables mouse support
-vim.opt.number = true -- enables line numbers
-vim.opt.relativenumber = true -- enables relative line numbers
-vim.opt.scrolloff = 10 -- sets minimal number of lines to keep on the top and bottom when scrolling vertically
-vim.opt.shiftwidth = 2 -- sets number of spaces per identation
-vim.opt.showmode = false -- disables the mode status display
-vim.opt.sidescrolloff = 10 -- sets minimal number of lines to keep on the left and right when scrolling horizontally
-vim.opt.signcolumn = "yes" -- enables sign column next to the line numbers
-vim.opt.smartcase = true -- enables smart case search
-vim.opt.smartindent = true -- enables automatic indentation on syntax keywords
-vim.opt.softtabstop = 22 -- sets number of spaces a tab is equal to while performing editing operations
-vim.opt.splitbelow = true -- forces vertical splits to show below
-vim.opt.splitright = true -- forces horizontal splits to show to the right
-vim.opt.swapfile = false -- disables the use of a swap file
-vim.opt.tabstop = 2 -- sets number of spaces to write when inserting a tab
-vim.opt.termguicolors = true -- enables termguicolors on group highlights
-vim.opt.timeoutlen = 2500 -- sets wait time for mapped sequence to finish
-vim.opt.undofile = true -- enables undo history through sessions
-vim.opt.updatetime = 250 -- sets time to update
--- vim.opt.colorcolumn = "80,100,120"
+-- neovim
+local neovim_keymaps = function()
+	-- neovim handles
+	vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clears search highlights" })
+	vim.keymap.set("n", "<leader>R", ":cq<cr>", { desc = "Reloads neovim" })
+	vim.keymap.set("n", "<leader>w", ":w<cr>", { desc = "Writes buffer" })
+	-- buffers
+	vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { desc = "Go to previous buffer" })
+	vim.keymap.set("n", "<leader>q", ":bd!<cr>", { silent = true, desc = "Quits buffer" })
+	-- scrolling
+	vim.keymap.set("n", "<c-d>", "<c-d>zzzv", { desc = "Centered half page down" })
+	vim.keymap.set("n", "<c-u>", "<c-u>zzzv", { desc = "Centered half page up" })
+	vim.keymap.set("n", "N", "Nzzzv", { desc = "Centered previous occurrence" })
+	vim.keymap.set("n", "n", "nzzzv", { desc = "Centered next occurrence" })
+	vim.keymap.set("n", "{", "{zzzv", { desc = "Centered previous paragraph" })
+	vim.keymap.set("n", "}", "}zzzv", { desc = "Centered next paragraph" })
+	-- navigation
+	vim.keymap.set("n", "<c-h>", "<c-w>h", { desc = "Navigate to left window" })
+	vim.keymap.set("n", "<c-j>", "<c-w>j", { desc = "Navigate to down window" })
+	vim.keymap.set("n", "<c-k>", "<c-w>k", { desc = "Navigate to up window" })
+	vim.keymap.set("n", "<c-l>", "<c-w>l", { desc = "Navigate to right window" })
+	-- clipboard
+	vim.keymap.set({ "n", "v" }, "<leader>P", [["+p]], { desc = "Pastes from clipboard" })
+	vim.keymap.set({ "n", "v" }, "<leader>Y", [["+y]], { desc = "Copies selection to clipboard" })
+	-- manipulation
+	vim.keymap.set("v", "<leader>s", ":sort<cr>", { silent = true, desc = "Sorts selected lines" })
+	vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true, desc = "Moves selected lines down" })
+	vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true, desc = "Moves selected lines up" })
+	-- FIXME: change this --vim.keymap.set({ "n", "v" }, "<leader>c", ":normal gc<cr>", { silent = true, desc = "Toggle line comment" })
+	-- vim.keymap.set({ "n", "v" }, "<leader>c", "gcc", { silent = true, desc = "Toggle line comment" })
+end
+-- telescope
+local telescope_keymaps = function(pickers)
+	vim.keymap.set("n", "<leader>b", pickers.find_files, { desc = "test" })
+	vim.keymap.set("n", "<leader>B", pickers.outra_coisa, { desc = "test" })
+end
+
+-- TODO: work in progress
+
+-- vim.keymap.set({ "n", "v" }, "<leader>d", '"_d') -- deletes to void
+-- vim.keymap.set("v", "<leader>gr", '"hy:%s/<C-r>h//g<left><left>') -- Replace all instances of highlighted words
+-- vim.keymap.set("n", "<leader>e", ":25Lex!<cr>") -- space+e toggles netrw tree view
+-- vim.keymap.set("n", "J", "mzJ`z") -- append to end of line without moving cursor
+-- vim.keymap.set("x", "<leader>p", [["_dP]]) -- repaces with past and sends to void
+-- vim.keymap.set({"n", "v"}, "<leader>d", [["_d]]) -- deletes to void
+-- vim.keymap.set("i", "<C-c>", "<Esc>")
+-- vim.keymap.set("n", "Q", "<nop>")
+-- vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
+-- vim.keymap.set("n", "<leader>f", vim.lsp.buf.format)
+-- vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
+-- vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
+-- vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
+-- vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
+-- vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
+-- map("n", "<C-Left>", ":vertical resize +3<CR>")		-- Control+Left resizes vertical split +
+-- map("n", "<C-Right>", ":vertical resize -3<CR>")	-- Control+Right resizes vertical split -
+-- map("i", "kj", "<Esc>")					-- kj simulates ESC
+-- map("i", "jk", "<Esc>")					-- jk simulates ESC
+
+-- highlight on yank
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
+	callback = function()
+		vim.highlight.on_yank()
+	end,
+})
+
+neovim_keymaps()
 
 -- bootstraps lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -40,45 +113,6 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 
--- defines highlight on yank
-vim.api.nvim_create_autocmd("TextYankPost", {
-	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
-	callback = function()
-		vim.highlight.on_yank()
-	end,
-})
-
--- defines keymaps
-vim.keymap.set("n", "<esc>", vim.cmd.nohlsearch) -- removes search highlight
-vim.keymap.set("n", "<tab>", function()
-	vim.cmd.buffer("#")
-end) -- cycles to previous buffer
-vim.keymap.set("n", "<leader>R", ":cq<cr>") -- reloads nvim
-vim.keymap.set("n", "<leader>gc", ":edit ~/.config/nvim/init.lua<cr>") -- reloads nvim
-vim.keymap.set("n", "J", "mzJ`z") -- appends below line to this line and keep cursor position
-vim.keymap.set("n", "<leader>w", ":w<cr>") -- writes buffer
-vim.keymap.set("n", "<leader>q", ":bdelete!<cr>", { silent = true }) -- closes buffer
-vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv") -- moves selection one line down
-vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv") -- moves selection one line up
-vim.keymap.set("n", "<C-d>", "<C-d>zz") -- centers operation
-vim.keymap.set("n", "<C-u>", "<C-u>zz") -- centers operation
-vim.keymap.set("n", "n", "nzzzv") -- centers operation
-vim.keymap.set("n", "N", "Nzzzv") -- centers operation
-vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]]) -- copies to clipboard
-vim.keymap.set("n", "<leader>Y", [["+Y]]) -- copies to clipboard
-vim.keymap.set({ "n", "v" }, "<leader>d", '"_d') -- deletes to void
--- vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
--- vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
--- vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
--- vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
-vim.keymap.set("n", "<C-h>", "<C-w>h") -- control+h switches to left split
-vim.keymap.set("n", "<C-l>", "<C-w>l") -- control+l switches to right split
-vim.keymap.set("n", "<C-j>", "<C-w>j") -- control+j switches to bottom split
-vim.keymap.set("n", "<C-k>", "<C-w>k") -- control+k switches to top split
-vim.keymap.set("v", "<leader>gr", '"hy:%s/<C-r>h//g<left><left>') -- Replace all instances of highlighted words
-vim.keymap.set("v", "<C-s>", ":sort<CR>") -- Sort highlighted text in visual mode with Control+S
-
--- installs plugins
 require("lazy").setup({
 	-- adds colorscheme
 	{
@@ -99,7 +133,7 @@ require("lazy").setup({
 			vim.keymap.set("n", "<leader>a", function()
 				harpoon:list():add()
 			end)
-			vim.keymap.set("n", "<leader><leader>", function()
+			vim.keymap.set("n", "<leader>h", function()
 				harpoon.ui:toggle_quick_menu(harpoon:list())
 			end)
 
@@ -335,6 +369,12 @@ require("lazy").setup({
 					:find()
 			end
 
+			local cmd_palette_teste = function()
+				cmd_palette(themes.get_ivy())
+			end
+
+			telescope_keymaps(vim.tbl_extend("force", { outra_coisa = cmd_palette_teste }, builtin))
+
 			-- custom keymaps
 			vim.keymap.set("n", "<leader>o", builtin.find_files, { desc = "Misc: [o]pen file" })
 			-- vim.keymap.set("n", "<leader>o", builtin.git_files, { desc = "Misc: [o]pen project file" })
@@ -354,7 +394,7 @@ require("lazy").setup({
 				session_manager(themes.get_ivy())
 			end, { desc = "Misc: [p]roject [l]oad" })
 			vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Misc: [p]roject [v]iew" })
-			vim.keymap.set("n", "<leader>sw", builtin.live_grep, { desc = "Misc: [s]earch [w]ord" })
+			-- vim.keymap.set("n", "<leader>sw", builtin.live_grep, { desc = "Misc: [s]earch [w]ord" })
 			-- vim.keymap.set("n", "<leader>ff", function()
 			-- 	builtin.find_files({ cwd = "~" })
 			-- end, { desc = "Misc: [f]ind [f]iles" })
@@ -571,7 +611,7 @@ require("lazy").setup({
 
 	-- {
 	-- 	"ggandor/leap.nvim",
-	-- 	ependencies = { "tpope/vim-repeat" },
+	-- 	dependencies = { "tpope/vim-repeat" },
 	-- 	config = function()
 	-- 		vim.keymap.set({ "n", "x", "o" }, "<leader><leader>", "<Plug>(leap)")
 	-- 	end,
@@ -718,7 +758,7 @@ require("lazy").setup({
 
 			-- Document existing key chains
 			spec = {
-				{ "<leader>c", group = "[C]ode", mode = { "n", "x" } },
+				{ "<leader>C", group = "[C]ode", mode = { "n", "x" } },
 				{ "<leader>d", group = "[D]ocument" },
 				{ "<leader>r", group = "[R]ename" },
 				{ "<leader>s", group = "[S]earch" },
@@ -837,7 +877,7 @@ require("lazy").setup({
 
 					-- Execute a code action, usually your cursor needs to be on top of an error
 					-- or a suggestion from your LSP for this to activate.
-					map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction", { "n", "x" })
+					map("<leader>Ca", vim.lsp.buf.code_action, "[C]ode [A]ction", { "n", "x" })
 
 					-- WARN: This is not Goto Definition, this is Goto Declaration.
 					--  For example, in C this would take you to the header.
