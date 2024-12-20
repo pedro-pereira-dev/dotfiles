@@ -34,10 +34,8 @@ gui-apps/wl-clipboard
 app-misc/neofetch
 app-misc/cmatrix
 app-shells/fzf
-
-gui-apps/wev
-
-#net-misc/chrony                   # ntp client
-#net-misc/keychain                 # ssh-agent manager
-#media-libs/libpulse
-
+x11-wm/jwm
+x11-apps/setxkbmap
+x11-apps/xinput
+x11-misc/rofi
+x11-base/xorg-server
