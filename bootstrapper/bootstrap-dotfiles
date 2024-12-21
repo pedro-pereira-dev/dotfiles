@@ -50,7 +50,7 @@ gl-dell | gl-red)
 
   # sets up dotfiles
   if [[ ! -d $DOTFILES_DIR ]]; then
-    mkdir -p $(dirname $DOTFILES_DIR)
+    run_as_user chuck mkdir -p $(dirname $DOTFILES_DIR)
     run_as_user chuck git clone https://github.com/pedro-pereira-dev/dotfiles $DOTFILES_DIR
   fi
   cd $DOTFILES_DIR
