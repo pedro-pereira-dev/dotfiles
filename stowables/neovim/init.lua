@@ -120,6 +120,12 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	end,
 })
 
+vim.api.nvim_create_autocmd({ "VimEnter" }, {
+	callback = function()
+		require("nvim-tree.api").tree.open()
+	end,
+})
+
 -- neovim custom keymaps
 neovim_keymaps()
 
@@ -145,6 +151,11 @@ require("lazy").setup({
 	},
 
 	{
+		"nvim-lualine/lualine.nvim",
+		dependencies = { "nvim-tree/nvim-web-devicons" },
+	},
+
+	{
 		"nvim-tree/nvim-tree.lua",
 		version = "*",
 		lazy = false,
@@ -152,7 +163,38 @@ require("lazy").setup({
 			"nvim-tree/nvim-web-devicons",
 		},
 		config = function()
-			require("nvim-tree").setup({})
+			require("nvim-tree").setup({
+				filters = { dotfiles = false },
+				disable_netrw = true,
+				hijack_cursor = true,
+				sync_root_with_cwd = true,
+				update_focused_file = {
+					enable = true,
+					update_root = false,
+				},
+				view = {
+					width = 30,
+					preserve_window_proportions = true,
+				},
+				renderer = {
+					root_folder_label = false,
+					highlight_git = true,
+					indent_markers = { enable = true },
+					icons = {
+						glyphs = {
+							default = "󰈚",
+							folder = {
+								default = "",
+								empty = "",
+								empty_open = "",
+								open = "",
+								symlink = "",
+							},
+							git = { unmerged = "" },
+						},
+					},
+				},
+			})
 		end,
 	},
 
@@ -743,26 +785,26 @@ require("lazy").setup({
 		end,
 	},
 
-	-- {
-	-- 	"akinsho/bufferline.nvim",
-	-- 	dependencies = "nvim-tree/nvim-web-devicons",
-	-- 	config = function()
-	-- 		local bufferline = require("bufferline")
-	-- 		bufferline.setup({
-	-- 			options = {
-	-- 				right_mouse_command = "buffer %d", -- can be a string | function | false, see "Mouse actions"
-	-- 				middle_mouse_command = "bdelete! %d", -- can be a string | function, | false see "Mouse actions"
-	-- 				indicator = { style = "underline" },
-	-- 				diagnostics = "nvim_lsp",
-	-- 				diagnostics_update_on_event = true, -- use nvim's diagnostic handler
-	-- 				diagnostics_indicator = function(count, level)
-	-- 					local icon = level:match("error") and " " or " "
-	-- 					return " " .. icon .. count
-	-- 				end,
-	-- 			},
-	-- 		})
-	-- 	end,
-	-- },
+	{
+		"akinsho/bufferline.nvim",
+		dependencies = "nvim-tree/nvim-web-devicons",
+		config = function()
+			local bufferline = require("bufferline")
+			bufferline.setup({
+				options = {
+					right_mouse_command = "buffer %d", -- can be a string | function | false, see "Mouse actions"
+					middle_mouse_command = "bdelete! %d", -- can be a string | function, | false see "Mouse actions"
+					indicator = { style = "underline" },
+					diagnostics = "nvim_lsp",
+					diagnostics_update_on_event = true, -- use nvim's diagnostic handler
+					diagnostics_indicator = function(count, level)
+						local icon = level:match("error") and " " or " "
+						return " " .. icon .. count
+					end,
+				},
+			})
+		end,
+	},
 
 	{ -- Useful plugin to show you pending keybinds.
 		"folke/which-key.nvim",
