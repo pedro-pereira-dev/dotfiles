@@ -127,6 +127,7 @@ gl-dell | gl-red)
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/ssh /home/chuck/.ssh
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/tmux /home/chuck/.config/tmux
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/waybar /home/chuck/.config/waybar
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/jwm /home/chuck/
   ;;
 *)
   echo "No bootstrap configured for host: ${HOSTNAME}"
