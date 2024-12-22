@@ -177,7 +177,7 @@
   <Key mask="4S" key="R">restart</Key>
   <Key mask="4" key="R">exec:rofi -show drun</Key>
   <Key mask="4" key="Q">close</Key>
-  <Key mask="4" key="Return">exec:alacritty</Key>
+  <Key mask="4" key="Return">exec:xterm</Key>
   <Key mask="A" key="Tab">prev</Key>
   <!--<Key mask="A" key="Tab">exec:testealt</Key>-->
   <Key key="XF86MonBrightnessDown">exec:bldown</Key>
