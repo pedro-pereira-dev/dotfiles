@@ -30,7 +30,7 @@
   </Group>
   <Group>
     <Name>xterm</Name>
-    <Option>vmax</Option>
+    <Option>iignore</Option>
   </Group>
   <Group>
     <Name>xclock</Name>
