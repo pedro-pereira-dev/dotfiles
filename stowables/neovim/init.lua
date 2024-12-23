@@ -1334,4 +1334,8 @@ require("lazy").setup({
 			indent = { enable = true, disable = { "ruby" } },
 		},
 	},
+}, {
+	rocks = {
+		enabled = false,
+	},
 })
