@@ -1,7 +1,6 @@
 -- global vim options
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
-vim.g.have_nerd_font = true
 vim.g.loaded_node_provider = 0 -- FIXME: temporary to test performance on macos
 vim.g.loaded_perl_provider = 0 -- FIXME: temporary to test performance on macos
 vim.g.loaded_python_provider = 0 -- FIXME: temporary to test performance on macos
@@ -36,39 +35,45 @@ vim.opt.smartindent = true
 -- smart search
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
+-- netrw
+vim.g.netrw_banner = 0 -- gets rid of the annoying banner for netrw
+vim.g.netrw_browse_split = 4 -- open in prior window
+vim.g.netrw_altv = 1 -- change from left splitting to right splitting
+vim.g.netrw_liststyle = 3 -- tree style view in netrw
+vim.opt.title = true
 
--- neovim
+-- keymaps
 local neovim_keymaps = function()
-	-- neovim handles
-	vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clears search highlights" })
-	vim.keymap.set("n", "<leader>R", ":cq<cr>", { desc = "Reloads neovim" })
-	vim.keymap.set("n", "<leader>w", ":w<cr>", { desc = "Writes buffer" })
-	-- buffers
-	vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { desc = "Go to previous buffer" })
-	vim.keymap.set("n", "<leader>q", ":bd!<cr>", { silent = true, desc = "Quits buffer" })
-	-- scrolling
+	-- centered default mappings
 	vim.keymap.set("n", "<c-d>", "<c-d>zzzv", { desc = "Centered half page down" })
 	vim.keymap.set("n", "<c-u>", "<c-u>zzzv", { desc = "Centered half page up" })
 	vim.keymap.set("n", "N", "Nzzzv", { desc = "Centered previous occurrence" })
 	vim.keymap.set("n", "n", "nzzzv", { desc = "Centered next occurrence" })
 	vim.keymap.set("n", "{", "{zzzv", { desc = "Centered previous paragraph" })
 	vim.keymap.set("n", "}", "}zzzv", { desc = "Centered next paragraph" })
+	-- clipboard
+	vim.keymap.set({ "n", "v" }, "<leader>cp", [["+p]], { desc = "Pastes from clipboard" })
+	vim.keymap.set({ "n", "v" }, "<leader>cy", [["+y]], { desc = "Copies selection to clipboard" })
 	-- navigation
+	vim.keymap.set("n", "<leader>q", ":bd!<cr>", { silent = true, desc = "Quits buffer" })
+	vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { desc = "Go to previous buffer" })
 	vim.keymap.set("n", "<c-h>", "<c-w>h", { desc = "Navigate to left window" })
 	vim.keymap.set("n", "<c-j>", "<c-w>j", { desc = "Navigate to down window" })
 	vim.keymap.set("n", "<c-k>", "<c-w>k", { desc = "Navigate to up window" })
 	vim.keymap.set("n", "<c-l>", "<c-w>l", { desc = "Navigate to right window" })
-	-- clipboard
-	vim.keymap.set({ "n", "v" }, "<leader>P", [["+p]], { desc = "Pastes from clipboard" })
-	vim.keymap.set({ "n", "v" }, "<leader>Y", [["+y]], { desc = "Copies selection to clipboard" })
-	-- manipulation
+	-- operations
+	vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clears search highlights" })
+	vim.keymap.set("n", "<leader>cq", ":q!<cr>", { silent = true, desc = "Quits neovim" })
+	vim.keymap.set("n", "<leader>cr", ":cq<cr>", { desc = "Reloads neovim" })
+	vim.keymap.set("n", "<leader>cc", ":e ~/.config/nvim/init.lua<cr>", { desc = "Opens configurations" })
+	vim.keymap.set("n", "<leader>r", ":e!<cr>zzzv", { desc = "Reloads buffer" })
+	vim.keymap.set("n", "<leader>w", ":w<cr>", { desc = "Writes buffer" })
 	vim.keymap.set("v", "<leader>s", ":sort<cr>", { silent = true, desc = "Sorts selected lines" })
-	vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true, desc = "Moves selected lines down" })
-	vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true, desc = "Moves selected lines up" })
+	vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { silent = true, desc = "Moves selected lines down" })
+	vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { silent = true, desc = "Moves selected lines up" })
 	vim.keymap.set("n", "<leader>c", ":normal gcc<cr>", { silent = true, desc = "Toggle line comment" })
 	-- FIXME: visual comments --vim.keymap.set("v", "<leader>c", "gc", { silent = true, desc = "Toggle line comment" })
 end
--- telescope
 local telescope_keymaps = function(pickers)
 	-- files
 	vim.keymap.set("n", "<leader>o", pickers.find_files, { desc = "Open project file" })
@@ -117,6 +122,32 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("YankHighlight", { clear = true }),
 	callback = function()
 		vim.highlight.on_yank()
+	end,
+})
+
+-- Function to get the full path and replace the home directory with ~
+local function get_winbar_path()
+	local full_path = vim.fn.expand("%:p")
+	return full_path:gsub(vim.fn.expand("$HOME"), "~")
+end
+-- Function to get the number of open buffers using the :ls command
+local function get_buffer_count()
+	local buffers = vim.fn.execute("ls")
+	local count = 0
+	-- Match only lines that represent buffers, typically starting with a number followed by a space
+	for line in string.gmatch(buffers, "[^\r\n]+") do
+		if string.match(line, "^%s*%d+") then
+			count = count + 1
+		end
+	end
+	return count
+end
+-- Autocmd to update the winbar on BufEnter and WinEnter events
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+	callback = function()
+		local home_replaced = get_winbar_path()
+		local buffer_count = get_buffer_count()
+		vim.opt.winbar = "(" .. buffer_count .. ") " .. home_replaced .. " %m%*%="
 	end,
 })
 
@@ -283,7 +314,7 @@ require("lazy").setup({
 		dependencies = {
 			{ "nvim-lua/plenary.nvim" },
 			{ "nvim-telescope/telescope-ui-select.nvim" },
-			{ "nvim-tree/nvim-web-devicons", enabled = vim.g.have_nerd_font },
+			{ "nvim-tree/nvim-web-devicons" },
 		},
 		config = function()
 			local telescope = require("telescope")
@@ -708,43 +739,43 @@ require("lazy").setup({
 	-- 	},
 	-- },
 
-	--	file manager
-	{
-		"stevearc/oil.nvim",
-		opts = {},
-		dependencies = { "nvim-tree/nvim-web-devicons" },
-		config = function()
-			local oil = require("oil")
-			local oil_actions = require("oil.actions")
-
-			oil.setup({
-				columns = {
-					"icon",
-					"permissions",
-				},
-				skip_confirm_for_simple_edits = true,
-				prompt_save_on_select_new_entry = false,
-				constrain_cursor = "name",
-				keymaps = {
-					["<bs>"] = "actions.parent",
-					["<c-e>"] = "actions.open_cwd",
-					["<c-r>"] = "actions.refresh",
-					["<cr>"] = "actions.select",
-					["gh"] = "<cmd>edit $HOME<cr>",
-					["gr"] = "<cmd>edit /<cr>",
-					["<esc>"] = function()
-						oil_actions.close.callback()
-					end,
-				},
-				use_default_keymaps = false,
-				view_options = {
-					show_hidden = true,
-				},
-			})
-
-			vim.keymap.set("n", "<leader>e", oil_actions.parent.callback)
-		end,
-	},
+	-- --	file manager
+	-- {
+	-- 	"stevearc/oil.nvim",
+	-- 	opts = {},
+	-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+	-- 	config = function()
+	-- 		local oil = require("oil")
+	-- 		local oil_actions = require("oil.actions")
+	--
+	-- 		oil.setup({
+	-- 			columns = {
+	-- 				"icon",
+	-- 				"permissions",
+	-- 			},
+	-- 			skip_confirm_for_simple_edits = true,
+	-- 			prompt_save_on_select_new_entry = false,
+	-- 			constrain_cursor = "name",
+	-- 			keymaps = {
+	-- 				["<bs>"] = "actions.parent",
+	-- 				["<c-e>"] = "actions.open_cwd",
+	-- 				["<c-r>"] = "actions.refresh",
+	-- 				["<cr>"] = "actions.select",
+	-- 				["gh"] = "<cmd>edit $HOME<cr>",
+	-- 				["gr"] = "<cmd>edit /<cr>",
+	-- 				["<esc>"] = function()
+	-- 					oil_actions.close.callback()
+	-- 				end,
+	-- 			},
+	-- 			use_default_keymaps = false,
+	-- 			view_options = {
+	-- 				show_hidden = true,
+	-- 			},
+	-- 		})
+	--
+	-- 		vim.keymap.set("n", "<leader>e", oil_actions.parent.callback)
+	-- 	end,
+	-- },
 
 	-- adds small independent plugins
 	{
@@ -770,7 +801,7 @@ require("lazy").setup({
 			--  and try some other statusline plugin
 			local statusline = require("mini.statusline")
 			-- set use_icons to true if you have a Nerd Font
-			statusline.setup({ use_icons = vim.g.have_nerd_font })
+			statusline.setup({ use_icons = true })
 
 			-- You can configure sections in the statusline by overriding their
 			-- default behavior. For example, here we set the section for
@@ -812,10 +843,10 @@ require("lazy").setup({
 		opts = {
 			icons = {
 				-- set icon mappings to true if you have a Nerd Font
-				mappings = vim.g.have_nerd_font,
+				mappings = true,
 				-- If you are using a Nerd Font: set icons.keys to an empty table which will use the
 				-- default which-key.nvim defined Nerd Font icons, otherwise define a string table
-				keys = vim.g.have_nerd_font and {} or {
+				keys = true and {} or {
 					Up = "<Up> ",
 					Down = "<Down> ",
 					Left = "<Left> ",
@@ -851,7 +882,7 @@ require("lazy").setup({
 			spec = {
 				{ "<leader>C", group = "[C]ode", mode = { "n", "x" } },
 				{ "<leader>d", group = "[D]ocument" },
-				{ "<leader>r", group = "[R]ename" },
+				{ "<leader><leader>r", group = "[R]ename" },
 				{ "<leader>s", group = "[S]earch" },
 				{ "<leader>w", group = "[W]orkspace" },
 				{ "<leader>t", group = "[T]oggle" },
@@ -964,7 +995,7 @@ require("lazy").setup({
 
 					-- Rename the variable under your cursor.
 					--  Most Language Servers support renaming across files, etc.
-					map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
+					map("<leader><leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
 
 					-- Execute a code action, usually your cursor needs to be on top of an error
 					-- or a suggestion from your LSP for this to activate.
