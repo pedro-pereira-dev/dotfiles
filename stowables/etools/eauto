@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# checks arguments, prints usage and prepares variables
+[[ $# -gt 1 ]] && echo 'Usage: eauto [--unsupervised]' && exit 1
+[[ $1 == '--unsupervised' ]] && UNSUPERVISED=$1
+
+# defines flags checking functions
+function is_unsupervised() { [[ ! -z ${UNSUPERVISED} ]] && return 0 || return 1; }
+
+# defines permissions handling functions
+function is_root() { [[ ${EUID} -eq 0 ]] && return 0 || return 1; }
+function run_as_root() { if is_root; then ${@:2}; else ${@:1}; fi; }
+
+# performs all maintenance tasks
+run_as_root doas eupdate ${UNSUPERVISED}
+run_as_root doas eupgrade ${UNSUPERVISED}
+run_as_root doas edeclare ${UNSUPERVISED}
+run_as_root doas eclean ${UNSUPERVISED}

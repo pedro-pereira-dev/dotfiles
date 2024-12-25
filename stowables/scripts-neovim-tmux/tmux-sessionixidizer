@@ -1,0 +1,40 @@
+#!/bin/bash
+
+[[ $# -lt 1 ]] && echo 'Usage: tmux-sessionixidizer <dir>' && exit 1
+
+ZOXIDE_ENTRY=$(zoxide query "${@:1}" 2> /dev/null)
+REALPATH_ENTRY=$(realpath $1)
+
+if [[ ! -z $ZOXIDE_ENTRY ]]; then
+  TARGET_DIR=$ZOXIDE_ENTRY
+  SESSION_NAME=$(basename $ZOXIDE_ENTRY)
+elif [[ ! -z $REALPATH_ENTRY ]] && [[ -f $REALPATH_ENTRY || -d $REALPATH_ENTRY ]]; then
+  TARGET_DIR=$REALPATH_ENTRY
+  SESSION_NAME=$(basename $REALPATH_ENTRY)
+else
+  TARGET_DIR=~
+  SESSION_NAME=default
+fi
+
+# echo "target: $TARGET_DIR"
+# echo "session: $SESSION_NAME"
+
+function is_tmux_session() { [[ ! -z $TMUX ]] && return 0 || return 1; }
+function is_tmux_running() { [[ ! -z $(pgrep tmux) ]] && return 0 || return 1; }
+function has_tmux_session() { tmux has-session -t=$1 >/dev/null 2>&1; }
+
+if is_tmux_session; then
+  if ! has_tmux_session $SESSION_NAME; then
+    # new detached session
+    tmux new-session -d -s $SESSION_NAME -c $TARGET_DIR
+  fi
+  tmux switch-client -t $SESSION_NAME
+else
+  if has_tmux_session $SESSION_NAME; then
+    # attach to session
+    tmux attach -t $SESSION_NAME
+  else
+    # create and attach new session
+    tmux new-session -s $SESSION_NAME -c $TARGET_DIR
+  fi
+fi

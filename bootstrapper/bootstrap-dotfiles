@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# checks arguments, prints usage and prepares variables
+USAGE_MESSAGE='Usage: bootstrap-dotfiles [--unsupervised | --full] <hostname | uname -n>'
+[[ $# -gt 2 ]] && echo ${USAGE_MESSAGE} && exit 1
+while [[ $# -gt 0 ]]; do
+  case $1 in --unsupervised) UNSUPERVISED='--unsupervised' ;; --full) FULL='--full' ;; *) THIS_ARGS+=($1) ;; esac
+  shift
+done
+[[ ! -z ${UNSUPERVISED} && ! -z ${FULL} ]] && echo ${USAGE_MESSAGE} && exit 1
+[[ ${#THIS_ARGS[@]} -gt 1 ]] && echo ${USAGE_MESSAGE} && exit 1
+HOSTNAME=${THIS_ARGS[0]:-$(uname -n)}
+
+# defines flags checking functions
+function is_unsupervised() { [[ ! -z ${UNSUPERVISED} ]] && return 0 || return 1; }
+function is_full() { [[ ! -z ${FULL} ]] && return 0 || return 1; }
+
+# defines permissions handling functions
+function is_root() { [[ ${EUID} -eq 0 ]] && return 0 || return 1; }
+function run_as_root() { if is_root; then ${@:2}; else ${@:1}; fi; }
+function run_as_user() { if is_root; then runuser -u $1 -- ${@:2}; else ${@:2}; fi; }
+
+# defines requirements checking functions
+function check_command() { for CHECK_DEP in $@; do [[ -z $(command -v ${CHECK_DEP}) ]] && echo "Missing command: ${CHECK_DEP}" && exit 1; done; }
+
+# defines portage functions
+function get_installed_with_portage() { cat /var/lib/portage/world; }
+function is_installed_with_portage() { if [[ ! -z $(get_installed_with_portage | grep -E "^${1}$") ]]; then return 0; else return 1; fi; }
+function install_with_portage() { run_as_root doas emerge $1 ${@:2}; }
+
+# defines secret handling functions
+function setup_keys() {
+  [[ ! -f "$2/$4.tar.gpg" ]] && return 0
+  run_as_user $1 gpg --pinentry-mode loopback --decrypt $2/$4.tar.gpg >$2/$4.tar
+  run_as_user $1 tar -xvf $2/$4.tar -C $2
+  run_as_user $1 stow --force $2/$4 $3
+}
+
+# bootstraps the specified hostname
+case $HOSTNAME in
+gl-dell)
+  DOTFILES_DIR=/home/chuck/workspace/personal/dotfiles
+  DOTFILES_SECRETS_DIR=/home/chuck/workspace/personal/dotfiles-secrets
+
+  # checks required dependencies
+  check_command doas emerge
+  is_installed_with_portage dev-vcs/git || install_with_portage --ask=n dev-vcs/git
+
+  # sets up dotfiles
+  if [[ ! -d $DOTFILES_DIR ]]; then
+    run_as_user chuck mkdir -p $(dirname $DOTFILES_DIR)
+    run_as_user chuck git clone https://github.com/pedro-pereira-dev/dotfiles $DOTFILES_DIR
+  fi
+  cd $DOTFILES_DIR
+  run_as_user chuck git remote set-url --push origin git@github.com:pedro-pereira-dev/dotfiles.git
+  run_as_user chuck git fetch origin
+  run_as_user chuck git reset --hard origin/main
+  run_as_user chuck git clean -fdx
+  run_as_user chuck git pull
+
+  # deletes deprecated symlinks
+  run_as_root doas find /etc /usr /bin -xtype l -delete
+  # bootstraps utils and stow
+  run_as_root doas $DOTFILES_DIR/bootstrapper/stow --force $DOTFILES_DIR/bootstrapper /bin
+  # stows rootfiles
+  run_as_root doas stow --force $DOTFILES_DIR/hosts/$HOSTNAME/portage /etc/portage
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/bootloader /bin
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/chuck-inittab /etc/inittab.d
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/dracut /etc/dracut.conf.d
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/etools /bin
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/gentoo-grub /etc/default
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/gentoo-hosts /etc/portage/binrepos.conf
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/i915-dracut /etc/dracut.conf.d
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/scripts-backlight /bin
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/scripts-neovim-tmux /bin
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/scripts-volume /bin
+  run_as_root doas stow --force $DOTFILES_DIR/stowables/scripts-wofi /bin
+
+  # installs system dependencies
+  if is_unsupervised || is_full; then run_as_root doas eupdate $UNSUPERVISED; fi
+  run_as_root doas eupgrade $UNSUPERVISED
+  run_as_root doas edeclare $UNSUPERVISED
+  if is_unsupervised || is_full; then run_as_root doas eclean $UNSUPERVISED; fi
+  if is_unsupervised || is_full; then run_as_root doas regenerate-bootloader $UNSUPERVISED; fi
+  # customizes system
+  run_as_root doas sed -i 's/^c[1,3-6]:/#\0/' /etc/inittab
+  run_as_root doas rc-update add power-profiles-daemon default >/dev/null 2>&1
+
+  # sets up dotfiles-secrets
+  if ! is_unsupervised && is_full; then
+    if [[ ! -d $DOTFILES_SECRETS_DIR ]]; then
+      read -p 'https://github.com/pedro-pereira-dev/dotfiles-secrets access token: ' TOKEN
+      mkdir -p $(dirname $DOTFILES_SECRETS_DIR)
+      run_as_user chuck git clone https://$TOKEN@github.com/pedro-pereira-dev/dotfiles-secrets $DOTFILES_SECRETS_DIR
+    fi
+    cd $DOTFILES_SECRETS_DIR
+    run_as_user chuck git remote set-url --push origin git@github.com:pedro-pereira-dev/dotfiles-secrets.git
+    run_as_user chuck git fetch origin
+    run_as_user chuck git reset --hard origin/main
+    run_as_user chuck git clean -fdx
+    run_as_user chuck git pull
+    # deletes deprecated symlinks and relinks all keys
+    run_as_user chuck rm -rf /home/chuck/.ssh
+    setup_keys chuck $DOTFILES_SECRETS_DIR /home/chuck/.ssh github
+    # deletes and imports gpg keys
+    run_as_user chuck gpgconf --kill gpg-agent
+    run_as_user chuck rm -rf /home/chuck/.gnugpg
+    run_as_user chuck gpg --list-secret-keys --keyid-format=long
+    [[ -f /home/chuck/.gnugpg/common.conf ]] && run_as_user chuck sed -i 's/use-keyboxd/#use-keyboxd/g' /home/chuck/.gnugpg/common.conf
+    run_as_user chuck find /home/chuck/.ssh/* -type l -name '*-gpg' -exec gpg --import '{}' ';'
+    keys_to_trust=$(run_as_user chuck gpg --list-keys --fingerprint --with-colons)
+    keys_to_trust=$(echo $keys_to_trust | sed -E -n -e 's/^fpr:::::::::([0-9A-F]+):$/\1:6:/p')
+    [[ ! -z $keys_to_trust ]] && run_as_user chuck gpg --import-ownertrust $keys_to_trust
+  fi
+
+  # removes deprecated symlinks
+  run_as_user chuck find /home/chuck -xtype l -delete
+  # stows dotfiles
+  run_as_user chuck stow --force $DOTFILES_DIR/hosts/${HOSTNAME}/hyprland-monitors /home/chuck/.config/hypr
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/alacritty /home/chuck/.config/alacritty
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/bash /home/chuck
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/github /home/chuck/
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/hyprland /home/chuck/.config/hypr
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/neovim /home/chuck/.config/nvim
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/ssh /home/chuck/.ssh
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/tmux /home/chuck/.config/tmux
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/waybar /home/chuck/.config/waybar
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/jwm /home/chuck/
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/xterm /home/chuck/
+  ;;
+*)
+  echo "No bootstrap configured for host: ${HOSTNAME}"
+  ;;
+esac

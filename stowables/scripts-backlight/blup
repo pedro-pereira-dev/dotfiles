@@ -1,0 +1,16 @@
+#!/bin/bash
+
+THIS_BACKLIGHT_STEP=5
+
+# get this backlight level
+THIS_BACKLIGHT_LEVEL=$(xbacklight -get)
+
+# get the new backlight level
+THIS_NEW_BACKLIGHT_LEVEL=$(($THIS_BACKLIGHT_LEVEL + $THIS_BACKLIGHT_STEP))
+# clip it to max 100
+THIS_NEW_BACKLIGHT_LEVEL=$(($THIS_NEW_BACKLIGHT_LEVEL > 100 ? 100 : $THIS_NEW_BACKLIGHT_LEVEL))
+
+# set new backlight level
+xbacklight -set "$THIS_NEW_BACKLIGHT_LEVEL"
+# refresh status bar
+#refresh-status-bar-backlight

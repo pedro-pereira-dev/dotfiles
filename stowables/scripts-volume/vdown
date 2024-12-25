@@ -1,0 +1,16 @@
+#!/bin/bash
+
+THIS_AUDIO_STEP=5
+
+# get this audio level
+THIS_AUDIO_LEVEL=$(echo "$(wpctl get-volume @DEFAULT_SINK@ | awk '{print $NF}') * 100" | bc -l | grep -o "^\w*")
+
+# get the new audio level
+THIS_NEW_AUDIO_LEVEL=$(($THIS_AUDIO_LEVEL - $THIS_AUDIO_STEP))
+# clip it to min 0
+THIS_NEW_AUDIO_LEVEL=$(($THIS_NEW_AUDIO_LEVEL < 0 ? 0 : $THIS_NEW_AUDIO_LEVEL))
+
+# set new audio level
+wpctl set-volume @DEFAULT_SINK@ $THIS_NEW_AUDIO_LEVEL%
+# refresh status bar
+#refresh-status-bar-audio

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+OPTIONS='Shutdown','Reboot','Outras Coisas'
+SELECTED=$(echo -e "$(echo ${OPTIONS} | tr ',' '\n')" | wofi --dmenu)
+
+case ${SELECTED} in
+  'Shutdown') doas shutdown -h now ;;
+  'Reboot') doas reboot ;;
+  'Outras Coisas') echo ola ;;
+  *) exit 1 ;;
+esac

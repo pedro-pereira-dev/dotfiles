@@ -1,0 +1,72 @@
+#!/bin/bash
+
+USAGE_MSG='Usage: stow [--uninstall] [--dry-run] [--force] source target'
+[[ $# -gt 5 ]] && echo ${USAGE_MSG} && exit 1
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --uninstall) UNINSTALL='--uninstall' ;;
+    --dry-run) DRYRUN='--dry-run' ;;
+    --force) FORCE='--force' ;;
+    *) THIS_ARGS+=($1) ;;
+  esac
+  shift
+done
+[[ ${#THIS_ARGS[@]} -ne 2 ]] && echo ${USAGE_MSG} && exit 1
+SOURCE=${THIS_ARGS[0]}
+TARGET=${THIS_ARGS[1]}
+
+function list_files() { find . -type f -printf '%P\0' -or -type l -printf '%P\0'; }
+function list_dirs() { find . -mindepth 1 -type d -printf '%P\0'; }
+function run_commands() { [[ ! -z ${DRYRUN} ]] && echo $@ || eval $@; }
+
+# uninstalls stow package
+if [[ ! -z ${UNINSTALL} ]]; then
+  cd ${SOURCE} || exit 1
+  COMMANDS=()
+  # iterates over files to stow
+  while IFS= read -r -d '' TARGET_FILE_DIR; do
+    TARGET_FILE="${TARGET}/${TARGET_FILE_DIR}"
+    if [[ -f ${TARGET_FILE} ]]; then
+      if [[ $(realpath ${TARGET_FILE}) == $(realpath ${TARGET_FILE_DIR}) ]]; then
+        # removes file if it is a symbolic link pointing to the source file
+        COMMANDS+=("rm -rf ${TARGET_FILE}")
+      fi
+    fi
+  done < <(list_files)
+  # iterates over directories to stow in reverse order
+  while IFS= read -r -d '' TARGET_DIR; do
+    if [[ -d ${TARGET}/${TARGET_DIR} ]]; then
+      # removes parent directory if it is empty
+      COMMANDS+=("find ${TARGET}/${TARGET_DIR} -type d -empty -delete")
+    fi
+  done < <(list_dirs | tr '\0' '\n' | tac | tr '\n' '\0')
+  for CMD in "${COMMANDS[@]}"; do run_commands ${CMD}; done
+
+# installs stow package
+else
+  cd ${SOURCE} || exit 1
+  COMMANDS=()
+  mkdir -p ${TARGET}
+  # iterates over directories to stow
+  while IFS= read -r -d '' TARGET_DIR; do
+    if [[ ! -d ${TARGET}/${TARGET_DIR} ]]; then
+      # creates directory if it does not exist
+      COMMANDS+=("mkdir -p ${TARGET}/${TARGET_DIR}")
+    fi
+  done < <(list_dirs)
+  # iterates over files to stow
+  while IFS= read -r -d '' TARGET_FILE_DIR; do
+    TARGET_FILE="${TARGET}/${TARGET_FILE_DIR}"
+    THIS_DIR=$(dirname ${TARGET_FILE})
+    RELATIVE_DIR=$(realpath ${TARGET_FILE_DIR} --relative-to=${THIS_DIR} --canonicalize-missing)
+    # checks if file exists
+    if [[ ! -f ${TARGET_FILE} ]]; then
+      # creates symbolic link to file
+      COMMANDS+=("ln -s ${RELATIVE_DIR} ${TARGET_FILE}")
+    elif [[ ! -z ${FORCE} ]]; then
+      # links file overwriting if it exists
+      COMMANDS+=("ln -sf ${RELATIVE_DIR} ${TARGET_FILE}")
+    fi
+  done < <(list_files)
+  for CMD in "${COMMANDS[@]}"; do run_commands ${CMD}; done
+fi

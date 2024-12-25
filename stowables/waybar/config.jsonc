@@ -1,0 +1,36 @@
+// https://github.com/Alexays/Waybar/wiki/Configuration#bar-config
+{
+  // configurations
+  "layer": "top",
+  "position": "bottom",
+
+  // modules
+  "modules-left": ["custom/os_button", "hyprland/submap"],
+  "modules-center": ["hyprland/workspaces"],
+  "modules-right": ["backlight", "wireplumber", "power-profiles-daemon", "battery", "clock"],
+
+
+  // modules-left
+      "custom/os_button": {
+        "format": "",
+        "on-click": "wofi --show drun",
+        "tooltip": false
+    },
+  // modules-center
+  // modules-right
+  "power-profiles-daemon": {
+    "format": "{icon}    {profile}",
+    "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+    "tooltip": true,
+    "format-icons": {
+      "default": "",
+      "performance": "",
+      "balanced": "",
+      "power-saver": ""
+    }
+  },
+  "battery": {
+    "format": "{capacity}% {icon}",
+    "format-icons": ["", "", "", "", ""]
+  },
+}
