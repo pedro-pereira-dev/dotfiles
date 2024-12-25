@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# checks arguments, prints usage and prepares variables
+[[ $# -gt 1 ]] && echo 'Usage: eupgrade [--unsupervised]' && exit 1
+[[ $1 == '--unsupervised' ]] && UNSUPERVISED=$1
+
+# defines flags checking functions
+function is_unsupervised() { [[ ! -z ${UNSUPERVISED} ]] && return 0 || return 1; }
+
+# defines permissions handling functions
+function is_root() { [[ ${EUID} -eq 0 ]] && return 0 || return 1; }
+function run_as_root() { if is_root; then ${@:2}; else ${@:1}; fi; }
+
+# defines requirements checking functions
+function check_command() { for CHECK_DEP in $@; do [[ -z $(command -v ${CHECK_DEP}) ]] && echo "Missing command: ${CHECK_DEP}" && exit 1; done; }
+
+# defines portage functions
+function is_empty_upgrade_set() { emerge --pretend --verbose --update --deep --newuse --with-bdeps=y --backtrack=30 @world | grep 'Total: 0 packages'; }
+function is_not_upgradable() { [[ ! -z $(is_empty_upgrade_set) ]] && return 0 || return 1; }
+function upgrade_with_portage() { run_as_root doas emerge $1 --verbose --update --deep --newuse --with-bdeps=y --backtrack=30 @world; }
+
+# checks required dependencies
+check_command doas emerge
+# updates and upgrades portage packages
+is_not_upgradable && exit 0
+is_unsupervised && upgrade_with_portage --ask=n || upgrade_with_portage --ask
