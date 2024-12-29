@@ -1,10 +1,8 @@
-#!/bin/bash
 app-admin/doas                    # sudo replacement
 app-editors/neovim                # text editor
 app-shells/starship               # prompt customization
 app-shells/zoxide                 # cd replacement
 dev-vcs/git                       # version control
-gui-wm/hyprland                   # wayland compositor
 net-misc/networkmanager           # network manager
 sys-apps/eza                      # ls replacement
 sys-block/io-scheduler-udev-rules # disk io optimized scheduler
@@ -13,14 +11,11 @@ sys-kernel/gentoo-kernel          # gentoo distribution kernel
 sys-kernel/installkernel          # kernel installation hook
 sys-kernel/linux-firmware         # firmware
 www-client/google-chrome          # web browser
-x11-terms/alacritty               # terminal emulator
 media-video/pipewire # sound server
-gui-apps/wofi # application launcher
 sys-power/power-profiles-daemon # power profile manager
 sys-power/acpilight # backlight manager
 sys-process/btop # system monitor
 net-im/discord # chat client
-gui-apps/waybar # system bar
 media-fonts/nerd-fonts # system fonts
 media-fonts/noto-emoji # browser emojis
 media-fonts/fontawesome # icons font support
@@ -30,9 +25,6 @@ app-admin/eclean-kernel # kernel management tool
 app-portage/gentoolkit # gentoo variety tools
 app-misc/fastfetch # system information
 dev-vcs/lazygit # git tool
-gui-apps/wl-clipboard
-app-misc/neofetch
-app-misc/cmatrix
 app-shells/fzf
 x11-wm/jwm
 x11-apps/setxkbmap
@@ -41,4 +33,7 @@ x11-misc/rofi
 x11-base/xorg-server
 x11-misc/xclip
 x11-terms/xterm
+media-gfx/maim
+x11-terms/alacritty
 dev-util/fnm
+dev-lua/luarocks

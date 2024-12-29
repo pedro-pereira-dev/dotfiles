@@ -175,6 +175,7 @@
   <Key mask="4" key="Left">maxleft</Key>
   <Key mask="4" key="Right">maxright</Key>
   <Key mask="4S" key="R">restart</Key>
+  <Key mask="4S" key="S">exec:maim --hidecursor --select --quiet | xclip -selection clipboard -t image/png -i</Key>
   <Key mask="4" key="R">exec:rofi -show drun</Key>
   <Key mask="4" key="Q">close</Key>
   <Key mask="4" key="Return">exec:xterm</Key>
