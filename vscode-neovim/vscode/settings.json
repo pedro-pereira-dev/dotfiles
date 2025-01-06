@@ -1,0 +1,37 @@
+{
+    // theme
+    "workbench.colorTheme": "Tokyo Night",
+    "workbench.colorCustomizations": {
+        "[Tokyo Night]": {
+            "editor.lineHighlightBackground": "#ffffff11", // highlight color
+        }
+    },
+    "workbench.iconTheme": "eq-material-theme-icons-darker",
+    // window appearance
+    "window.customTitleBarVisibility": "windowed",
+    "window.menuBarVisibility": "toggle",
+    // editor text appearance
+    "editor.fontFamily": "'SauceCodePro Nerd Font', 'monospace', monospace",
+    "editor.fontSize": 16,
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    // editor settings
+    "editor.dragAndDrop": false,
+    "editor.hover.above": false,
+    "editor.renderWhitespace": "all",
+    "editor.stickyScroll.enabled": false,
+    // terminal settings
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.enablePersistentSessions": false,
+    "terminal.integrated.fontSize": 16,
+    "terminal.integrated.shellIntegration.decorationsEnabled": "never",
+    // neovim performance
+    "extensions.experimental.affinity": {
+        "asvetliakov.vscode-neovim": 1
+    },
+    // formatter settings
+    "[shellscript]": {
+        "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    // untracked settings
+}

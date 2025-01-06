@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# create list of missing commands
+for CHECK_DEP in "$@"; do
+  if [[ -z $(command -v "${CHECK_DEP}") ]]; then
+    MISSING+=("${CHECK_DEP}")
+  fi
+done
+
+# if at least one missing command, return error
+if [[ ${#MISSING[@]} -ne 0 ]]; then
+  echo "Missing command(s): ${MISSING[*]}"
+  exit 1
+fi

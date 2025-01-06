@@ -1,0 +1,24 @@
+#!/bin/bash
+
+command-check vscode
+if [[ ! -f "${HOME}/.config/vscode-extensions.conf" ]]; then
+  echo "Missing configuration file: ${HOME}/.config/vscode-extensions.conf"
+  exit 1
+fi
+
+INSTALLED=$(vscode --list-extensions)
+DECLARED=$(sed -E '/^[[:blank:]]*(#|$)/d; s/#.*//; s/[[:space:]]*$//' <"${HOME}/.config/vscode-extensions.conf")
+ALL=$(echo "${INSTALLED}" "${DECLARED}" | tr ' ' '\n' | sort | uniq)
+
+function is_installed { grep -q "^${1}$" <<<"${INSTALLED}"; }
+function is_declared { grep -q "^${1}$" <<<"${DECLARED}"; }
+
+for EXT in ${ALL}; do
+  if ! is_installed "${EXT}" && is_declared "${EXT}"; then
+    vscode --install-extension "${EXT}"
+  elif is_installed "${EXT}" && ! is_declared "${EXT}"; then
+    vscode --uninstall-extension "${EXT}"
+  fi
+done
+
+vscode --update-extensions

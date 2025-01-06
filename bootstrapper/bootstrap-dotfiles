@@ -121,12 +121,17 @@ gl-dell)
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/bash /home/chuck
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/github /home/chuck/
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/hyprland /home/chuck/.config/hypr
-  run_as_user chuck stow --force $DOTFILES_DIR/stowables/neovim /home/chuck/.config/nvim
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/jwm /home/chuck/
+  # run_as_user chuck stow --force $DOTFILES_DIR/stowables/neovim /home/chuck/.config/nvim
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/ssh /home/chuck/.ssh
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/tmux /home/chuck/.config/tmux
+  # run_as_user chuck stow --force $DOTFILES_DIR/stowables/vscode /home/chuck/
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/waybar /home/chuck/.config/waybar
-  run_as_user chuck stow --force $DOTFILES_DIR/stowables/jwm /home/chuck/
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/xterm /home/chuck/
+
+  # TODO: new implementation
+  run_as_root doas stow --force "${DOTFILES_DIR}"/shared/utils-bash /bin
+  run_as_user chuck "${DOTFILES_DIR}"/vscode-neovim/install.sh
   ;;
 *)
   echo "No bootstrap configured for host: ${HOSTNAME}"
