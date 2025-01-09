@@ -24,6 +24,15 @@ vim.opt.softtabstop = 2
 vim.opt.tabstop = 2
 
 -- custom commands
+vim.keymap.set("n", "<leader>1", ":LualineBuffersJump 1<cr>", { silent = true, desc = "Open buffer 1" })
+vim.keymap.set("n", "<leader>2", ":LualineBuffersJump 2<cr>", { silent = true, desc = "Open buffer 2" })
+vim.keymap.set("n", "<leader>3", ":LualineBuffersJump 3<cr>", { silent = true, desc = "Open buffer 3" })
+vim.keymap.set("n", "<leader>4", ":LualineBuffersJump 4<cr>", { silent = true, desc = "Open buffer 4" })
+vim.keymap.set("n", "<leader>5", ":LualineBuffersJump 5<cr>", { silent = true, desc = "Open buffer 5" })
+vim.keymap.set("n", "<leader>6", ":LualineBuffersJump 6<cr>", { silent = true, desc = "Open buffer 6" })
+vim.keymap.set("n", "<leader>7", ":LualineBuffersJump 7<cr>", { silent = true, desc = "Open buffer 7" })
+vim.keymap.set("n", "<leader>8", ":LualineBuffersJump 8<cr>", { silent = true, desc = "Open buffer 8" })
+vim.keymap.set("n", "<leader>9", ":LualineBuffersJump 9<cr>", { silent = true, desc = "Open buffer 9" })
 vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true, desc = "List open buffers" })
 vim.keymap.set("n", "<leader>?", ":FzfLua keymaps<cr>", { silent = true, desc = "List available keymaps" })
 vim.keymap.set("n", "<leader>E", ":Oil<cr>", { desc = "Open Oil" })
@@ -75,9 +84,43 @@ vim.keymap.set(
 	{ silent = true, desc = "Move selection up" }
 )
 
-local lsp_tools = { "stylua" }
-local lsp_servers = { lua_ls = {} }
-local conform_formatters = { lua = { "stylua" } }
+local language_servers = {
+	bashls = {}, -- sh / bash
+	jsonls = {}, -- json
+	lua_ls = {}, -- lua
+	volar = { init_options = { vue = { hybridMode = false } } }, -- vue
+	vtsls = {}, -- vue typescript
+}
+
+local language_formatters = {
+	json = { "prettier" }, -- json
+	lua = { "stylua" }, -- lua
+	sh = { "shfmt" }, -- sh / bash
+	vue = { "prettier" }, -- vue
+}
+
+local language_linters = {
+	"jsonlint", -- json
+	"luacheck", -- lua
+	"shellcheck", -- sh / bash
+}
+
+local function list_formatters(formatters)
+	local formatters_list = {}
+	for _, option in pairs(formatters) do
+		for _, formatter in pairs(option) do
+			if type(formatter) == "string" then
+				table.insert(formatters_list, formatter)
+			end
+		end
+	end
+	return formatters_list
+end
+
+local language_tools = {}
+vim.list_extend(language_tools, vim.tbl_keys(language_servers or {}))
+vim.list_extend(language_tools, list_formatters(language_formatters))
+vim.list_extend(language_tools, language_linters)
 
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("custom_highlight_yank", { clear = true }),
@@ -135,38 +178,46 @@ require("lazy").setup({
 
 		-- startup page
 		{
-			"echasnovski/mini.starter",
+			"nvimdev/dashboard-nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			event = { "VimEnter" },
 			opts = function()
-				local starter = require("mini.starter")
+				local git_remote_url = vim.fn
+					.system("git config --get remote.origin.url")
+					:gsub("\n", "")
+					:gsub("(.-)%.git$", "%1")
+					:gsub("git@([^:]+):", "https://%1/")
 				return {
-					evaluate_single = true,
-					header = table.concat({
-						"",
-						"",
-						"",
-						"",
-						"                           ,@@@@@@@,                             ",
-						"                   ,,,.   ,@@@@@@/@@,  .oo8888o.                 ",
-						"                ,&%%&%&&%,@@@@@/@@@@@@,8888\\88/8o               ",
-						"               ,%&\\%&&%&&%,@@@\\@@@/@@@88\\88888/88'            ",
-						"               %&&%&%&/%&&%@@\\@@/ /@@@88888\\88888'             ",
-						"               %&&%/ %&%%&&@@\\ V /@@' `88\\8 `/88'              ",
-						"               `&%\\ ` /%&'    |.|        \\ '|8'                ",
-						"                   |o|        | |         | |                    ",
-						"                   |.|        | |         | |                    ",
-						"            _\\__\\\\/ ._\\//_/__/  ,\\_//__\\\\/.  \\_//__/_    ",
-						"",
-						' dP""b8 888888 88b 88 888888  dP"Yb   dP"Yb  Yb    dP 88 8b    d8',
-						'dP   `" 88__   88Yb88   88   dP   Yb dP   Yb  Yb  dP  88 88b  d88',
-						'Yb  "88 88""   88 Y88   88   Yb   dP Yb   dP   YbdP   88 88YbdP88',
-						" YboodP 888888 88  Y8   88    YbodP   YbodP     YP    88 88 YY 88",
-						"",
-					}, "\n"),
-					items = { starter.sections.recent_files(8, true) },
-					footer = "",
-					content_hooks = {
-						starter.gen_hook.adding_bullet(string.rep(" ", 4) .. " ", false),
-						starter.gen_hook.aligning("center", "top"),
+					shortcut_type = "number",
+					config = {
+						header = {
+							" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
+							"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
+							"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
+							"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+							"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+							" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+							"",
+							"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
+							"" .. git_remote_url:match("/([^/]+)$") .. " | " .. git_remote_url,
+							"",
+						},
+						shortcut = {
+							{ desc = "󰍉 Files", group = "DiagnosticError", action = "FzfLua files", key = "o" },
+							{ desc = "󰍉 Projects", group = "Number", action = "FzfLuaChangeProject", key = "p" },
+							{ desc = "󰒲 Lazy", group = "DiagnosticWarn", action = "Lazy", key = "l" },
+							{ desc = "󰒲 Lazy Sync", group = "DiagnosticHint", action = "Lazy sync", key = "s" },
+							{ desc = " Mason", group = "Label", action = "Mason", key = "m" },
+							{ desc = " Reload", group = "@property", action = "cq", key = "q" },
+						},
+						project = { enable = false },
+						mru = { limit = 9, label = "Recent Files", cwd_only = true },
+						footer = {
+							"",
+							"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+							"",
+							"pedro-pereira-dev | https://github.com/pedro-pereira-dev",
+						},
 					},
 				}
 			end,
@@ -176,7 +227,7 @@ require("lazy").setup({
 		{
 			"echasnovski/mini.bufremove",
 			cmd = { "QuitBuffer" },
-			init = function()
+			config = function()
 				vim.api.nvim_create_user_command("QuitBuffer", function()
 					require("mini.bufremove").delete()
 				end, { desc = "Quit buffer preserving window layout" })
@@ -198,19 +249,15 @@ require("lazy").setup({
 				local default_capabilities = require("cmp_nvim_lsp").default_capabilities()
 				local capabilities = vim.lsp.protocol.make_client_capabilities()
 				capabilities = vim.tbl_deep_extend("force", capabilities, default_capabilities)
-
-				local installed_tools = vim.tbl_keys(lsp_servers or {})
-				vim.list_extend(installed_tools, lsp_tools)
-
 				local default_handler = {
 					function(server_name)
-						local server = lsp_servers[server_name] or {}
+						local server = language_servers[server_name] or {}
 						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
 						require("lspconfig")[server_name].setup(server)
 					end,
 				}
 
-				require("mason-tool-installer").setup({ auto_update = true, ensure_installed = installed_tools })
+				require("mason-tool-installer").setup({ auto_update = true, ensure_installed = language_tools })
 				---@diagnostic disable-next-line: missing-fields
 				require("mason").setup({ ui = { border = "single", width = 100 } })
 				---@diagnostic disable-next-line: missing-fields
@@ -224,17 +271,18 @@ require("lazy").setup({
 			"stevearc/conform.nvim",
 			cmd = { "SaveWithoutFormatter" },
 			event = { "BufWritePre" },
-			opts = {
-				default_format_opts = { lsp_format = "fallback" },
-				formatters_by_ft = conform_formatters,
-				format_on_save = function(bufnr)
-					if vim.b[bufnr].disable_autoformat then
-						return
-					end
-					return { lsp_format = "fallback", timeout_ms = 500 }
-				end,
-			},
-			init = function()
+			config = function()
+				require("conform").setup({
+					default_format_opts = { lsp_format = "fallback" },
+					formatters_by_ft = language_formatters,
+					format_on_save = function(bufnr)
+						if vim.b[bufnr].disable_autoformat then
+							return
+						end
+						return { lsp_format = "fallback", timeout_ms = 500 }
+					end,
+				})
+
 				vim.api.nvim_create_user_command("SaveWithoutFormatter", function()
 					vim.b.disable_autoformat = true
 					vim.cmd.write()
@@ -294,7 +342,7 @@ require("lazy").setup({
 					view = { width = 35 },
 					renderer = {
 						add_trailing = true,
-						root_folder_label = false,
+						root_folder_label = ":~",
 						indent_width = 1,
 						special_files = {},
 						highlight_git = "name",
@@ -342,10 +390,12 @@ require("lazy").setup({
 		{
 			"ibhagwan/fzf-lua",
 			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "FzfLua" },
-			opts = function()
-				local actions = require("fzf-lua.actions")
-				return {
+			cmd = { "FzfLua", "FzfLuaChangeProject" },
+			config = function()
+				local fzf_lua = require("fzf-lua")
+				local fzf_actions = require("fzf-lua.actions")
+
+				fzf_lua.setup({
 					{ "default-title" },
 
 					-- configurations
@@ -369,7 +419,7 @@ require("lazy").setup({
 							["tab"] = "down",
 						},
 					},
-					actions = { files = { ["enter"] = actions.file_edit } },
+					actions = { files = { ["enter"] = fzf_actions.file_edit } },
 					fzf_opts = { ["--cycle"] = true },
 					fzf_colors = true,
 
@@ -378,7 +428,7 @@ require("lazy").setup({
 					git = {
 						branches = {
 							actions = {
-								["ctrl-d"] = { fn = actions.git_branch_del, reload = true },
+								["ctrl-d"] = { fn = fzf_actions.git_branch_del, reload = true },
 								["ctrl-x"] = false,
 							},
 							cmd_add = { "git", "checkout", "-b" },
@@ -391,44 +441,59 @@ require("lazy").setup({
 					},
 					buffers = {
 						actions = {
-							["ctrl-d"] = { fn = actions.buf_del, reload = true },
+							["ctrl-d"] = { fn = fzf_actions.buf_del, reload = true },
 							["ctrl-x"] = false,
 						},
 					},
 					keymaps = { previewer = false },
-				}
+				})
+
+				vim.api.nvim_create_user_command("FzfLuaChangeProject", function()
+					local cmd = "find "
+						.. vim.env.HOME
+						.. ' -type d -name ".git" -not -path "*/.*/*" -print0 | xargs -0 -I {} dirname {}'
+					fzf_lua.fzf_exec(cmd, {
+						actions = {
+							["enter"] = {
+								fn = function(selected)
+									vim.fn.system("tmux-sessionixidizer " .. selected[1])
+								end,
+							},
+						},
+					})
+				end, { desc = "Change project" })
 			end,
 		},
 
 		-- TODO: continue this configuration
 
-		-- local language_highlights = { "lua" }
-		-- -- treesitter
-		-- {
-		-- 	"nvim-treesitter/nvim-treesitter",
-		-- 	build = ":TSUpdate",
-		-- 	event = { "BufReadPre", "BufNewFile" },
-		-- 	main = "nvim-treesitter.configs",
-		-- 	opts = {
-		-- 		ensure_installed = language_highlights,
-		-- 		highlight = {
-		-- 			enable = true,
-		-- 			disable = function(_, buf)
-		-- 				local max_filesize = 100 * 1024 -- 100 KB
-		-- 				local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-		-- 				if ok and stats and stats.size > max_filesize then
-		-- 					return true
-		-- 				end
-		-- 			end,
-		-- 		},
-		-- 		incremental_selection = { enable = true },
-		-- 		indent = { enable = true },
-		-- 	},
-		-- 	init = function(plugin)
-		-- 		require("lazy.core.loader").add_to_rtp(plugin)
-		-- 		require("nvim-treesitter.query_predicates")
-		-- 	end,
-		-- },
+		-- treesitter
+		{
+			"nvim-treesitter/nvim-treesitter",
+			build = ":TSUpdate",
+			event = { "BufReadPre", "BufNewFile" },
+			main = "nvim-treesitter.configs",
+			opts = {
+				auto_install = true,
+				-- ensure_installed = language_tree_sitter,
+				highlight = {
+					enable = true,
+					disable = function(_, buf)
+						local max_filesize = 100 * 1024 -- 100 KB
+						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+						if ok and stats and stats.size > max_filesize then
+							return true
+						end
+					end,
+				},
+				incremental_selection = { enable = true },
+				indent = { enable = true },
+			},
+			init = function(plugin)
+				require("lazy.core.loader").add_to_rtp(plugin)
+				require("nvim-treesitter.query_predicates")
+			end,
+		},
 
 		-- autocompletion
 		{
@@ -497,28 +562,16 @@ require("lazy").setup({
 					lualine_z = {},
 				},
 				tabline = {},
-				winbar = {},
+				winbar = {
+					lualine_a = { "buffers" },
+					lualine_b = {},
+					lualine_c = {},
+					lualine_x = {},
+					lualine_y = {},
+					lualine_z = {},
+				},
 				inactive_winbar = {},
 				extensions = {},
-			},
-		},
-
-		-- top bar
-		{
-			"akinsho/bufferline.nvim",
-			dependencies = "nvim-tree/nvim-web-devicons",
-			event = { "BufReadPre", "BufNewFile" },
-			opts = {
-				options = {
-					offsets = {
-						{
-							filetype = "NvimTree",
-							text = function()
-								return vim.fn.fnamemodify(vim.fn.getcwd(), ":t") .. "/"
-							end,
-						},
-					},
-				},
 			},
 		},
 

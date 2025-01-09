@@ -37,3 +37,4 @@ media-gfx/maim
 x11-terms/alacritty
 dev-util/fnm
 dev-lua/luarocks
+app-editors/vscode
