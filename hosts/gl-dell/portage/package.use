@@ -1,6 +1,6 @@
 app-admin/doas persist
 app-admin/eclean-kernel zstd
-media-fonts/nerd-fonts jetbrainsmono
+media-fonts/nerd-fonts sourcecodepro
 media-video/pipewire sound-server
 sys-kernel/installkernel dracut grub
 x11-terms/xterm truetype
