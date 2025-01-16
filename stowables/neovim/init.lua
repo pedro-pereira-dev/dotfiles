@@ -45,6 +45,7 @@ vim.keymap.set("n", "<leader>f", ":FzfLua live_grep<cr>", { silent = true, desc 
 vim.keymap.set("n", "<leader>gb", ":FzfLua git_branches<cr>", { silent = true, desc = "List git branches" })
 vim.keymap.set("n", "<leader>o", ":FzfLua files<cr>", { silent = true, desc = "Search file" })
 vim.keymap.set("n", "<leader>q", ":QuitBuffer<cr>", { silent = true, desc = "Quit current buffer" })
+vim.keymap.set("n", "<leader>cl", ":LazyGit<cr>", { desc = "Open LazyGit" })
 -- overridden defaults
 vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clear search highlights" })
 vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { silent = true, desc = "Go to previous buffer" })
@@ -224,15 +225,15 @@ require("lazy").setup({
 		},
 
 		-- buffer deletion util
-		{
-			"echasnovski/mini.bufremove",
-			cmd = { "QuitBuffer" },
-			config = function()
-				vim.api.nvim_create_user_command("QuitBuffer", function()
-					require("mini.bufremove").delete()
-				end, { desc = "Quit buffer preserving window layout" })
-			end,
-		},
+		-- {
+		-- 	"echasnovski/mini.bufremove",
+		-- 	cmd = { "QuitBuffer" },
+		-- 	config = function()
+		-- 		vim.api.nvim_create_user_command("QuitBuffer", function()
+		-- 			require("mini.bufremove").delete()
+		-- 		end, { desc = "Quit buffer preserving window layout" })
+		-- 	end,
+		-- },
 
 		-- lsp
 		{
@@ -292,99 +293,99 @@ require("lazy").setup({
 		},
 
 		-- file tree
-		{
-			"nvim-tree/nvim-tree.lua",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			event = { "BufNewFile", "BufReadPre" },
-			config = function()
-				local tree = require("nvim-tree")
-				local api = require("nvim-tree.api")
-				local function my_on_attach(bufnr)
-					local function opts(desc)
-						return {
-							desc = "nvim-tree: " .. desc,
-							buffer = bufnr,
-							noremap = true,
-							silent = true,
-							nowait = true,
-						}
-					end
-
-					vim.keymap.set("n", "<cr>", api.node.open.edit, opts("Open File"))
-					vim.keymap.set("n", "<leader>E", api.tree.collapse_all, opts("Collapse All"))
-					vim.keymap.set("n", "<leader>e", "<c-w>l", opts("Focus Editor"))
-					vim.keymap.set("n", "<leader>f", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "<leader>q", api.tree.close, opts("Close Tree"))
-					vim.keymap.set("n", "<leader>s", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "?", api.tree.toggle_help, opts("Show Help"))
-					vim.keymap.set("n", "A", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "E", api.tree.collapse_all, opts("Collapse All"))
-					vim.keymap.set("n", "H", api.node.navigate.parent_close, opts("Close Directory"))
-					vim.keymap.set("n", "I", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "O", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
-					vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "c", api.fs.rename, opts("Rename File"))
-					vim.keymap.set("n", "d", api.fs.cut, opts("Cut File"))
-					vim.keymap.set("n", "f", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "h", api.node.navigate.parent, opts("Parent Directory"))
-					vim.keymap.set("n", "i", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "l", api.node.navigate.sibling.next, opts("Next Sibling"))
-					vim.keymap.set("n", "o", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "p", api.fs.paste, opts("Paste File"))
-					vim.keymap.set("n", "s", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "x", api.fs.remove, opts("Delete File"))
-					vim.keymap.set("n", "y", api.fs.copy.node, opts("Yank File"))
-				end
-
-				tree.setup({
-					on_attach = my_on_attach,
-					view = { width = 35 },
-					renderer = {
-						add_trailing = true,
-						root_folder_label = ":~",
-						indent_width = 1,
-						special_files = {},
-						highlight_git = "name",
-						highlight_diagnostics = "name",
-						highlight_modified = "name",
-						indent_markers = { enable = true },
-						icons = {
-							git_placement = "right_align",
-							modified_placement = "signcolumn",
-							glyphs = {
-								git = {
-									unstaged = "M",
-									staged = "A",
-									unmerged = "M",
-									renamed = "R",
-									untracked = "U",
-									deleted = "D",
-									ignored = "I",
-								},
-							},
-						},
-					},
-					git = { show_on_open_dirs = false },
-					diagnostics = {
-						enable = true,
-						show_on_open_dirs = false,
-						icons = {
-							hint = "h",
-							info = "i",
-							warning = "",
-							error = "",
-						},
-					},
-					modified = { enable = true, show_on_open_dirs = false },
-					filters = { enable = false },
-					actions = { use_system_clipboard = false },
-					trash = { cmd = "" },
-					ui = { confirm = { remove = false, default_yes = true } },
-				})
-				api.tree.toggle({ find_file = true, focus = false })
-			end,
-		},
+		-- {
+		-- 	"nvim-tree/nvim-tree.lua",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	event = { "BufNewFile", "BufReadPre" },
+		-- 	config = function()
+		-- 		local tree = require("nvim-tree")
+		-- 		local api = require("nvim-tree.api")
+		-- 		local function my_on_attach(bufnr)
+		-- 			local function opts(desc)
+		-- 				return {
+		-- 					desc = "nvim-tree: " .. desc,
+		-- 					buffer = bufnr,
+		-- 					noremap = true,
+		-- 					silent = true,
+		-- 					nowait = true,
+		-- 				}
+		-- 			end
+		--
+		-- 			vim.keymap.set("n", "<cr>", api.node.open.edit, opts("Open File"))
+		-- 			vim.keymap.set("n", "<leader>E", api.tree.collapse_all, opts("Collapse All"))
+		-- 			vim.keymap.set("n", "<leader>e", "<c-w>l", opts("Focus Editor"))
+		-- 			vim.keymap.set("n", "<leader>f", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "<leader>q", api.tree.close, opts("Close Tree"))
+		-- 			vim.keymap.set("n", "<leader>s", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "?", api.tree.toggle_help, opts("Show Help"))
+		-- 			vim.keymap.set("n", "A", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "E", api.tree.collapse_all, opts("Collapse All"))
+		-- 			vim.keymap.set("n", "H", api.node.navigate.parent_close, opts("Close Directory"))
+		-- 			vim.keymap.set("n", "I", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "O", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
+		-- 			vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "c", api.fs.rename, opts("Rename File"))
+		-- 			vim.keymap.set("n", "d", api.fs.cut, opts("Cut File"))
+		-- 			vim.keymap.set("n", "f", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "h", api.node.navigate.parent, opts("Parent Directory"))
+		-- 			vim.keymap.set("n", "i", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "l", api.node.navigate.sibling.next, opts("Next Sibling"))
+		-- 			vim.keymap.set("n", "o", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "p", api.fs.paste, opts("Paste File"))
+		-- 			vim.keymap.set("n", "s", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "x", api.fs.remove, opts("Delete File"))
+		-- 			vim.keymap.set("n", "y", api.fs.copy.node, opts("Yank File"))
+		-- 		end
+		--
+		-- 		tree.setup({
+		-- 			on_attach = my_on_attach,
+		-- 			view = { width = 35 },
+		-- 			renderer = {
+		-- 				add_trailing = true,
+		-- 				root_folder_label = ":~",
+		-- 				indent_width = 1,
+		-- 				special_files = {},
+		-- 				highlight_git = "name",
+		-- 				highlight_diagnostics = "name",
+		-- 				highlight_modified = "name",
+		-- 				indent_markers = { enable = true },
+		-- 				icons = {
+		-- 					git_placement = "right_align",
+		-- 					modified_placement = "signcolumn",
+		-- 					glyphs = {
+		-- 						git = {
+		-- 							unstaged = "M",
+		-- 							staged = "A",
+		-- 							unmerged = "M",
+		-- 							renamed = "R",
+		-- 							untracked = "U",
+		-- 							deleted = "D",
+		-- 							ignored = "I",
+		-- 						},
+		-- 					},
+		-- 				},
+		-- 			},
+		-- 			git = { show_on_open_dirs = false },
+		-- 			diagnostics = {
+		-- 				enable = true,
+		-- 				show_on_open_dirs = false,
+		-- 				icons = {
+		-- 					hint = "h",
+		-- 					info = "i",
+		-- 					warning = "",
+		-- 					error = "",
+		-- 				},
+		-- 			},
+		-- 			modified = { enable = true, show_on_open_dirs = false },
+		-- 			filters = { enable = false },
+		-- 			actions = { use_system_clipboard = false },
+		-- 			trash = { cmd = "" },
+		-- 			ui = { confirm = { remove = false, default_yes = true } },
+		-- 		})
+		-- 		api.tree.toggle({ find_file = true, focus = false })
+		-- 	end,
+		-- },
 
 		-- fuzzy finder
 		{
@@ -564,6 +565,7 @@ require("lazy").setup({
 				tabline = {},
 				winbar = {
 					lualine_a = { "buffers" },
+					-- lualine_a = {},
 					lualine_b = {},
 					lualine_c = {},
 					lualine_x = {},
@@ -586,6 +588,61 @@ require("lazy").setup({
 				view_options = { show_hidden = true },
 			},
 		},
+
+		{
+			"echasnovski/mini.files",
+			lazy = false,
+			opts = {
+				-- Module mappings created only inside explorer.
+				-- Use `''` (empty string) to not create one.
+				mappings = {
+					close = "q",
+					go_in = "<cr>",
+					go_in_plus = "",
+					go_out = "<bs>",
+					go_out_plus = "",
+					mark_goto = "'",
+					mark_set = "m",
+					reset = "",
+					reveal_cwd = "@",
+					show_help = "?",
+					synchronize = "=",
+					trim_left = "<",
+					trim_right = ">",
+				},
+				windows = {
+					-- Maximum number of windows to show side by side
+					-- max_number = math.huge,
+					max_number = 3,
+					-- Whether to show preview of file/directory under cursor
+					-- preview = false,
+					preview = true,
+					-- Width of focused window
+					-- width_focus = 50,
+					width_focus = 40,
+					-- Width of non-focused window
+					-- width_nofocus = 15,
+					width_nofocus = 40,
+					-- Width of preview window
+					-- width_preview = 25,
+					width_preview = 80,
+				},
+			},
+		},
+		{ "echasnovski/mini.indentscope", lazy = false, opts = {} },
+
+		-- {
+		-- 	"kelly-lin/ranger.nvim",
+		-- 	config = function()
+		-- 		require("ranger-nvim").setup({ replace_netrw = true })
+		-- 		vim.api.nvim_set_keymap("n", "<leader>ef", "", {
+		-- 			noremap = true,
+		-- 			callback = function()
+		-- 				require("ranger-nvim").open(true)
+		-- 			end,
+		-- 		})
+		-- 	end,
+		-- },
 
 		-- TODO
 	},

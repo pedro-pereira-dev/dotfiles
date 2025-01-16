@@ -90,8 +90,8 @@ XTerm*.mainMenu.toolbar.label:  Menubar
 ! Fonts
 ! XTerm*vt100.faceName:           xft:Consolas:size=18:antialias=true:style=Regular
 ! XTerm*vt100.boldFont:           xft:Consolas:size=18:antialias=true:style=Bold
-XTerm*vt100.faceName:           JetbrainsMono NFM:size=12:antialias=true:style=Regular
-XTerm*vt100.boldFont:           JetbrainsMono NFM:size=12:antialias=true:style=Regular
+XTerm*vt100.faceName:           Hack Nerd Font:size=12:antialias=true:style=Regular
+XTerm*vt100.boldFont:           Hack Nerd Font:size=12:antialias=true:style=Bold
 
 ! Size and Title
 ! XTerm*vt100.geometry:           100x30
