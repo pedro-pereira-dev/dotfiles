@@ -1,3 +1,7 @@
+---@diagnostic disable: undefined-global
+-- globals
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 
 -- appearance
 vim.opt.colorcolumn = "80,100,120"
