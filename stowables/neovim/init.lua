@@ -3,15 +3,18 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
-vim.opt.termguicolors = true
-
 -- appearance
 vim.opt.colorcolumn = "80,100,120"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 15
 vim.opt.signcolumn = "yes"
+vim.opt.termguicolors = true
+-- panes direction
+vim.opt.splitbelow = true
+vim.opt.splitright = true
 -- line numbers
 vim.opt.number = true
+vim.opt.numberwidth = 5
 vim.opt.relativenumber = true
 -- smart search
 vim.opt.ignorecase = true
@@ -26,28 +29,13 @@ vim.opt.softtabstop = 2
 vim.opt.tabstop = 2
 
 -- custom commands
-vim.keymap.set("n", "<leader>1", ":LualineBuffersJump 1<cr>", { silent = true, desc = "Open buffer 1" })
-vim.keymap.set("n", "<leader>2", ":LualineBuffersJump 2<cr>", { silent = true, desc = "Open buffer 2" })
-vim.keymap.set("n", "<leader>3", ":LualineBuffersJump 3<cr>", { silent = true, desc = "Open buffer 3" })
-vim.keymap.set("n", "<leader>4", ":LualineBuffersJump 4<cr>", { silent = true, desc = "Open buffer 4" })
-vim.keymap.set("n", "<leader>5", ":LualineBuffersJump 5<cr>", { silent = true, desc = "Open buffer 5" })
-vim.keymap.set("n", "<leader>6", ":LualineBuffersJump 6<cr>", { silent = true, desc = "Open buffer 6" })
-vim.keymap.set("n", "<leader>7", ":LualineBuffersJump 7<cr>", { silent = true, desc = "Open buffer 7" })
-vim.keymap.set("n", "<leader>8", ":LualineBuffersJump 8<cr>", { silent = true, desc = "Open buffer 8" })
-vim.keymap.set("n", "<leader>9", ":LualineBuffersJump 9<cr>", { silent = true, desc = "Open buffer 9" })
 vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true, desc = "List open buffers" })
-vim.keymap.set("n", "<leader>?", ":FzfLua keymaps<cr>", { silent = true, desc = "List available keymaps" })
-vim.keymap.set("n", "<leader>E", ":Oil<cr>", { desc = "Open Oil" })
-vim.keymap.set("n", "<leader>F", ":FzfLua live_grep resume=true<cr>", { silent = true, desc = "Search word - resume" })
-vim.keymap.set("n", "<leader>O", ":FzfLua files resume=true<cr>", { silent = true, desc = "Search file - resume" })
+vim.keymap.set("n", "<leader>e", ":Oil<cr>", { desc = "Open Oil" })
+vim.keymap.set("n", "<leader>f", ":FzfLua live_grep resume=true<cr>", { silent = true, desc = "Search word" })
 vim.keymap.set("n", "<leader>cl", ":Lazy<cr>", { silent = true, desc = "Open Lazy" })
 vim.keymap.set("n", "<leader>cm", ":Mason<cr>", { silent = true, desc = "Open Mason" })
-vim.keymap.set("n", "<leader>e", ":NvimTreeFindFile<cr>", { desc = "Open NvimTree" })
-vim.keymap.set("n", "<leader>f", ":FzfLua live_grep<cr>", { silent = true, desc = "Search word" })
-vim.keymap.set("n", "<leader>gb", ":FzfLua git_branches<cr>", { silent = true, desc = "List git branches" })
 vim.keymap.set("n", "<leader>o", ":FzfLua files<cr>", { silent = true, desc = "Search file" })
-vim.keymap.set("n", "<leader>q", ":QuitBuffer<cr>", { silent = true, desc = "Quit current buffer" })
-vim.keymap.set("n", "<leader>cl", ":LazyGit<cr>", { desc = "Open LazyGit" })
+vim.keymap.set("n", "<leader>q", ":QuitBuffer<cr>", { silent = true, desc = "Close current buffer" })
 -- overridden defaults
 vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clear search highlights" })
 vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { silent = true, desc = "Go to previous buffer" })
@@ -67,25 +55,22 @@ vim.keymap.set("n", "<leader>j", "<c-w>j", { desc = "Go to down window" })
 vim.keymap.set("n", "<leader>k", "<c-w>k", { desc = "Go to up window" })
 vim.keymap.set("n", "<leader>l", "<c-w>l", { desc = "Go to right window" })
 -- clipboard manipulation
-vim.keymap.set({ "n", "v" }, "<leader>cp", [["+p]], { desc = "Paste from clipboard" })
-vim.keymap.set({ "n", "v" }, "<leader>cy", [["+y]], { desc = "Yank to clipboard" })
+vim.keymap.set({ "n", "v" }, "<leader>p", [["+p]], { desc = "Paste from clipboard" })
+vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to clipboard" })
 -- selection movement
-vim.keymap.set("i", "<a-j>", "<esc>:m .+1<cr>==gi", { silent = true, desc = "Move selection down" })
-vim.keymap.set("i", "<a-k>", "<esc>:m .-2<cr>==gi", { silent = true, desc = "Move selection up" })
-vim.keymap.set("n", "<a-j>", ":execute 'move .+' . v:count1<cr>==", { silent = true, desc = "Move selection down" })
-vim.keymap.set("n", "<a-k>", ":execute 'move .-' . (v:count1 + 1)<cr>==", { silent = true, desc = "Move selection up" })
-vim.keymap.set(
-	"v",
-	"<a-j>",
-	":<c-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv",
-	{ silent = true, desc = "Move selection down" }
-)
-vim.keymap.set(
-	"v",
-	"<a-k>",
-	":<c-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv",
-	{ silent = true, desc = "Move selection up" }
-)
+vim.keymap.set("v", "J", ":m '>+1<cr>gv=gv", { silent = true, desc = "Move selection down" })
+vim.keymap.set("v", "K", ":m '<-2<cr>gv=gv", { silent = true, desc = "Move selection up" })
+
+-- bufferline
+vim.keymap.set("n", "<leader>1", ":BufferLineGoToBuffer 1<cr>", { silent = true, desc = "Go to buffer 1" })
+vim.keymap.set("n", "<leader>2", ":BufferLineGoToBuffer 2<cr>", { silent = true, desc = "Go to buffer 2" })
+vim.keymap.set("n", "<leader>3", ":BufferLineGoToBuffer 3<cr>", { silent = true, desc = "Go to buffer 3" })
+vim.keymap.set("n", "<leader>4", ":BufferLineGoToBuffer 4<cr>", { silent = true, desc = "Go to buffer 4" })
+vim.keymap.set("n", "<leader>5", ":BufferLineGoToBuffer 5<cr>", { silent = true, desc = "Go to buffer 5" })
+vim.keymap.set("n", "<leader>6", ":BufferLineGoToBuffer 6<cr>", { silent = true, desc = "Go to buffer 6" })
+vim.keymap.set("n", "<leader>7", ":BufferLineGoToBuffer 7<cr>", { silent = true, desc = "Go to buffer 7" })
+vim.keymap.set("n", "<leader>8", ":BufferLineGoToBuffer 8<cr>", { silent = true, desc = "Go to buffer 8" })
+vim.keymap.set("n", "<leader>9", ":BufferLineGoToBuffer 9<cr>", { silent = true, desc = "Go to buffer 9" })
 
 local language_servers = {
 	bashls = {}, -- sh / bash
@@ -108,6 +93,13 @@ local language_linters = {
 	"shellcheck", -- sh / bash
 }
 
+vim.api.nvim_create_autocmd("TextYankPost", {
+	group = vim.api.nvim_create_augroup("custom_highlight_yank", { clear = true }),
+	callback = function()
+		(vim.hl or vim.highlight).on_yank()
+	end,
+})
+
 local function list_formatters(formatters)
 	local formatters_list = {}
 	for _, option in pairs(formatters) do
@@ -124,13 +116,6 @@ local language_tools = {}
 vim.list_extend(language_tools, vim.tbl_keys(language_servers or {}))
 vim.list_extend(language_tools, list_formatters(language_formatters))
 vim.list_extend(language_tools, language_linters)
-
-vim.api.nvim_create_autocmd("TextYankPost", {
-	group = vim.api.nvim_create_augroup("custom_highlight_yank", { clear = true }),
-	callback = function()
-		(vim.hl or vim.highlight).on_yank()
-	end,
-})
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 ---@diagnostic disable-next-line: undefined-field
@@ -162,21 +147,11 @@ require("lazy").setup({
 
 		-- colorscheme
 		{
-			"catppuccin/nvim",
-			name = "catppuccin.nvim",
+			"rebelot/kanagawa.nvim",
 			priority = 1000,
-			opts = {
-				color_overrides = {
-					mocha = {
-						-- backgrounds
-						base = "#000000",
-						mantle = "#000000",
-						crust = "#000000",
-					},
-				},
-			},
+			opts = { colors = { theme = { all = { ui = { bg = "#000000", bg_gutter = "none" } } } } },
 			init = function()
-				vim.cmd.colorscheme("catppuccin")
+				vim.cmd.colorscheme("kanagawa")
 			end,
 		},
 
@@ -200,12 +175,12 @@ require("lazy").setup({
 						"",
 					},
 					shortcut = {
-						{ desc = "󰍉 Files", group = "DiagnosticError", action = "FzfLua files", key = "o" },
-						{ desc = "󰍉 Projects", group = "Number", action = "FzfLuaChangeProject", key = "p" },
-						{ desc = "󰒲 Lazy", group = "DiagnosticWarn", action = "Lazy", key = "l" },
-						{ desc = "󰒲 Lazy Sync", group = "DiagnosticHint", action = "Lazy sync", key = "s" },
-						{ desc = " Mason", group = "Label", action = "Mason", key = "m" },
-						{ desc = " Reload", group = "@property", action = "cq", key = "q" },
+						{ desc = "󰍉 Files", group = "@variable.parameter", action = "FzfLua files", key = "o" },
+						{ desc = "󰍉 Projects", group = "Keyword", action = "FzfLuaChangeProject", key = "p" },
+						{ desc = "󰒲 Lazy", group = "Float", action = "Lazy", key = "l" },
+						{ desc = "󰒲 Lazy Sync", group = "PreProc", action = "Lazy sync", key = "s" },
+						{ desc = " Mason", group = "Comment", action = "Mason", key = "m" },
+						{ desc = " Reload", group = "LineNr", action = "cq", key = "q" },
 					},
 					project = { enable = false },
 					mru = { limit = 9, label = "Recent Files", cwd_only = true },
@@ -472,7 +447,150 @@ require("lazy").setup({
 				buf_options = { buflisted = true },
 				constrain_cursor = "name",
 				watch_for_changes = true,
+				keymaps = {
+					["<bs>"] = { "actions.parent", mode = "n" },
+					["<cr>"] = "actions.select",
+					["e"] = { "actions.open_cwd", mode = "n" },
+					["gp"] = "actions.preview",
+					["gx"] = "actions.open_external",
+					["h"] = { "actions.parent", mode = "n" },
+					["l"] = "actions.select",
+				},
+				use_default_keymaps = false,
 				view_options = { show_hidden = true },
+			},
+			init = function()
+				vim.api.nvim_create_user_command("OilOpen", function()
+					local oil = require("oil")
+					oil.open()
+					require("oil.actions").preview.callback()
+				end, { desc = "Quit buffer preserving window layout" })
+			end,
+		},
+
+		-- buffer deletion util
+		{
+			"echasnovski/mini.bufremove",
+			cmd = { "QuitBuffer" },
+			init = function()
+				vim.api.nvim_create_user_command("QuitBuffer", function()
+					require("mini.bufremove").delete()
+				end, { desc = "Quit buffer preserving window layout" })
+			end,
+		},
+
+		-- file tree
+		{
+			"nvim-tree/nvim-tree.lua",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			event = { "BufNewFile", "BufReadPre" },
+			config = function()
+				local tree = require("nvim-tree")
+				local api = require("nvim-tree.api")
+				local function my_on_attach(bufnr)
+					local function opts(desc)
+						return {
+							desc = "nvim-tree: " .. desc,
+							buffer = bufnr,
+							noremap = true,
+							silent = true,
+							nowait = true,
+						}
+					end
+
+					vim.keymap.set("n", "<cr>", api.node.open.edit, opts("Open File"))
+					vim.keymap.set("n", "<leader>E", api.tree.collapse_all, opts("Collapse All"))
+					vim.keymap.set("n", "<leader>e", "<c-w>l", opts("Focus Editor"))
+					vim.keymap.set("n", "<leader>f", api.tree.search_node, opts("Find File"))
+					vim.keymap.set("n", "<leader>q", api.tree.close, opts("Close Tree"))
+					vim.keymap.set("n", "<leader>s", api.tree.search_node, opts("Find File"))
+					vim.keymap.set("n", "?", api.tree.toggle_help, opts("Show Help"))
+					vim.keymap.set("n", "A", api.fs.create, opts("Create File Or Directory"))
+					vim.keymap.set("n", "E", api.tree.collapse_all, opts("Collapse All"))
+					vim.keymap.set("n", "H", api.node.navigate.parent_close, opts("Close Directory"))
+					vim.keymap.set("n", "I", api.fs.create, opts("Create File Or Directory"))
+					vim.keymap.set("n", "O", api.fs.create, opts("Create File Or Directory"))
+					vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
+					vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
+					vim.keymap.set("n", "c", api.fs.rename, opts("Rename File"))
+					vim.keymap.set("n", "d", api.fs.cut, opts("Cut File"))
+					vim.keymap.set("n", "f", api.tree.search_node, opts("Find File"))
+					vim.keymap.set("n", "h", api.node.navigate.parent, opts("Parent Directory"))
+					vim.keymap.set("n", "i", api.fs.create, opts("Create File Or Directory"))
+					vim.keymap.set("n", "l", api.node.navigate.sibling.next, opts("Next Sibling"))
+					vim.keymap.set("n", "o", api.fs.create, opts("Create File Or Directory"))
+					vim.keymap.set("n", "p", api.fs.paste, opts("Paste File"))
+					vim.keymap.set("n", "s", api.tree.search_node, opts("Find File"))
+					vim.keymap.set("n", "x", api.fs.remove, opts("Delete File"))
+					vim.keymap.set("n", "y", api.fs.copy.node, opts("Yank File"))
+				end
+
+				tree.setup({
+					on_attach = my_on_attach,
+					view = { width = 35 },
+					renderer = {
+						add_trailing = true,
+						root_folder_label = false,
+						indent_width = 1,
+						special_files = {},
+						highlight_git = "name",
+						highlight_diagnostics = "name",
+						highlight_modified = "name",
+						indent_markers = { enable = true },
+						icons = {
+							git_placement = "right_align",
+							modified_placement = "signcolumn",
+							glyphs = {
+								git = {
+									unstaged = "M",
+									staged = "A",
+									unmerged = "M",
+									renamed = "R",
+									untracked = "U",
+									deleted = "D",
+									ignored = "I",
+								},
+							},
+						},
+					},
+					git = { show_on_open_dirs = false },
+					diagnostics = {
+						enable = true,
+						show_on_open_dirs = false,
+						icons = {
+							hint = "h",
+							info = "i",
+							warning = "",
+							error = "",
+						},
+					},
+					modified = { enable = true, show_on_open_dirs = false },
+					filters = { enable = false },
+					actions = { use_system_clipboard = false },
+					trash = { cmd = "" },
+					ui = { confirm = { remove = false, default_yes = true } },
+				})
+				api.tree.toggle({ find_file = true, focus = false })
+			end,
+		},
+
+		-- top bar
+		{
+			"akinsho/bufferline.nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			-- event = { "BufNewFile", "BufReadPre" },
+			lazy = false,
+			opts = {
+				options = {
+					offsets = {
+						{
+							filetype = "NvimTree",
+							text = function()
+								return vim.fn.fnamemodify(vim.fn.getcwd(), ":t") .. "/"
+							end,
+						},
+					},
+				},
 			},
 		},
 
