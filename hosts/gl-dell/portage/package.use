@@ -3,4 +3,3 @@ app-admin/eclean-kernel zstd
 media-fonts/nerd-fonts hack
 media-video/pipewire sound-server
 sys-kernel/installkernel dracut grub
-x11-terms/xterm truetype

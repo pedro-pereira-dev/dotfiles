@@ -145,6 +145,122 @@ require("lazy").setup({
 	ui = { border = "single", size = { width = 100 } },
 	spec = {
 
+		-- lsp
+		{
+			"neovim/nvim-lspconfig",
+			dependencies = {
+				"WhoIsSethDaniel/mason-tool-installer.nvim",
+				"hrsh7th/cmp-nvim-lsp",
+				"williamboman/mason-lspconfig.nvim",
+				"williamboman/mason.nvim",
+			},
+			cmd = { "Mason" },
+			event = { "BufNewFile", "BufReadPre" },
+			config = function()
+				local default_capabilities = require("cmp_nvim_lsp").default_capabilities()
+				local capabilities = vim.lsp.protocol.make_client_capabilities()
+				capabilities = vim.tbl_deep_extend("force", capabilities, default_capabilities)
+				local default_handler = {
+					function(server_name)
+						local server = language_servers[server_name] or {}
+						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+						require("lspconfig")[server_name].setup(server)
+					end,
+				}
+
+				require("mason-tool-installer").setup({ auto_update = true, ensure_installed = language_tools })
+				---@diagnostic disable-next-line: missing-fields
+				require("mason").setup({ ui = { border = "single", width = 100 } })
+				---@diagnostic disable-next-line: missing-fields
+				require("mason-lspconfig").setup({ handlers = default_handler })
+				require("mason-tool-installer").run_on_start()
+			end,
+		},
+
+		-- autocompletion
+		{
+			"hrsh7th/nvim-cmp",
+			event = { "InsertEnter" },
+			config = function()
+				local cmp = require("cmp")
+				cmp.setup({
+					snippet = {
+						expand = function(args)
+							vim.snippet.expand(args.body)
+						end,
+					},
+					window = {
+						completion = cmp.config.window.bordered(),
+						documentation = cmp.config.window.bordered(),
+					},
+					mapping = cmp.mapping.preset.insert({
+						["<c-space>"] = cmp.mapping.complete(),
+						["<cr>"] = cmp.mapping.confirm({ select = true }),
+						["<s-tab>"] = cmp.mapping.select_prev_item(),
+						["<tab>"] = cmp.mapping.select_next_item(),
+					}),
+					sources = cmp.config.sources({
+						{ name = "lazydev", group_index = 0 },
+						{ name = "nvim_lsp" },
+					}, {
+						{ name = "buffer" },
+					}),
+				})
+			end,
+		},
+
+		-- autoformat
+		{
+			"stevearc/conform.nvim",
+			cmd = { "SaveWithoutFormatter" },
+			event = { "BufWritePre" },
+			config = function()
+				require("conform").setup({
+					default_format_opts = { lsp_format = "fallback" },
+					formatters_by_ft = language_formatters,
+					format_on_save = function(bufnr)
+						if vim.b[bufnr].disable_autoformat then
+							return
+						end
+						return { lsp_format = "fallback", timeout_ms = 500 }
+					end,
+				})
+
+				vim.api.nvim_create_user_command("SaveWithoutFormatter", function()
+					vim.b.disable_autoformat = true
+					vim.cmd.write()
+					vim.b.disable_autoformat = false
+				end, { desc = "Save document without format" })
+			end,
+		},
+
+		-- treesitter
+		{
+			"nvim-treesitter/nvim-treesitter",
+			build = ":TSUpdate",
+			event = { "BufReadPre", "BufNewFile" },
+			main = "nvim-treesitter.configs",
+			opts = {
+				auto_install = true,
+				highlight = {
+					enable = true,
+					disable = function(_, buf)
+						local max_filesize = 100 * 1024 -- 100 KB
+						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+						if ok and stats and stats.size > max_filesize then
+							return true
+						end
+					end,
+				},
+				incremental_selection = { enable = true },
+				indent = { enable = true },
+			},
+			init = function(plugin)
+				require("lazy.core.loader").add_to_rtp(plugin)
+				require("nvim-treesitter.query_predicates")
+			end,
+		},
+
 		-- colorscheme
 		{
 			"rebelot/kanagawa.nvim",
@@ -194,63 +310,6 @@ require("lazy").setup({
 			},
 		},
 
-		-- lsp
-		{
-			"neovim/nvim-lspconfig",
-			dependencies = {
-				"WhoIsSethDaniel/mason-tool-installer.nvim",
-				"hrsh7th/cmp-nvim-lsp",
-				"williamboman/mason-lspconfig.nvim",
-				"williamboman/mason.nvim",
-			},
-			cmd = { "Mason" },
-			event = { "BufNewFile", "BufReadPre" },
-			config = function()
-				local default_capabilities = require("cmp_nvim_lsp").default_capabilities()
-				local capabilities = vim.lsp.protocol.make_client_capabilities()
-				capabilities = vim.tbl_deep_extend("force", capabilities, default_capabilities)
-				local default_handler = {
-					function(server_name)
-						local server = language_servers[server_name] or {}
-						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-						require("lspconfig")[server_name].setup(server)
-					end,
-				}
-
-				require("mason-tool-installer").setup({ auto_update = true, ensure_installed = language_tools })
-				---@diagnostic disable-next-line: missing-fields
-				require("mason").setup({ ui = { border = "single", width = 100 } })
-				---@diagnostic disable-next-line: missing-fields
-				require("mason-lspconfig").setup({ handlers = default_handler })
-				require("mason-tool-installer").run_on_start()
-			end,
-		},
-
-		-- autoformat
-		{
-			"stevearc/conform.nvim",
-			cmd = { "SaveWithoutFormatter" },
-			event = { "BufWritePre" },
-			config = function()
-				require("conform").setup({
-					default_format_opts = { lsp_format = "fallback" },
-					formatters_by_ft = language_formatters,
-					format_on_save = function(bufnr)
-						if vim.b[bufnr].disable_autoformat then
-							return
-						end
-						return { lsp_format = "fallback", timeout_ms = 500 }
-					end,
-				})
-
-				vim.api.nvim_create_user_command("SaveWithoutFormatter", function()
-					vim.b.disable_autoformat = true
-					vim.cmd.write()
-					vim.b.disable_autoformat = false
-				end, { desc = "Save document without format" })
-			end,
-		},
-
 		-- fuzzy finder
 		{
 			"ibhagwan/fzf-lua",
@@ -259,7 +318,6 @@ require("lazy").setup({
 			config = function()
 				local fzf_lua = require("fzf-lua")
 				local fzf_actions = require("fzf-lua.actions")
-
 				fzf_lua.setup({
 					{ "default-title" },
 
@@ -327,59 +385,6 @@ require("lazy").setup({
 						},
 					})
 				end, { desc = "Change project" })
-			end,
-		},
-
-		-- treesitter
-		{
-			"nvim-treesitter/nvim-treesitter",
-			build = ":TSUpdate",
-			event = { "BufReadPre", "BufNewFile" },
-			main = "nvim-treesitter.configs",
-			opts = {
-				auto_install = true,
-				-- ensure_installed = language_tree_sitter,
-				highlight = {
-					enable = true,
-					disable = function(_, buf)
-						local max_filesize = 100 * 1024 -- 100 KB
-						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-						if ok and stats and stats.size > max_filesize then
-							return true
-						end
-					end,
-				},
-				incremental_selection = { enable = true },
-				indent = { enable = true },
-			},
-			init = function(plugin)
-				require("lazy.core.loader").add_to_rtp(plugin)
-				require("nvim-treesitter.query_predicates")
-			end,
-		},
-
-		-- autocompletion
-		{
-			"hrsh7th/nvim-cmp",
-			event = { "InsertEnter" },
-			config = function()
-				local cmp = require("cmp")
-				cmp.setup({
-					sources = {
-						{ name = "lazydev", group_index = 0 },
-						{ name = "nvim_lsp" },
-					},
-					mapping = cmp.mapping.preset.insert({
-						["<C-Space>"] = cmp.mapping.complete(),
-						["<C-u>"] = cmp.mapping.scroll_docs(-4),
-						["<C-d>"] = cmp.mapping.scroll_docs(4),
-					}),
-					snippet = {
-						expand = function(args)
-							vim.snippet.expand(args.body)
-						end,
-					},
-				})
 			end,
 		},
 
@@ -469,110 +474,110 @@ require("lazy").setup({
 		},
 
 		-- buffer deletion util
-		{
-			"echasnovski/mini.bufremove",
-			cmd = { "QuitBuffer" },
-			init = function()
-				vim.api.nvim_create_user_command("QuitBuffer", function()
-					require("mini.bufremove").delete()
-				end, { desc = "Quit buffer preserving window layout" })
-			end,
-		},
+		-- {
+		-- 	"echasnovski/mini.bufremove",
+		-- 	cmd = { "QuitBuffer" },
+		-- 	config = function()
+		-- 		vim.api.nvim_create_user_command("QuitBuffer", function()
+		-- 			require("mini.bufremove").delete()
+		-- 		end, { desc = "Quit buffer preserving window layout" })
+		-- 	end,
+		-- },
 
 		-- file tree
-		{
-			"nvim-tree/nvim-tree.lua",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			event = { "BufNewFile", "BufReadPre" },
-			config = function()
-				local tree = require("nvim-tree")
-				local api = require("nvim-tree.api")
-				local function my_on_attach(bufnr)
-					local function opts(desc)
-						return {
-							desc = "nvim-tree: " .. desc,
-							buffer = bufnr,
-							noremap = true,
-							silent = true,
-							nowait = true,
-						}
-					end
-
-					vim.keymap.set("n", "<cr>", api.node.open.edit, opts("Open File"))
-					vim.keymap.set("n", "<leader>E", api.tree.collapse_all, opts("Collapse All"))
-					vim.keymap.set("n", "<leader>e", "<c-w>l", opts("Focus Editor"))
-					vim.keymap.set("n", "<leader>f", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "<leader>q", api.tree.close, opts("Close Tree"))
-					vim.keymap.set("n", "<leader>s", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "?", api.tree.toggle_help, opts("Show Help"))
-					vim.keymap.set("n", "A", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "E", api.tree.collapse_all, opts("Collapse All"))
-					vim.keymap.set("n", "H", api.node.navigate.parent_close, opts("Close Directory"))
-					vim.keymap.set("n", "I", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "O", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
-					vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "c", api.fs.rename, opts("Rename File"))
-					vim.keymap.set("n", "d", api.fs.cut, opts("Cut File"))
-					vim.keymap.set("n", "f", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "h", api.node.navigate.parent, opts("Parent Directory"))
-					vim.keymap.set("n", "i", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "l", api.node.navigate.sibling.next, opts("Next Sibling"))
-					vim.keymap.set("n", "o", api.fs.create, opts("Create File Or Directory"))
-					vim.keymap.set("n", "p", api.fs.paste, opts("Paste File"))
-					vim.keymap.set("n", "s", api.tree.search_node, opts("Find File"))
-					vim.keymap.set("n", "x", api.fs.remove, opts("Delete File"))
-					vim.keymap.set("n", "y", api.fs.copy.node, opts("Yank File"))
-				end
-
-				tree.setup({
-					on_attach = my_on_attach,
-					view = { width = 35 },
-					renderer = {
-						add_trailing = true,
-						root_folder_label = false,
-						indent_width = 1,
-						special_files = {},
-						highlight_git = "name",
-						highlight_diagnostics = "name",
-						highlight_modified = "name",
-						indent_markers = { enable = true },
-						icons = {
-							git_placement = "right_align",
-							modified_placement = "signcolumn",
-							glyphs = {
-								git = {
-									unstaged = "M",
-									staged = "A",
-									unmerged = "M",
-									renamed = "R",
-									untracked = "U",
-									deleted = "D",
-									ignored = "I",
-								},
-							},
-						},
-					},
-					git = { show_on_open_dirs = false },
-					diagnostics = {
-						enable = true,
-						show_on_open_dirs = false,
-						icons = {
-							hint = "h",
-							info = "i",
-							warning = "",
-							error = "",
-						},
-					},
-					modified = { enable = true, show_on_open_dirs = false },
-					filters = { enable = false },
-					actions = { use_system_clipboard = false },
-					trash = { cmd = "" },
-					ui = { confirm = { remove = false, default_yes = true } },
-				})
-				api.tree.toggle({ find_file = true, focus = false })
-			end,
-		},
+		-- {
+		-- 	"nvim-tree/nvim-tree.lua",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	event = { "BufNewFile", "BufReadPre" },
+		-- 	config = function()
+		-- 		local tree = require("nvim-tree")
+		-- 		local api = require("nvim-tree.api")
+		-- 		local function my_on_attach(bufnr)
+		-- 			local function opts(desc)
+		-- 				return {
+		-- 					desc = "nvim-tree: " .. desc,
+		-- 					buffer = bufnr,
+		-- 					noremap = true,
+		-- 					silent = true,
+		-- 					nowait = true,
+		-- 				}
+		-- 			end
+		--
+		-- 			vim.keymap.set("n", "<cr>", api.node.open.edit, opts("Open File"))
+		-- 			vim.keymap.set("n", "<leader>E", api.tree.collapse_all, opts("Collapse All"))
+		-- 			vim.keymap.set("n", "<leader>e", "<c-w>l", opts("Focus Editor"))
+		-- 			vim.keymap.set("n", "<leader>f", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "<leader>q", api.tree.close, opts("Close Tree"))
+		-- 			vim.keymap.set("n", "<leader>s", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "?", api.tree.toggle_help, opts("Show Help"))
+		-- 			vim.keymap.set("n", "A", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "E", api.tree.collapse_all, opts("Collapse All"))
+		-- 			vim.keymap.set("n", "H", api.node.navigate.parent_close, opts("Close Directory"))
+		-- 			vim.keymap.set("n", "I", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "O", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
+		-- 			vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "c", api.fs.rename, opts("Rename File"))
+		-- 			vim.keymap.set("n", "d", api.fs.cut, opts("Cut File"))
+		-- 			vim.keymap.set("n", "f", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "h", api.node.navigate.parent, opts("Parent Directory"))
+		-- 			vim.keymap.set("n", "i", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "l", api.node.navigate.sibling.next, opts("Next Sibling"))
+		-- 			vim.keymap.set("n", "o", api.fs.create, opts("Create File Or Directory"))
+		-- 			vim.keymap.set("n", "p", api.fs.paste, opts("Paste File"))
+		-- 			vim.keymap.set("n", "s", api.tree.search_node, opts("Find File"))
+		-- 			vim.keymap.set("n", "x", api.fs.remove, opts("Delete File"))
+		-- 			vim.keymap.set("n", "y", api.fs.copy.node, opts("Yank File"))
+		-- 		end
+		--
+		-- 		tree.setup({
+		-- 			on_attach = my_on_attach,
+		-- 			view = { width = 35 },
+		-- 			renderer = {
+		-- 				add_trailing = true,
+		-- 				root_folder_label = false,
+		-- 				indent_width = 1,
+		-- 				special_files = {},
+		-- 				highlight_git = "name",
+		-- 				highlight_diagnostics = "name",
+		-- 				highlight_modified = "name",
+		-- 				indent_markers = { enable = true },
+		-- 				icons = {
+		-- 					git_placement = "right_align",
+		-- 					modified_placement = "signcolumn",
+		-- 					glyphs = {
+		-- 						git = {
+		-- 							unstaged = "M",
+		-- 							staged = "A",
+		-- 							unmerged = "M",
+		-- 							renamed = "R",
+		-- 							untracked = "U",
+		-- 							deleted = "D",
+		-- 							ignored = "I",
+		-- 						},
+		-- 					},
+		-- 				},
+		-- 			},
+		-- 			git = { show_on_open_dirs = false },
+		-- 			diagnostics = {
+		-- 				enable = true,
+		-- 				show_on_open_dirs = false,
+		-- 				icons = {
+		-- 					hint = "h",
+		-- 					info = "i",
+		-- 					warning = "",
+		-- 					error = "",
+		-- 				},
+		-- 			},
+		-- 			modified = { enable = true, show_on_open_dirs = false },
+		-- 			filters = { enable = false },
+		-- 			actions = { use_system_clipboard = false },
+		-- 			trash = { cmd = "" },
+		-- 			ui = { confirm = { remove = false, default_yes = true } },
+		-- 		})
+		-- 		api.tree.toggle({ find_file = true, focus = false })
+		-- 	end,
+		-- },
 
 		-- top bar
 		{
