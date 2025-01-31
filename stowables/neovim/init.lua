@@ -30,7 +30,7 @@ vim.opt.tabstop = 2
 
 -- custom commands
 vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true, desc = "List open buffers" })
-vim.keymap.set("n", "<leader>e", ":Oil<cr>", { desc = "Open Oil" })
+vim.keymap.set("n", "<leader>e", ":OilOpen<cr>", { silent = true, desc = "Open Oil" })
 vim.keymap.set("n", "<leader>f", ":FzfLua live_grep resume=true<cr>", { silent = true, desc = "Search word" })
 vim.keymap.set("n", "<leader>cl", ":Lazy<cr>", { silent = true, desc = "Open Lazy" })
 vim.keymap.set("n", "<leader>cm", ":Mason<cr>", { silent = true, desc = "Open Mason" })
@@ -145,6 +145,60 @@ require("lazy").setup({
 	ui = { border = "single", size = { width = 100 } },
 	spec = {
 
+		-- colorscheme
+		{
+			"rebelot/kanagawa.nvim",
+			priority = 1000,
+			opts = {
+				keywordStyle = { bold = true, italic = false },
+				statementStyle = { bold = false },
+				typeStyle = { italic = true },
+				transparent = true,
+				colors = { theme = { all = { ui = { bg_gutter = "none" } } } },
+				overrides = function(colors)
+					local style = { bg = "none", fg = colors.theme.ui.fg }
+					return { FloatBorder = style, NormalFloat = style }
+				end,
+			},
+			init = function()
+				vim.cmd.colorscheme("kanagawa")
+			end,
+		},
+
+		-- startup page
+		{
+			"nvimdev/dashboard-nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			event = { "VimEnter" },
+			opts = {
+				config = {
+					header = {
+						" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
+						"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
+						"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
+						"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+						"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+						" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+						"",
+						"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
+						"",
+					},
+					shortcut = {
+						{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
+						{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
+						{ key = "q", group = "fg", action = "cq", desc = " Reload" },
+					},
+					project = { enable = false },
+					mru = { enable = false },
+					footer = {
+						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+						"",
+						"pedro-pereira-dev | https://github.com/pedro-pereira-dev",
+					},
+				},
+			},
+		},
+
 		-- lsp
 		{
 			"neovim/nvim-lspconfig",
@@ -168,6 +222,17 @@ require("lazy").setup({
 					end,
 				}
 
+				local borders = {}
+				for i, v in ipairs({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }) do
+					borders[i] = { v, "FloatBorder" }
+				end
+				local _open_floating_preview = vim.lsp.util.open_floating_preview
+				function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
+					opts = opts or {}
+					opts.border = opts.border or borders
+					return _open_floating_preview(contents, syntax, opts, ...)
+				end
+
 				require("mason-tool-installer").setup({ auto_update = true, ensure_installed = language_tools })
 				---@diagnostic disable-next-line: missing-fields
 				require("mason").setup({ ui = { border = "single", width = 100 } })
@@ -182,6 +247,7 @@ require("lazy").setup({
 			"hrsh7th/nvim-cmp",
 			event = { "InsertEnter" },
 			config = function()
+				local border = { border = { "┌", "─", "┐", "│", "┘", "─", "└", "│" } }
 				local cmp = require("cmp")
 				cmp.setup({
 					snippet = {
@@ -190,8 +256,8 @@ require("lazy").setup({
 						end,
 					},
 					window = {
-						completion = cmp.config.window.bordered(),
-						documentation = cmp.config.window.bordered(),
+						completion = cmp.config.window.bordered(border),
+						documentation = cmp.config.window.bordered(border),
 					},
 					mapping = cmp.mapping.preset.insert({
 						["<c-space>"] = cmp.mapping.complete(),
@@ -199,12 +265,10 @@ require("lazy").setup({
 						["<s-tab>"] = cmp.mapping.select_prev_item(),
 						["<tab>"] = cmp.mapping.select_next_item(),
 					}),
-					sources = cmp.config.sources({
-						{ name = "lazydev", group_index = 0 },
-						{ name = "nvim_lsp" },
-					}, {
-						{ name = "buffer" },
-					}),
+					sources = cmp.config.sources(
+						{ { name = "lazydev", group_index = 0 }, { name = "nvim_lsp" } },
+						{ { name = "buffer" } }
+					),
 				})
 			end,
 		},
@@ -226,7 +290,7 @@ require("lazy").setup({
 					end,
 				})
 
-				vim.api.nvim_create_user_command("SaveWithoutFormatter", function()
+				vim.api.nvim_create_user_command("SaveWithoutFormat", function()
 					vim.b.disable_autoformat = true
 					vim.cmd.write()
 					vim.b.disable_autoformat = false
@@ -261,53 +325,29 @@ require("lazy").setup({
 			end,
 		},
 
-		-- colorscheme
+		-- file explorer
 		{
-			"rebelot/kanagawa.nvim",
-			priority = 1000,
-			opts = { colors = { theme = { all = { ui = { bg = "#000000", bg_gutter = "none" } } } } },
-			init = function()
-				vim.cmd.colorscheme("kanagawa")
-			end,
-		},
-
-		-- startup page
-		{
-			"nvimdev/dashboard-nvim",
+			"stevearc/oil.nvim",
 			dependencies = { "nvim-tree/nvim-web-devicons" },
-			event = { "VimEnter" },
+			cmd = { "Oil" },
 			opts = {
-				shortcut_type = "number",
-				config = {
-					header = {
-						" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
-						"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
-						"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
-						"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
-						"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
-						" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
-						"",
-						"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
-						"",
-					},
-					shortcut = {
-						{ desc = "󰍉 Files", group = "@variable.parameter", action = "FzfLua files", key = "o" },
-						{ desc = "󰍉 Projects", group = "Keyword", action = "FzfLuaChangeProject", key = "p" },
-						{ desc = "󰒲 Lazy", group = "Float", action = "Lazy", key = "l" },
-						{ desc = "󰒲 Lazy Sync", group = "PreProc", action = "Lazy sync", key = "s" },
-						{ desc = " Mason", group = "Comment", action = "Mason", key = "m" },
-						{ desc = " Reload", group = "LineNr", action = "cq", key = "q" },
-					},
-					project = { enable = false },
-					mru = { limit = 9, label = "Recent Files", cwd_only = true },
-					footer = {
-						"",
-						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-						"",
-						"pedro-pereira-dev | https://github.com/pedro-pereira-dev",
-					},
+				constrain_cursor = "name",
+				watch_for_changes = true,
+				keymaps = {
+					["<bs>"] = { "actions.parent", mode = "n" },
+					["<cr>"] = { "actions.select", mode = "n" },
+					["e"] = { "actions.open_cwd", mode = "n" },
+					["h"] = { "actions.parent", mode = "n" },
+					["l"] = { "actions.select", mode = "n" },
 				},
+				use_default_keymaps = false,
+				view_options = { show_hidden = true },
 			},
+			init = function()
+				vim.api.nvim_create_user_command("OilOpen", function()
+					require("oil").open(nil, { preview = { vertical = true } })
+				end, { desc = "Open Oil with preview" })
+			end,
 		},
 
 		-- fuzzy finder
@@ -443,141 +483,6 @@ require("lazy").setup({
 				extensions = {},
 			},
 		},
-
-		{
-			"stevearc/oil.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "Oil" },
-			opts = {
-				buf_options = { buflisted = true },
-				constrain_cursor = "name",
-				watch_for_changes = true,
-				keymaps = {
-					["<bs>"] = { "actions.parent", mode = "n" },
-					["<cr>"] = "actions.select",
-					["e"] = { "actions.open_cwd", mode = "n" },
-					["gp"] = "actions.preview",
-					["gx"] = "actions.open_external",
-					["h"] = { "actions.parent", mode = "n" },
-					["l"] = "actions.select",
-				},
-				use_default_keymaps = false,
-				view_options = { show_hidden = true },
-			},
-			init = function()
-				vim.api.nvim_create_user_command("OilOpen", function()
-					local oil = require("oil")
-					oil.open()
-					require("oil.actions").preview.callback()
-				end, { desc = "Quit buffer preserving window layout" })
-			end,
-		},
-
-		-- buffer deletion util
-		-- {
-		-- 	"echasnovski/mini.bufremove",
-		-- 	cmd = { "QuitBuffer" },
-		-- 	config = function()
-		-- 		vim.api.nvim_create_user_command("QuitBuffer", function()
-		-- 			require("mini.bufremove").delete()
-		-- 		end, { desc = "Quit buffer preserving window layout" })
-		-- 	end,
-		-- },
-
-		-- file tree
-		-- {
-		-- 	"nvim-tree/nvim-tree.lua",
-		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
-		-- 	event = { "BufNewFile", "BufReadPre" },
-		-- 	config = function()
-		-- 		local tree = require("nvim-tree")
-		-- 		local api = require("nvim-tree.api")
-		-- 		local function my_on_attach(bufnr)
-		-- 			local function opts(desc)
-		-- 				return {
-		-- 					desc = "nvim-tree: " .. desc,
-		-- 					buffer = bufnr,
-		-- 					noremap = true,
-		-- 					silent = true,
-		-- 					nowait = true,
-		-- 				}
-		-- 			end
-		--
-		-- 			vim.keymap.set("n", "<cr>", api.node.open.edit, opts("Open File"))
-		-- 			vim.keymap.set("n", "<leader>E", api.tree.collapse_all, opts("Collapse All"))
-		-- 			vim.keymap.set("n", "<leader>e", "<c-w>l", opts("Focus Editor"))
-		-- 			vim.keymap.set("n", "<leader>f", api.tree.search_node, opts("Find File"))
-		-- 			vim.keymap.set("n", "<leader>q", api.tree.close, opts("Close Tree"))
-		-- 			vim.keymap.set("n", "<leader>s", api.tree.search_node, opts("Find File"))
-		-- 			vim.keymap.set("n", "?", api.tree.toggle_help, opts("Show Help"))
-		-- 			vim.keymap.set("n", "A", api.fs.create, opts("Create File Or Directory"))
-		-- 			vim.keymap.set("n", "E", api.tree.collapse_all, opts("Collapse All"))
-		-- 			vim.keymap.set("n", "H", api.node.navigate.parent_close, opts("Close Directory"))
-		-- 			vim.keymap.set("n", "I", api.fs.create, opts("Create File Or Directory"))
-		-- 			vim.keymap.set("n", "O", api.fs.create, opts("Create File Or Directory"))
-		-- 			vim.keymap.set("n", "Y", api.fs.copy.relative_path, opts("Copy Relative Path"))
-		-- 			vim.keymap.set("n", "a", api.fs.create, opts("Create File Or Directory"))
-		-- 			vim.keymap.set("n", "c", api.fs.rename, opts("Rename File"))
-		-- 			vim.keymap.set("n", "d", api.fs.cut, opts("Cut File"))
-		-- 			vim.keymap.set("n", "f", api.tree.search_node, opts("Find File"))
-		-- 			vim.keymap.set("n", "h", api.node.navigate.parent, opts("Parent Directory"))
-		-- 			vim.keymap.set("n", "i", api.fs.create, opts("Create File Or Directory"))
-		-- 			vim.keymap.set("n", "l", api.node.navigate.sibling.next, opts("Next Sibling"))
-		-- 			vim.keymap.set("n", "o", api.fs.create, opts("Create File Or Directory"))
-		-- 			vim.keymap.set("n", "p", api.fs.paste, opts("Paste File"))
-		-- 			vim.keymap.set("n", "s", api.tree.search_node, opts("Find File"))
-		-- 			vim.keymap.set("n", "x", api.fs.remove, opts("Delete File"))
-		-- 			vim.keymap.set("n", "y", api.fs.copy.node, opts("Yank File"))
-		-- 		end
-		--
-		-- 		tree.setup({
-		-- 			on_attach = my_on_attach,
-		-- 			view = { width = 35 },
-		-- 			renderer = {
-		-- 				add_trailing = true,
-		-- 				root_folder_label = false,
-		-- 				indent_width = 1,
-		-- 				special_files = {},
-		-- 				highlight_git = "name",
-		-- 				highlight_diagnostics = "name",
-		-- 				highlight_modified = "name",
-		-- 				indent_markers = { enable = true },
-		-- 				icons = {
-		-- 					git_placement = "right_align",
-		-- 					modified_placement = "signcolumn",
-		-- 					glyphs = {
-		-- 						git = {
-		-- 							unstaged = "M",
-		-- 							staged = "A",
-		-- 							unmerged = "M",
-		-- 							renamed = "R",
-		-- 							untracked = "U",
-		-- 							deleted = "D",
-		-- 							ignored = "I",
-		-- 						},
-		-- 					},
-		-- 				},
-		-- 			},
-		-- 			git = { show_on_open_dirs = false },
-		-- 			diagnostics = {
-		-- 				enable = true,
-		-- 				show_on_open_dirs = false,
-		-- 				icons = {
-		-- 					hint = "h",
-		-- 					info = "i",
-		-- 					warning = "",
-		-- 					error = "",
-		-- 				},
-		-- 			},
-		-- 			modified = { enable = true, show_on_open_dirs = false },
-		-- 			filters = { enable = false },
-		-- 			actions = { use_system_clipboard = false },
-		-- 			trash = { cmd = "" },
-		-- 			ui = { confirm = { remove = false, default_yes = true } },
-		-- 		})
-		-- 		api.tree.toggle({ find_file = true, focus = false })
-		-- 	end,
-		-- },
 
 		-- top bar
 		{
