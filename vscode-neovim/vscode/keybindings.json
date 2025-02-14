@@ -1,0 +1,17 @@
+[
+  {
+    "key": "shift+alt+r",
+    "command": "extension.multiCommand.execute",
+    "args": {
+      "sequence": [
+        "extension.uninstallCustomCSS",
+        "cursorDown",
+        "cursorUp",
+        "extension.installCustomCSS",
+        "cursorDown",
+        "cursorUp",
+        "workbench.action.reloadWindow"
+      ]
+    }
+  }
+]
