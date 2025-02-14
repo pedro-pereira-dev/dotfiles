@@ -1,0 +1,7 @@
+#!/bin/bash
+app-misc/onefetch ~amd64
+app-shells/zoxide ~amd64
+dev-util/fnm ~amd64
+dev-vcs/lazygit ~amd64
+media-fonts/nerd-fonts ~amd64
+www-client/librewolf ~amd64

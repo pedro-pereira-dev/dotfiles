@@ -1,0 +1,6 @@
+#!/bin/bash
+app-misc/onefetch::guru
+dev-util/fnm::guru
+dev-vcs/lazygit::guru
+media-fonts/nerd-fonts::gentoo-zh
+www-client/librewolf::librewolf
