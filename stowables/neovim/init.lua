@@ -94,93 +94,43 @@ vim.api.nvim_create_autocmd({ "TextYankPost" }, {
 	end,
 })
 
-vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
-	group = vim.api.nvim_create_augroup("custom_bufferline", { clear = true }),
-	callback = function()
-		local cmp = {
-			modified_symbol = function()
-				local current_bufnr = vim.fn.bufnr("%") -- Get the current buffer number
-				local buf_info = vim.fn.getbufinfo(current_bufnr)[1] -- Get buffer info
-
-				if buf_info then
-					if buf_info.modified == 1 then
-						return "dirty"
-					else
-						return "ok"
-					end
-				else
-					return "oops"
-				end
-			end,
-		}
-		-- statusline components
-		--- highlight pattern
-		-- This has three parts:
-		-- 1. the highlight group
-		-- 2. text content
-		-- 3. special sequence to restore highlight: %*
-		-- Example pattern: %#SomeHighlight#some-text%*
-		local hi_pattern = "%%#%s#%s%%*"
-
-		function _G.custom_status(name)
-			return cmp[name]()
-		end
-
-		function cmp.diagnostic_status()
-			local ok = " λ "
-
-			local ignore = {
-				["c"] = true, -- command mode
-				["t"] = true, -- terminal mode
-			}
-
-			local mode = vim.api.nvim_get_mode().mode
-
-			if ignore[mode] then
-				return ok
-			end
-
-			local levels = vim.diagnostic.severity
-			local errors = #vim.diagnostic.get(0, { severity = levels.ERROR })
-			if errors > 0 then
-				return " ✘ "
-			end
-
-			local warnings = #vim.diagnostic.get(0, { severity = levels.WARN })
-			if warnings > 0 then
-				return " ▲ "
-			end
-
-			return ok
-		end
-
-		function cmp.position()
-			return hi_pattern:format("Search", " %3l:%-2c ")
-		end
-
-		vim.api.nvim_set_hl(0, "TermBrightBlack", { fg = "#403d52" })
-		vim.api.nvim_set_hl(0, "TermWhite", { fg = "#d2d1e6" })
-		vim.api.nvim_set_hl(0, "TermWhiteBold", { fg = "#e0def4", bold = true })
-
-		vim.opt.winbar = "%#TermWhite#"
-			.. vim.fn.expand("%:t")
-			.. " %#TermBrightBlack#%F %#TermWhiteBold#%m   %{%v:lua.custom_status('modified_symbol')%} "
-
-		local statusline = {
-			'%{%v:lua.custom_status("diagnostic_status")%} ',
-			-- "%#TermWhite#%t ",
-			-- "%#TermBrightBlack#%F ",
-			"%r",
-			"%m",
-			"%=",
-			"%{&filetype} ",
-			" %2p%% ",
-			'%{%v:lua.custom_status("position")%}',
-		}
-
-		vim.o.statusline = table.concat(statusline, "")
+_G.custom_status = {
+	modified = function()
+		return vim.bo.modified and "󰛸 " or "  "
 	end,
-})
+	diagnostics = function()
+		local levels = vim.diagnostic.severity
+		local errors = #vim.diagnostic.get(0, { severity = levels.ERROR })
+		local warnings = #vim.diagnostic.get(0, { severity = levels.WARN })
+		local infos = #vim.diagnostic.get(0, { severity = levels.INFO })
+		local hints = #vim.diagnostic.get(0, { severity = levels.HINT })
+		return table.concat({
+			errors > 0 and "%#DiagnosticSignError# " .. errors or "",
+			warnings > 0 and "%#DiagnosticSignWarn# " .. warnings or "",
+			infos > 0 and "%#DiagnosticSignInfo# " .. infos or "",
+			hints > 0 and "%#DiagnosticSignHint# " .. hints or "",
+			"%#Bold#",
+		}, " ")
+	end,
+	branch = function()
+		local branch = vim.fn.system("git branch --show-current 2>/dev/null")
+		return branch ~= "" and branch:gsub("\n", "") or ""
+	end,
+}
+
+vim.cmd([[ set laststatus=0 ]]) -- disables status line
+vim.cmd([[ set noruler ]]) -- disables cursor position
+vim.o.winbar = table.concat({ -- or vim.o.statusline
+	"%#Bold#%t",
+	" %#RenderMarkdownH4Fg#%{%v:lua.custom_status.modified()%} ",
+	"%#LineNr#" .. vim.fn.expand("%:p:~:h"),
+	"  %{%v:lua.custom_status.diagnostics()%}",
+	"%=",
+	" %#LineNr#%{&filetype} ",
+	" %#CursorLineNr#%{%v:lua.custom_status.branch()%} ",
+	" %#Bold#%3l,%-2c ",
+	"%#Bold#%2p%%",
+}, "")
 
 local function list_formatters(formatters)
 	local formatters_list = {}
@@ -276,9 +226,7 @@ require("lazy").setup({
 					footer = {
 						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
 						"",
-						"pedro-pereira-dev",
-						"https://pedro-pereira-dev.github.io",
-						"https://github.com/pedro-pereira-dev",
+						"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
 					},
 				},
 			},
@@ -513,62 +461,6 @@ require("lazy").setup({
 			end,
 		},
 
-		-- status bar
-		-- {
-		-- 	"nvim-lualine/lualine.nvim",
-		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
-		-- 	event = { "BufReadPre", "BufNewFile" },
-		-- 	opts = {
-		-- 		options = {
-		-- 			icons_enabled = true,
-		-- 			theme = "auto",
-		-- 			component_separators = { left = "", right = "" },
-		-- 			section_separators = { left = "", right = "" },
-		-- 			disabled_filetypes = {
-		-- 				statusline = { "NvimTree" },
-		-- 				winbar = {},
-		-- 			},
-		-- 			ignore_focus = {},
-		-- 			always_divide_middle = true,
-		-- 			always_show_tabline = true,
-		-- 			globalstatus = false,
-		-- 			refresh = {
-		-- 				statusline = 100,
-		-- 				tabline = 100,
-		-- 				winbar = 100,
-		-- 			},
-		-- 		},
-		-- 		sections = {
-		-- 			lualine_a = { "mode" },
-		-- 			lualine_b = { "branch", "diff", "diagnostics" },
-		-- 			lualine_c = { "filename" },
-		-- 			lualine_x = { "encoding", "fileformat", "filetype" },
-		-- 			lualine_y = { "progress" },
-		-- 			lualine_z = { "location" },
-		-- 		},
-		-- 		inactive_sections = {
-		-- 			lualine_a = {},
-		-- 			lualine_b = {},
-		-- 			lualine_c = { "filename" },
-		-- 			lualine_x = { "location" },
-		-- 			lualine_y = {},
-		-- 			lualine_z = {},
-		-- 		},
-		-- 		tabline = {},
-		-- 		winbar = {
-		-- 			-- lualine_a = { "buffers" },
-		-- 			lualine_a = {},
-		-- 			lualine_b = {},
-		-- 			lualine_c = {},
-		-- 			lualine_x = {},
-		-- 			lualine_y = {},
-		-- 			lualine_z = {},
-		-- 		},
-		-- 		inactive_winbar = {},
-		-- 		extensions = {},
-		-- 	},
-		-- },
-
-		-- other plugins
+		-- other plugins ...
 	},
 })
