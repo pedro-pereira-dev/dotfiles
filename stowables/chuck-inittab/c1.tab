@@ -1,0 +1,1 @@
+c1:12345:respawn:/sbin/agetty --autologin chuck --noclear 38400 tty1 linux

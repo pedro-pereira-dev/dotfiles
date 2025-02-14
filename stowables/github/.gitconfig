@@ -1,0 +1,6 @@
+[user]
+	name = Pedro Pereira
+	email = 11753516+pedro-pereira-dev@users.noreply.github.com
+  signingkey = B1B18907C404F134
+[commit]
+  gpgSign = true

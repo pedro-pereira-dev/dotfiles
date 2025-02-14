@@ -1,0 +1,45 @@
+[env]
+TERM = "xterm-256color"
+WINIT_X11_SCALE_FACTOR = "1"
+
+[window]
+dynamic_padding = true
+option_as_alt = "OnlyLeft"
+[window.padding]
+x = 8
+y = 4
+
+[font]
+size = 12
+
+[font.normal]
+family = "Jetbrainsmono Nerd Font"
+
+[cursor]
+blink_interval = 250
+blink_timeout = 0
+
+[colors.primary]
+background = "#000000"
+foreground = "#d2d1e6"
+
+[colors.normal]
+black = "#21202e"
+red = "#ff6e6e"
+green = "#9ec875"
+yellow = "#ffa759"
+blue = "#66aeca"
+magenta = "#d291e0"
+cyan = "#9cd8d8"
+white = "#d2d1e6"
+
+[colors.bright]
+black = "#403d52"
+red = "#ff8d8d"
+green = "#b3d987"
+yellow = "#ffd096"
+blue = "#47bfe6"
+magenta = "#ffa1ff"
+cyan = "#8ae2f0"
+white = "#e0def4"
+

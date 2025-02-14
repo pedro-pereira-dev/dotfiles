@@ -1,0 +1,6 @@
+#!/bin/bash
+app-admin/doas persist
+app-admin/eclean-kernel zstd
+media-fonts/nerd-fonts jetbrainsmono
+media-video/pipewire sound-server
+sys-kernel/installkernel dracut grub
