@@ -1,0 +1,4 @@
+#!/bin/bash
+*/*::gentoo-zh
+*/*::guru
+*/*::librewolf

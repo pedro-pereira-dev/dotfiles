@@ -1,0 +1,4 @@
+# public github
+Host github.com
+	HostName github.com
+	IdentityFile ~/.ssh/github-pedro-pereira-dev-ssh
