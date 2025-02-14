@@ -1,0 +1,39 @@
+#!/bin/bash
+
+[[ $# -gt 1 ]] && echo 'Usage: edeclare [--unsupervised]' && exit 1
+[[ $1 == '--unsupervised' ]] && UNSUPERVISED=$1
+
+function is_unsupervised() { [[ -n ${UNSUPERVISED} ]] && return 0 || return 1; }
+function is_root() { [[ ${EUID} -eq 0 ]] && return 0 || return 1; }
+function run_as_root() { if is_root; then "${@:2}"; else "${@:1}"; fi; }
+function check_command() { for CHECK_DEP in "$@"; do [[ -z $(command -v "${CHECK_DEP}") ]] && echo "Missing command: ${CHECK_DEP}" && exit 1; done; }
+
+check_command doas emerge
+if [[ ! -f "/etc/portage/package.declare" ]]; then
+  echo "Missing configuration file: /etc/portage/package.declare"
+  exit 1
+fi
+
+INSTALLED=$(cat /var/lib/portage/world)
+DECLARED=$(sed -E '/^[[:blank:]]*(#|$)/d; s/#.*//; s/[[:space:]]*$//' <"/etc/portage/package.declare")
+ALL=$(echo "${INSTALLED}" "${DECLARED}" | tr ' ' '\n' | sort | uniq)
+
+function is_installed { grep -q "^${1}$" <<<"${INSTALLED}"; }
+function is_declared { grep -q "^${1}$" <<<"${DECLARED}"; }
+
+for DEP in ${ALL}; do
+  if ! is_installed "${DEP}" && is_declared "${DEP}"; then
+    INSTALL+=("${DEP}")
+  elif is_installed "${DEP}" && ! is_declared "${DEP}"; then
+    REMOVE+=("${DEP}")
+  fi
+done
+
+if [[ ${#INSTALL[@]} -ne 0 ]]; then
+  function install_with_portage() { run_as_root doas emerge "$1" "${@:2}"; }
+  install_with_portage "$(is_unsupervised && echo '--ask=n' || echo '--ask')" "${INSTALL[@]}"
+fi
+if [[ ${#REMOVE[@]} -ne 0 ]]; then
+  function remove_with_portage() { run_as_root doas emerge "$1" --deselect "${@:2}"; }
+  remove_with_portage "$(is_unsupervised && echo '--ask=n' || echo '--ask')" "${REMOVE[@]}"
+fi
