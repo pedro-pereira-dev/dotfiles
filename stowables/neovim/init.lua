@@ -78,10 +78,11 @@ local language_servers = {
 }
 
 local language_formatters = {
-	json = { "prettier" }, -- json
-	lua = { "stylua" }, -- lua
-	sh = { "shfmt" }, -- sh / bash
-	vue = { "prettier" }, -- vue
+	json = { "prettier" },
+	lua = { "stylua" },
+	sh = { "shfmt" },
+	typescript = { "prettier" },
+	vue = { "prettier" },
 }
 
 local language_linters = {
@@ -100,6 +101,13 @@ vim.api.nvim_create_autocmd({ "TextYankPost" }, {
 _G.custom_status = {
 	modified = function()
 		return vim.bo.modified and "󰛸 " or "  "
+	end,
+	path = function()
+		local path = vim.fn.expand("%") or ""
+		if path == "" then
+			return ""
+		end
+		return "./" .. path
 	end,
 	diagnostics = function()
 		local levels = vim.diagnostic.severity
@@ -124,7 +132,7 @@ _G.custom_status = {
 vim.o.winbar = table.concat({
 	"%#Bold#%t",
 	" %#RenderMarkdownH4Fg#%{%v:lua.custom_status.modified()%}",
-	"%#LineNr#" .. vim.fn.expand("%:p:~:h"),
+	"%#LineNr#%{%v:lua.custom_status.path()%}",
 	"  %{%v:lua.custom_status.diagnostics()%}",
 	"%=",
 	"%#Bold#" .. vim.fn.fnamemodify(vim.fn.expand("%:p:~:h"), ":t"),
