@@ -83,20 +83,20 @@ local language_servers = {
 	bashls = {}, -- sh / bash
 	jsonls = {}, -- json
 	lua_ls = {}, -- lua
+	ts_ls = {}, -- typescript
 	volar = {}, -- vue
 	vtsls = {}, -- vue typescript
-	ts_ls = {}, -- typescript
 }
 
 local language_formatters = {
 	css = { "prettier" },
 	javascript = { "prettier" },
 	javascriptreact = { "prettier" },
-	typescriptreact = { "prettier" },
 	json = { "prettier" },
 	lua = { "stylua" },
 	sh = { "shfmt" },
 	typescript = { "prettier" },
+	typescriptreact = { "prettier" },
 	vue = { "prettier" },
 }
 
@@ -119,7 +119,7 @@ vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
 		local cmd = vim.fn.getcmdline()
 		local commands = { "cn", "cp", "cfirst", "clast" }
 		if vim.tbl_contains(commands, cmd) then
-			vim.fn.setcmdline(cmd .. "| norm zzzv")
+			vim.fn.setcmdline(cmd .. " | norm zzzv")
 		end
 	end,
 })
@@ -442,7 +442,7 @@ require("lazy").setup({
 
 				vim.api.nvim_create_user_command("FzfLuaChangeProject", function()
 					local find = "find ~/workspace -type d "
-					local test = "\\( -exec /usr/bin/test -d '{}/.git' -a '{}' != '.' \\;"
+					local test = "\\( -exec /bin/test -d '{}/.git' -a '{}' != '.' \\;"
 					local print = " -print -prune -o -name .git -prune \\)"
 					require("fzf-lua").fzf_exec(find .. test .. print, {
 						actions = {

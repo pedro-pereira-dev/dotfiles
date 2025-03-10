@@ -38,6 +38,63 @@ function setup_keys() {
 
 # bootstraps the specified hostname
 case $HOSTNAME in
+gd-server)
+  DOTFILES_DIR=/home/chuck/workspace/personal/dotfiles
+  DOTFILES_SECRETS_DIR=/home/chuck/workspace/personal/dotfiles-secrets
+
+  # checks required dependencies
+  check_command doas emerge
+  is_installed_with_portage dev-vcs/git || install_with_portage --ask=n dev-vcs/git
+
+  # sets up dotfiles
+  if [[ ! -d $DOTFILES_DIR ]]; then
+    run_as_user chuck mkdir -p $(dirname $DOTFILES_DIR)
+    run_as_user chuck git clone https://github.com/pedro-pereira-dev/dotfiles $DOTFILES_DIR
+  fi
+  cd $DOTFILES_DIR
+  run_as_user chuck git remote set-url --push origin git@github.com:pedro-pereira-dev/dotfiles.git
+  run_as_user chuck git fetch origin
+  run_as_user chuck git reset --hard origin/main
+  run_as_user chuck git clean -fdx
+  run_as_user chuck git pull
+
+  # deletes deprecated symlinks
+  run_as_root doas find /etc /usr /bin -xtype l -delete
+  # bootstraps utils and stow
+  run_as_root doas $DOTFILES_DIR/bootstrapper/stow --force $DOTFILES_DIR/bootstrapper /bin
+  # stows rootfiles
+  run_as_root doas stow --force $DOTFILES_DIR/hosts/$HOSTNAME/portage /etc/portage
+
+  if ! is_unsupervised && is_full; then
+    if [[ ! -d $DOTFILES_SECRETS_DIR ]]; then
+      read -p 'https://github.com/pedro-pereira-dev/dotfiles-secrets access token: ' TOKEN
+      mkdir -p $(dirname $DOTFILES_SECRETS_DIR)
+      run_as_user chuck git clone https://$TOKEN@github.com/pedro-pereira-dev/dotfiles-secrets $DOTFILES_SECRETS_DIR
+    fi
+    cd $DOTFILES_SECRETS_DIR
+    run_as_user chuck git remote set-url --push origin git@github.com:pedro-pereira-dev/dotfiles-secrets.git
+    run_as_user chuck git fetch origin
+    run_as_user chuck git reset --hard origin/main
+    run_as_user chuck git clean -fdx
+    run_as_user chuck git pull
+    # deletes deprecated symlinks and relinks all keys
+    run_as_user chuck rm -rf /home/chuck/.ssh
+    setup_keys chuck $DOTFILES_SECRETS_DIR /home/chuck/.ssh github
+    # deletes and imports gpg keys
+    run_as_user chuck gpgconf --kill gpg-agent
+    run_as_user chuck rm -rf /home/chuck/.gnugpg
+    run_as_user chuck gpg --list-secret-keys --keyid-format=long
+    [[ -f /home/chuck/.gnugpg/common.conf ]] && run_as_user chuck sed -i 's/use-keyboxd/#use-keyboxd/g' /home/chuck/.gnugpg/common.conf
+    run_as_user chuck find /home/chuck/.ssh/* -type l -name '*-gpg' -exec gpg --import '{}' ';'
+    keys_to_trust=$(run_as_user chuck gpg --list-keys --fingerprint --with-colons)
+    keys_to_trust=$(echo $keys_to_trust | sed -E -n -e 's/^fpr:::::::::([0-9A-F]+):$/\1:6:/p')
+    [[ ! -z $keys_to_trust ]] && run_as_user chuck gpg --import-ownertrust $keys_to_trust
+  fi
+
+  # removes deprecated symlinks
+  run_as_user chuck find /home/chuck -xtype l -delete
+  # stows dotfiles
+  ;;
 gl-dell)
   DOTFILES_DIR=/home/chuck/workspace/personal/dotfiles
   DOTFILES_SECRETS_DIR=/home/chuck/workspace/personal/dotfiles-secrets
@@ -123,6 +180,7 @@ gl-dell)
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/hyprland /home/chuck/.config/hypr
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/jwm /home/chuck/
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/lazygit /home/chuck/.config/lazygit
+  run_as_user chuck stow --force $DOTFILES_DIR/stowables/libvirt /home/chuck/.config/libvirt
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/neovim /home/chuck/.config/nvim
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/ssh /home/chuck/.ssh
   run_as_user chuck stow --force $DOTFILES_DIR/stowables/tmux /home/chuck/.config/tmux

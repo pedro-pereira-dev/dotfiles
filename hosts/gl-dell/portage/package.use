@@ -4,3 +4,14 @@ app-admin/eclean-kernel zstd
 media-fonts/nerd-fonts jetbrainsmono
 media-video/pipewire sound-server
 sys-kernel/installkernel dracut grub
+
+media-fonts/noto-emoji X
+media-libs/mesa video_cards_nouveau video_cards_radeon video_cards_radeonsi
+x11-libs/libdrm video_cards_nouveau video_cards_radeon video_cards_amdgpu
+app-text/xmlto text
+net-dns/dnsmasq script
+net-libs/gnutls tools pkcs11
+app-emulation/virt-manager gui
+sys-apps/dbus X elogind
+net-misc/spice-gtk usbredir
+app-emulation/qemu spice
