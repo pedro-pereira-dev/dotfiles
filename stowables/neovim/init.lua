@@ -442,7 +442,7 @@ require("lazy").setup({
 
 				vim.api.nvim_create_user_command("FzfLuaChangeProject", function()
 					local find = "find ~/workspace -type d "
-					local test = "\\( -exec /usr/bin/test -d '{}/.git' -a '{}' != '.' \\;"
+					local test = "\\( -exec /bin/test -d '{}/.git' -a '{}' != '.' \\;"
 					local print = " -print -prune -o -name .git -prune \\)"
 					require("fzf-lua").fzf_exec(find .. test .. print, {
 						actions = {
