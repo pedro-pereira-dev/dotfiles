@@ -4,10 +4,10 @@ USAGE_MSG='Usage: stow [--uninstall] [--dry-run] [--force] source target'
 [[ $# -gt 5 ]] && echo ${USAGE_MSG} && exit 1
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --uninstall) UNINSTALL='--uninstall' ;;
-    --dry-run) DRYRUN='--dry-run' ;;
-    --force) FORCE='--force' ;;
-    *) THIS_ARGS+=($1) ;;
+  --uninstall) UNINSTALL='--uninstall' ;;
+  --dry-run) DRYRUN='--dry-run' ;;
+  --force) FORCE='--force' ;;
+  *) THIS_ARGS+=($1) ;;
   esac
   shift
 done
@@ -15,8 +15,8 @@ done
 SOURCE=${THIS_ARGS[0]}
 TARGET=${THIS_ARGS[1]}
 
-function list_files() { find . -type f -printf '%P\0' -or -type l -printf '%P\0'; }
-function list_dirs() { find . -mindepth 1 -type d -printf '%P\0'; }
+function list_files() { find . -type f -print0 -or -type l -print0; }
+function list_dirs() { find . -mindepth 1 -type d -print0; }
 function run_commands() { [[ ! -z ${DRYRUN} ]] && echo $@ || eval $@; }
 
 # uninstalls stow package

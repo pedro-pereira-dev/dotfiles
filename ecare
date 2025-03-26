@@ -1,0 +1,25 @@
+#!/bin/bash
+set -eo pipefail
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  -h | --help) echo "Usage: $(basename "$0") [--hostname <hostname>] [--user <username>]" && exit 0 ;;
+  --hostname) SYSTEM_HOSTNAME=$2 ;;
+  --user) SYSTEM_USER=$2 ;;
+  esac
+  shift
+  shift
+done
+
+function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser --user="$1" -- "${@:2}"; else "${@:2}"; fi; }
+
+SYSTEM_HOSTNAME=${SYSTEM_HOSTNAME:-$(uname --nodename)}
+SYSTEM_USER=${SYSTEM_USER:-'chuck'}
+
+DOTFILES_DIR="/home/${SYSTEM_USER}/workspace/personal/dotfiles"
+
+cd "${DOTFILES_DIR}" || return 1
+run_as_user "${SYSTEM_USER}" git fetch origin
+run_as_user "${SYSTEM_USER}" git reset --hard origin/main
+run_as_user "${SYSTEM_USER}" git clean --force --quiet -dx
+bash "${DOTFILES_DIR}/${SYSTEM_HOSTNAME}/maintain.sh"

@@ -1,0 +1,9 @@
+#!/bin/bash
+set -eo pipefail
+
+if [[ ${EUID} -ne 0 ]]; then
+  su root -c "$0" "$@"
+  exit $?
+fi
+
+emaint sync --allrepos

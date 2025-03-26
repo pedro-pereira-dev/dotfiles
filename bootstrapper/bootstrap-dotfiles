@@ -20,6 +20,9 @@ function is_root() { [[ ${EUID} -eq 0 ]] && return 0 || return 1; }
 function run_as_root() { if is_root; then ${@:2}; else ${@:1}; fi; }
 function run_as_user() { if is_root; then runuser -u $1 -- ${@:2}; else ${@:2}; fi; }
 
+# function run_as_root() { if [[ ${EUID} -eq 0 ]]; then "${@:2}"; else "${@:1}"; fi; }
+# function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser -u "${1}" -- "${@:2}"; else "${@:2}"; fi; }
+
 # defines requirements checking functions
 function check_command() { for CHECK_DEP in $@; do [[ -z $(command -v ${CHECK_DEP}) ]] && echo "Missing command: ${CHECK_DEP}" && exit 1; done; }
 
