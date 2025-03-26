@@ -1,0 +1,26 @@
+#!/bin/bash
+
+[[ $# -gt 1 ]] && echo -e "\nUsage: $(basename "$0") [--unsupervised]\n" && exit 1
+[[ ! -f "/etc/portage/package.declare" ]] && echo 'Missing configuration: /etc/portage/package.declare' && exit 1
+
+INSTALLED_DEPENDENCIES=$(cat /var/lib/portage/world)
+DECLARED_DEPENDENCIES=$(sed -E '/^[[:blank:]]*(#|$)/d; s/#.*//; s/[[:space:]]*$//' </etc/portage/package.declare)
+ALL_DEPENDENCIES=$(echo "${INSTALLED_DEPENDENCIES} ${DECLARED_DEPENDENCIES}" | tr ' ' '\n' | sort | uniq)
+
+function is_declared { grep -q "^$1$" <<<"${DECLARED_DEPENDENCIES}"; }
+function is_installed { grep -q "^$1$" <<<"${INSTALLED_DEPENDENCIES}"; }
+function run_as_root() { if [[ ${EUID} -eq 0 ]]; then "${@:2}"; else "${@:1}"; fi; }
+
+declare -a INSTALL=()
+declare -a REMOVE=()
+
+for DEPENDENCIES in ${ALL_DEPENDENCIES}; do
+  if ! is_installed "${DEPENDENCIES}" && is_declared "${DEPENDENCIES}"; then
+    INSTALL+=("${DEPENDENCIES}")
+  elif is_installed "${DEPENDENCIES}" && ! is_declared "${DEPENDENCIES}"; then
+    REMOVE+=("${DEPENDENCIES}")
+  fi
+done
+
+[[ ${#INSTALL[@]} -ne 0 ]] && run_as_root doas emerge --ask="$([[ $1 == '--unsupervised' ]] && echo 'n' || echo 'y')" "${INSTALL[@]}"
+[[ ${#REMOVE[@]} -ne 0 ]] && run_as_root doas emerge --ask="$([[ $1 == '--unsupervised' ]] && echo 'n' || echo 'y')" --deselect "${@:2}"

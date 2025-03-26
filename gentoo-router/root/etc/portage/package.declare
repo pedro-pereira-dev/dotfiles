@@ -1,0 +1,21 @@
+app-admin/doas                    # sudo replacement
+app-admin/eclean-kernel           # kernel management tool
+app-editors/neovim                # text editor
+app-misc/fastfetch                # system information
+app-misc/tmux                     # terminal multiplexer
+app-portage/gentoolkit            # gentoo variety tools
+app-shells/fzf                    # fuzzy finder
+app-shells/starship               # prompt customization
+app-shells/zoxide                 # cd replacement
+dev-lua/luarocks                  # lua package manager
+dev-util/fnm                      # node version manager
+dev-vcs/git                       # version control
+dev-vcs/lazygit                   # git tool
+sys-apps/eza                      # ls replacement
+sys-apps/ripgrep                  # better grep for neovim fzf-lua
+sys-block/io-scheduler-udev-rules # disk io optimized scheduler
+sys-firmware/intel-microcode      # cpu microcode
+sys-kernel/gentoo-kernel          # gentoo distribution kernel
+sys-kernel/installkernel          # kernel installation hook
+sys-kernel/linux-firmware         # firmware
+sys-process/btop                  # system monitor

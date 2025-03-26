@@ -1,0 +1,25 @@
+#!/bin/bash
+
+[[ $# -ne 2 ]] && echo -e "\nUsage: $(basename "$0") <source> <target>\n" && exit 1
+
+function list_files() { find "$1" -type f -print0 -or -type l -print0; }
+function list_dirs() { find "$1" -mindepth 1 -type d -print0; }
+
+SOURCE_PATH=$(realpath "$1")
+TARGET_PATH=$(realpath "$2")
+
+if [[ -d $1 ]]; then
+  while IFS= read -r -d '' SOURCE_SUBDIRECTORY; do
+    mkdir --parents "${TARGET_PATH}${SOURCE_SUBDIRECTORY/${SOURCE_PATH}/}"
+  done < <(list_dirs "$SOURCE_PATH")
+  while IFS= read -r -d '' SOURCE_FILE; do
+    ln --force --symbolic "${SOURCE_FILE}" "${TARGET_PATH}${SOURCE_FILE/${SOURCE_PATH}/}"
+  done < <(list_files "$SOURCE_PATH")
+
+elif [[ -f $1 ]]; then
+  mkdir --parents "${TARGET_PATH}"
+  ln --force --symbolic "${SOURCE_PATH}" "${TARGET_PATH}/$(basename "${SOURCE_PATH}")"
+
+else
+  echo 'Error... Something went wrong!'
+fi

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+function usage() { echo -e "\nUsage: $(basename "$0")\n[--hostname <hostname>] [--user <username>]\n"; }
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  -h | --help) usage && return 0 ;;
+  --hostname) SYSTEM_HOSTNAME=$2 ;;
+  --user) SYSTEM_USER=$2 ;;
+  esac
+  shift
+  shift
+done
+
+SYSTEM_HOSTNAME=${SYSTEM_HOSTNAME:-$(uname -n)}
+SYSTEM_USER=${SYSTEM_USER:-'chuck'}
+
+DOTFILES_DIR="/home/${SYSTEM_USER}/workspace/personal/dotfiles"
+SYSTEM_DIR="${DOTFILES_DIR}/${SYSTEM_HOSTNAME}"
+
+function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser -u "$1" -- "${@:2}"; else "${@:2}"; fi; }
+
+cd "${DOTFILES_DIR}" || return 1
+run_as_user "${SYSTEM_USER}" git fetch origin
+run_as_user "${SYSTEM_USER}" git reset --hard origin/main
+run_as_user "${SYSTEM_USER}" git clean -fdx
+bash "${SYSTEM_DIR}/maintain.sh"

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+[[ $# -gt 1 ]] && echo -e "\nUsage: $(basename "$0") [--unsupervised]\n" && exit 1
+
+function run_as_root() { if [[ ${EUID} -eq 0 ]]; then "${@:2}"; else "${@:1}"; fi; }
+
+run_as_root doas emerge --ask="$([[ $1 == '--unsupervised' ]] && echo 'n' || echo 'y')" --verbose --update --deep --newuse --with-bdeps=y --backtrack=30 @world

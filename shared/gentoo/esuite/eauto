@@ -1,0 +1,10 @@
+#!/bin/bash
+
+[[ $# -gt 1 ]] && echo -e "\nUsage: $(basename "$0") [--unsupervised]\n" && exit 1
+
+function run_as_root() { if [[ ${EUID} -eq 0 ]]; then "${@:2}"; else "${@:1}"; fi; }
+
+run_as_root doas eupdate
+run_as_root doas edeclare "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"
+run_as_root doas eupgrade "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"
+run_as_root doas edelete "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"

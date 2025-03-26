@@ -1,0 +1,5 @@
+#!/bin/bash
+
+function run_as_root() { if [[ ${EUID} -eq 0 ]]; then "${@:2}"; else "${@:1}"; fi; }
+
+run_as_root doas emaint sync --allrepos

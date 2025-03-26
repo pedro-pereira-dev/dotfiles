@@ -1,0 +1,12 @@
+#!/bin/bash
+
+[[ $# -ne 2 ]] && echo -e "\nUsage: $(basename "$0") <source> <target>\n" && exit 1
+[[ ! -f $1 ]] && echo "Error... $1 is not a file!" && exit 1
+
+SOURCE_FILE=$(realpath "$1")
+TARGET=$(realpath "$2")
+[[ -f ${TARGET} ]] && TARGET=$(dirname "${TARGET}")
+[[ ! -d ${TARGET} ]] && echo "Error... ${TARGET} does not exist!" && exit 1
+
+cd "${TARGET}" || exit 1
+ln --force --symbolic "$(realpath "${SOURCE_FILE}" --relative-to="${TARGET}" --canonicalize-missing)" .
