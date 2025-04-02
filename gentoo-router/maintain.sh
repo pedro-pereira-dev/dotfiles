@@ -1,10 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 
-if [[ ${EUID} -ne 0 ]]; then
-  su root -c "$0" "$@"
-  exit $?
-fi
+[[ ${EUID} -ne 0 ]] && su root -c "$0" "$@" && exit $?
 
 function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser --user="$1" -- "${@:2}"; else "${@:2}"; fi; }
 function ustow() { run_as_user "${SYSTEM_USER}" stow "$@"; }
@@ -35,11 +32,7 @@ ustow ${DOTFILES_DIR}/shared/ssh/configuration /home/${SYSTEM_USER}/.ssh/config
 ustow ${DOTFILES_DIR}/shared/ssh/partials/github-pedro-pereira-dev /home/${SYSTEM_USER}/.ssh/partials/github-pedro-pereira-dev
 ustow ${DOTFILES_DIR}/shared/tmux /home/${SYSTEM_USER}/.config/tmux
 
-if ! git -C /var/db/repos/gentoo status >/dev/null 2>&1; then
-  rm --force --recursive /var/db/repos/gentoo
-  eupdate
-fi
-
+[[ ! -d /var/db/repos/gentoo/.git ]] && rm --force --recursive /var/db/repos/gentoo && eupdate
 eauto --unsupervised
 eselect news read >/dev/null 2>&1
 regenerate-bootloader
