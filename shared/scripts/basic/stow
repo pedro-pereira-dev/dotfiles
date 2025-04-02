@@ -6,10 +6,10 @@ set -eo pipefail
 function list_files() { find "$1" -type f -print0 -or -type l -print0; }
 function list_dirs() { find "$1" -mindepth 1 -type d -print0; }
 
-SOURCE_PATH=$(realpath --canonicalize-missing "$1")
-TARGET_PATH=$(realpath --canonicalize-missing "$2")
+SOURCE_PATH=$(realpath --canonicalize-missing --no-symlinks "$1")
+TARGET_PATH=$(realpath --canonicalize-missing --no-symlinks "$2")
 
-if [[ -d $1 ]]; then
+if [[ -d ${SOURCE_PATH} ]]; then
   while IFS= read -r -d '' SOURCE_SUBDIRECTORY; do
     mkdir --parents "${TARGET_PATH}${SOURCE_SUBDIRECTORY/${SOURCE_PATH}/}"
   done < <(list_dirs "$SOURCE_PATH")
@@ -17,12 +17,13 @@ if [[ -d $1 ]]; then
     mkdir --parents "$(dirname "${TARGET_PATH}${SOURCE_FILE/${SOURCE_PATH}/}")"
     ln --force --symbolic "${SOURCE_FILE}" "${TARGET_PATH}${SOURCE_FILE/${SOURCE_PATH}/}"
   done < <(list_files "$SOURCE_PATH")
-
-elif [[ -f $1 ]]; then
-  rm --force --recursive "${TARGET_PATH}"
-  mkdir --parents "$(dirname "${TARGET_PATH}")"
-  ln --force --symbolic "${SOURCE_PATH}" "$(dirname "${TARGET_PATH}")/$(basename "${SOURCE_PATH}")"
-
+elif [[ -f ${SOURCE_PATH} ]]; then
+  if [[ -d ${TARGET_PATH} ]]; then
+    ln --force --symbolic "${SOURCE_PATH}" "${TARGET_PATH}/$(basename "${SOURCE_PATH}")"
+  else
+    mkdir --parents "$(dirname "${TARGET_PATH}")"
+    ln --force --symbolic "${SOURCE_PATH}" "${TARGET_PATH}"
+  fi
 else
   echo 'Error... Something went wrong!'
 fi
