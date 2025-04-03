@@ -12,11 +12,13 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-[[ ${EUID} -ne 0 ]] && su root -c "$0" "$@" && exit $?
 [[ -z ${SYSTEM_HOSTNAME} || -z ${SYSTEM_USER} ]] && exit 1
-[[ -n ${SYSTEM_USER} ]] && ! grep "${SYSTEM_USER}" /etc/passwd >/dev/null 2>&1 &&
-  bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/add_wheel_user.sh) \
-    --user "${SYSTEM_USER}" --password "${PASSWORD}"
+if ! grep --quiet "${SYSTEM_USER}" /etc/passwd; then
+  echo "teste $PASSWORD"
+fi
+
+# bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/add_wheel_user.sh) \
+#   --user "${SYSTEM_USER}" --password "${PASSWORD}"
 
 ! command -v git >/dev/null 2>&1 && emerge --ask=n --noreplace dev-vcs/git
 su "${SYSTEM_USER}" -c "mkdir --parents /home/${SYSTEM_USER}/workspace/personal"
