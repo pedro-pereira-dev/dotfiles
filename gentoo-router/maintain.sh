@@ -3,40 +3,36 @@ set -eo pipefail
 
 [[ ${EUID} -ne 0 ]] && su root -c "$0" "$@" && exit $?
 
-function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser --user="$1" -- "${@:2}"; else "${@:2}"; fi; }
-function ustow() { run_as_user "${SYSTEM_USER}" stow "$@"; }
+function run_as_user() { if [[ ${EUID} -eq 0 ]]; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
+function ustow() { run_as_user chuck stow "$@"; }
 
-SYSTEM_HOSTNAME='gentoo-router'
-SYSTEM_USER='chuck'
+/home/chuck/workspace/personal/dotfiles/shared/scripts/basic/stow /home/chuck/workspace/personal/dotfiles/shared/scripts/basic/stow /usr/bin
 
-DOTFILES_DIR="/home/${SYSTEM_USER}/workspace/personal/dotfiles"
+stow /home/chuck/workspace/personal/dotfiles/ecare /usr/bin
+stow /home/chuck/workspace/personal/dotfiles/gentoo-router/portage /etc/portage
+stow /home/chuck/workspace/personal/dotfiles/shared/gentoo/esuite /usr/bin
+stow /home/chuck/workspace/personal/dotfiles/shared/gentoo/overlays/gentoo.conf /etc/portage/repos.conf
+stow /home/chuck/workspace/personal/dotfiles/shared/gentoo/overlays/overlay-guru.conf /etc/portage/repos.conf
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/basic /usr/bin
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code /usr/bin
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets /usr/bin
 
-find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
-find /etc /home /root /usr/bin -type d -empty >/dev/null 2>&1
-bash ${DOTFILES_DIR}/shared/scripts/basic/stow ${DOTFILES_DIR}/shared/scripts/basic/stow /usr/bin
-
-stow ${DOTFILES_DIR}/${SYSTEM_HOSTNAME}/portage /etc/portage
-stow ${DOTFILES_DIR}/ecare /usr/bin
-stow ${DOTFILES_DIR}/shared/gentoo/esuite /usr/bin
-stow ${DOTFILES_DIR}/shared/gentoo/overlays/gentoo.conf /etc/portage/repos.conf
-stow ${DOTFILES_DIR}/shared/gentoo/overlays/overlay-guru.conf /etc/portage/repos.conf
-stow ${DOTFILES_DIR}/shared/scripts/basic /usr/bin
-stow ${DOTFILES_DIR}/shared/scripts/code /usr/bin
-stow ${DOTFILES_DIR}/shared/scripts/secrets /usr/bin
-
-ustow ${DOTFILES_DIR}/shared/bash /home/${SYSTEM_USER}
-ustow ${DOTFILES_DIR}/shared/git/configuration /home/${SYSTEM_USER}/.gitconfig
-ustow ${DOTFILES_DIR}/shared/git/partials /home/${SYSTEM_USER}/.config/git
-ustow ${DOTFILES_DIR}/shared/neovim /home/${SYSTEM_USER}/.config/nvim
-ustow ${DOTFILES_DIR}/shared/ssh/configuration /home/${SYSTEM_USER}/.ssh/config
-ustow ${DOTFILES_DIR}/shared/ssh/partials/github-pedro-pereira-dev /home/${SYSTEM_USER}/.ssh/partials/github-pedro-pereira-dev
-ustow ${DOTFILES_DIR}/shared/tmux /home/${SYSTEM_USER}/.config/tmux
+ustow /home/chuck/workspace/personal/dotfiles/shared/bash /home/chuck
+ustow /home/chuck/workspace/personal/dotfiles/shared/git/configuration /home/chuck/.gitconfig
+ustow /home/chuck/workspace/personal/dotfiles/shared/git/partials /home/chuck/.config/git
+ustow /home/chuck/workspace/personal/dotfiles/shared/neovim /home/chuck/.config/nvim
+ustow /home/chuck/workspace/personal/dotfiles/shared/ssh/configuration /home/chuck/.ssh/config
+ustow /home/chuck/workspace/personal/dotfiles/shared/ssh/partials/github-pedro-pereira-dev /home/chuck/.ssh/partials/github-pedro-pereira-dev
+ustow /home/chuck/workspace/personal/dotfiles/shared/tmux /home/chuck/.config/tmux
 
 [[ ! -d /var/db/repos/gentoo/.git ]] && rm --force --recursive /var/db/repos/gentoo && eupdate
 eauto --unsupervised
 eselect news read >/dev/null 2>&1
 regenerate-bootloader
 
-run_as_user "${SYSTEM_USER}" secrets-set gpg-github-pedro-pereira-dev
-run_as_user "${SYSTEM_USER}" secrets-set ssh-github-pedro-pereira-dev
-run_as_user "${SYSTEM_USER}" secrets-import
+run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
+run_as_user chuck secrets-set ssh-github-pedro-pereira-dev
+run_as_user chuck secrets-import
+
+find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
+find /etc /home /root /usr/bin -type d -empty >/dev/null 2>&1

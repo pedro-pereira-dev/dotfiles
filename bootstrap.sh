@@ -18,10 +18,9 @@ done
   bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/add_wheel_user.sh) \
     --user "${SYSTEM_USER}" --password "${PASSWORD}"
 
-DOTFILES_DIR="/home/${SYSTEM_USER}/workspace/personal/dotfiles"
-DOTFILES_REPOSITORY="https://github.com/pedro-pereira-dev/dotfiles"
-
 ! command -v git >/dev/null 2>&1 && emerge --ask=n --noreplace dev-vcs/git
-su "${SYSTEM_USER}" -c "mkdir --parents $(dirname "${DOTFILES_DIR}")"
-su "${SYSTEM_USER}" -c "git -C ${DOTFILES_DIR} status >/dev/null 2>&1 ||git clone ${DOTFILES_REPOSITORY} ${DOTFILES_DIR}"
-bash "${DOTFILES_DIR}/ecare" --hostname "${SYSTEM_HOSTNAME}" --user "${SYSTEM_USER}"
+su "${SYSTEM_USER}" -c "mkdir --parents /home/${SYSTEM_USER}/workspace/personal"
+[[ ! -d /home/${SYSTEM_USER}/workspace/personal/dotfiles ]] &&
+  su "${SYSTEM_USER}" -c "git clone https://github.com/pedro-pereira-dev/dotfiles /home/${SYSTEM_USER}/workspace/personal/dotfiles"
+"/home/${SYSTEM_USER}/workspace/personal/dotfiles/ecare" \
+  --hostname "${SYSTEM_HOSTNAME}" --user "${SYSTEM_USER}"

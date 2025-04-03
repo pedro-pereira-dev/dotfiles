@@ -11,8 +11,5 @@ alias tree='eza --all --tree --icons --sort=type'
 alias vi='nvim-hot-reloadable'
 
 alias ~='cd ~'
-
 alias ..='cd ..'
 alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'

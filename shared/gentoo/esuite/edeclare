@@ -2,24 +2,25 @@
 set -eo pipefail
 
 [[ $# -gt 1 ]] && echo "Usage: $(basename "$0") [--unsupervised]" && exit 1
-[[ ! -f /etc/portage/package.declare ]] && echo 'Missing configuration: /etc/portage/package.declare' && exit 1
+[[ ! -f /etc/portage/package.declare ]] && echo 'Aborting... missing configuration file: /etc/portage/package.declare!' && exit 1
+[[ ! -f /var/lib/portage/world ]] && echo 'Aborting... missing configuration file: /var/lib/portage/world!' && exit 1
 [[ ${EUID} -ne 0 ]] && su root -c "$0" "$@" && exit $?
-
-function is_declared { grep --quiet "^$1$" <<<"${DECLARED_DEPENDENCIES}"; }
-function is_installed { grep --quiet "^$1$" <<<"${INSTALLED_DEPENDENCIES}"; }
 
 INSTALLED_DEPENDENCIES=$(cat /var/lib/portage/world)
 DECLARED_DEPENDENCIES=$(sed --regexp-extended '/^[[:blank:]]*(#|$)/d; s/#.*//; s/[[:space:]]*$//' </etc/portage/package.declare)
 ALL_DEPENDENCIES=$(echo "${INSTALLED_DEPENDENCIES} ${DECLARED_DEPENDENCIES}" | tr ' ' '\n' | sort | uniq)
 
+function is_declared { grep --quiet "^$1$" <<<"${DECLARED_DEPENDENCIES}"; }
+function is_installed { grep --quiet "^$1$" <<<"${INSTALLED_DEPENDENCIES}"; }
+
 declare -a INSTALL=()
 declare -a REMOVE=()
 
-for DEPENDENCIES in ${ALL_DEPENDENCIES}; do
-  if ! is_installed "${DEPENDENCIES}" && is_declared "${DEPENDENCIES}"; then
-    INSTALL+=("${DEPENDENCIES}")
-  elif is_installed "${DEPENDENCIES}" && ! is_declared "${DEPENDENCIES}"; then
-    REMOVE+=("${DEPENDENCIES}")
+for DEPENDENCY in ${ALL_DEPENDENCIES}; do
+  if ! is_installed "${DEPENDENCY}" && is_declared "${DEPENDENCY}"; then
+    INSTALL+=("${DEPENDENCY}")
+  elif is_installed "${DEPENDENCY}" && ! is_declared "${DEPENDENCY}"; then
+    REMOVE+=("${DEPENDENCY}")
   fi
 done
 
