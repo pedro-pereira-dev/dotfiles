@@ -11,10 +11,10 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser -u "$1" -- "${@:2}"; else "${@:2}"; fi; }
+
 SYSTEM_HOSTNAME=${SYSTEM_HOSTNAME:-$(uname --nodename)}
 SYSTEM_USER=${SYSTEM_USER:-$(whoami)}
-
-function run_as_user() { if [[ ${EUID} -eq 0 ]]; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
 
 cd "/home/${SYSTEM_USER}/workspace/personal/dotfiles"
 run_as_user "${SYSTEM_USER}" git fetch origin

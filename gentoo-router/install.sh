@@ -14,6 +14,12 @@ bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-inst
 
 chroot /mnt/gentoo /bin/bash <<EOF
 env-update && source /etc/profile
-bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/bootstrap.sh) \
+
+bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/shared/dotfiles-installer/add-wheel-user.sh) \
   --hostname gentoo-router --user chuck --password ${PASSWORD}
+
+emerge --ask=n --noreplace dev-vcs/git
+su chuck -c 'mkdir --parents /home/chuck/workspace/personal'
+su chuck -c 'git clone https://github.com/pedro-pereira-dev/dotfiles /home/chuck/workspace/personal/dotfiles'
+/home/chuck/workspace/personal/dotfiles/shared/dotfiles-installer/bootstrap-dotfiles --hostname gentoo-router --user chuck
 EOF

@@ -2,4 +2,5 @@
 set -eo pipefail
 
 [[ ${EUID} -ne 0 ]] && su root -c "$0" "$@" && exit $?
+
 emaint sync --allrepos
