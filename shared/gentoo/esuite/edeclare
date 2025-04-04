@@ -4,7 +4,10 @@ set -eo pipefail
 [[ $# -gt 1 ]] && echo "Usage: $(basename "$0") [--unsupervised]" && exit 1
 [[ ! -f /etc/portage/package.declare ]] && echo 'Aborting... missing configuration file: /etc/portage/package.declare!' && exit 1
 [[ ! -f /var/lib/portage/world ]] && echo 'Aborting... missing configuration file: /var/lib/portage/world!' && exit 1
-[[ ${EUID} -ne 0 ]] && doas "$0" "$@" && exit $?
+if [[ ${EUID} -ne 0 ]]; then
+  doas "$0" "$@"
+  exit $?
+fi
 
 INSTALLED_DEPENDENCIES=$(cat /var/lib/portage/world)
 DECLARED_DEPENDENCIES=$(sed --regexp-extended '/^[[:blank:]]*(#|$)/d; s/#.*//; s/[[:space:]]*$//' </etc/portage/package.declare)
