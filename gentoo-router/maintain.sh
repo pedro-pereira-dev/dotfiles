@@ -3,7 +3,7 @@ set -eo pipefail
 
 [[ ${EUID} -ne 0 ]] && doas "$0" "$@" && exit $?
 
-function run_as_user() { if [[ ${EUID} -eq 0 ]]; then runuser -u "$1" -- "${@:2}"; else "${@:2}"; fi; }
+function run_as_user() { if [[ ${EUID} -eq 0 ]]; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
 function ustow() { run_as_user chuck stow "$@"; }
 
 /home/chuck/workspace/personal/dotfiles/shared/scripts/basic/stow /home/chuck/workspace/personal/dotfiles/shared/scripts/basic/stow /usr/bin

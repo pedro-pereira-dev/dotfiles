@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-[[ ${EUID} -ne 0 ]] && su root -c "$0" "$@" && exit $?
+[[ ${EUID} -ne 0 ]] && doas "$0" "$@" && exit $?
 
 emaint sync --allrepos

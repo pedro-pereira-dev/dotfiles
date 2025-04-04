@@ -11,7 +11,7 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-[[ -z ${SYSTEM_USER} ]] && exit 1
+[[ -z ${SYSTEM_USER} ]] && echo 'Aborting... missing parameter: --user!' && exit 1
 [[ -z ${PASSWORD} ]] &&
   while true; do
     echo "Setting up system password for ${SYSTEM_USER}:"
