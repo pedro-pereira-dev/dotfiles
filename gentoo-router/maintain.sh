@@ -9,6 +9,7 @@ function ustow() { run_as_user chuck stow "$@"; }
 /home/chuck/workspace/personal/dotfiles/shared/scripts/basic/stow /home/chuck/workspace/personal/dotfiles/shared/scripts/basic/stow /usr/bin
 
 stow /home/chuck/workspace/personal/dotfiles/gentoo-router/portage /etc/portage
+stow /home/chuck/workspace/personal/dotfiles/shared/doas /etc
 stow /home/chuck/workspace/personal/dotfiles/shared/dotfiles-installer/bootstrap-dotfiles /usr/bin
 stow /home/chuck/workspace/personal/dotfiles/shared/gentoo/esuite /usr/bin
 stow /home/chuck/workspace/personal/dotfiles/shared/gentoo/overlays/gentoo.conf /etc/portage/repos.conf/gentoo.conf
