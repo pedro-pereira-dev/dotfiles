@@ -15,15 +15,11 @@ bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-inst
 chroot /mnt/gentoo /bin/bash <<EOF
 env-update && source /etc/profile
 
-bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/shared/dotfiles-installer/add-wheel-user.sh) \
+bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/add-wheel-user.sh) \
   --hostname gentoo-router --user chuck --password ${PASSWORD}
 
 emerge --ask=n --noreplace dev-vcs/git
 su chuck -c 'mkdir --parents /home/chuck/workspace/personal'
 su chuck -c 'git clone https://github.com/pedro-pereira-dev/dotfiles /home/chuck/workspace/personal/dotfiles'
-/home/chuck/workspace/personal/dotfiles/shared/dotfiles-installer/bootstrap-dotfiles --hostname gentoo-router --user chuck
-
-chown --changes root:root /etc/doas.conf
-chmod --changes 0400 /etc/doas.conf
-passwd --delete --lock root
+/home/chuck/workspace/personal/dotfiles/shared/scripts/utils.bootstrap-dotfiles --hostname gentoo-router --user chuck
 EOF

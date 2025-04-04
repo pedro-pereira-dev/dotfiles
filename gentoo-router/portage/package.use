@@ -1,2 +1,3 @@
+app-admin/doas persist
 app-admin/eclean-kernel zstd
 sys-kernel/installkernel dracut grub
