@@ -22,5 +22,8 @@ emerge --ask=n --noreplace dev-vcs/git
 su chuck -c 'mkdir --parents /home/chuck/workspace/personal'
 su chuck -c 'git clone https://github.com/pedro-pereira-dev/dotfiles /home/chuck/workspace/personal/dotfiles'
 /home/chuck/workspace/personal/dotfiles/shared/dotfiles-installer/bootstrap-dotfiles --hostname gentoo-router --user chuck
+
+chown --changes root:root /etc/doas.conf
+chmod --changes 0400 /etc/doas.conf
 passwd --delete --lock root
 EOF
