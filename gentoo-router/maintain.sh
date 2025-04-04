@@ -2,6 +2,7 @@
 set -eo pipefail
 
 [[ ${EUID} -ne 0 ]] && doas "$0" "$@" && exit $?
+echo "running as $EUID"
 
 function run_as_user() { if [[ ${EUID} -eq 0 ]]; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
 function ustow() { run_as_user chuck stow "$@"; }
