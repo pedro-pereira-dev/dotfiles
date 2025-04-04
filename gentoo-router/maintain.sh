@@ -12,6 +12,7 @@ function ustow() { run_as_user chuck stow "$@"; }
 /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.stow /usr/bin/stow
 
 stow /home/chuck/workspace/personal/dotfiles/gentoo-router/portage /etc/portage
+stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.gentoobinhost-ulisboa.conf /etc/portage/binrepos.conf/gentoobinhost-ulisboa.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-gentoo.conf /etc/portage/repos.conf/overlay-gentoo.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-guru.conf /etc/portage/repos.conf/overlay-guru.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.nvim-reloadable /usr/bin/nvim-reloadable
