@@ -13,6 +13,8 @@ function ustow() { run_as_user chuck stow "$@"; }
 
 stow /home/chuck/workspace/personal/dotfiles/gentoo-router/portage /etc/portage
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.gentoobinhost-ulisboa.conf /etc/portage/binrepos.conf/gentoobinhost-ulisboa.conf
+stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.grub /etc/default/grub
+stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.inittab /etc/inittab
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-gentoo.conf /etc/portage/repos.conf/overlay-gentoo.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-guru.conf /etc/portage/repos.conf/overlay-guru.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.nvim-reloadable /usr/bin/nvim-reloadable
@@ -22,7 +24,7 @@ stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.edeclare /usr
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.edelete /usr/bin/edelete
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.eupdate /usr/bin/eupdate
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.eupgrade /usr/bin/eupgrade
-stow /home/chuck/workspace/personal/dotfiles/shared/scripts/grub.regenerate-bootloader /usr/bin/regenerate-bootloader
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.regenerate-bootloader /usr/bin/regenerate-bootloader
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-bootstrap /usr/bin/secrets-bootstrap
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-create /usr/bin/secrets-create
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-import /usr/bin/secrets-import
@@ -39,6 +41,9 @@ ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.config /
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.github-pedro-pereira-dev /home/chuck/.ssh/config.d/github-pedro-pereira-dev
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/tmux.tmux.conf /home/chuck/.config/tmux/tmux.conf
 
+find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
+find /etc /home /root /usr/bin -type d -empty >/dev/null 2>&1
+
 [[ ! -d /var/db/repos/gentoo/.git ]] && rm --force --recursive /var/db/repos/gentoo
 eauto --unsupervised
 eselect news read >/dev/null 2>&1
@@ -53,11 +58,8 @@ chown --changes root:root /etc/doas.conf
 chmod --changes 0400 /etc/doas.conf
 passwd --delete --lock root >/dev/null 2>&1
 
+rc-update add sshd default >/dev/null 2>&1
+
 run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
 run_as_user chuck secrets-set ssh-github-pedro-pereira-dev
 run_as_user chuck secrets-import
-
-find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
-find /etc /home /root /usr/bin -type d -empty >/dev/null 2>&1
-
-rc-update add sshd default >/dev/null 2>&1
