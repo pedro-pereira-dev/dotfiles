@@ -1,10 +1,14 @@
 #!/bin/bash
 set -eo pipefail
 
-if [[ ${EUID} -ne 0 ]]; then
+# if [[ ${EUID} -ne 0 ]]; then
+#   doas "$0" "$@"
+#   exit $?
+# fi
+[[ ${EUID} -ne 0 ]] && (
   doas "$0" "$@"
   exit $?
-fi
+)
 echo "running as $EUID"
 
 function run_as_user() { if [[ ${EUID} -eq 0 ]]; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
