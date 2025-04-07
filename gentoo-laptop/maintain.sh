@@ -32,7 +32,7 @@ stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-remo
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-set /usr/bin/secrets-set
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.bootstrap-dotfiles /usr/bin/bootstrap-dotfiles
 
-ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-display-sway /home/chuck/.bash_display
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-display /home/chuck/.bash_display
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-profile /home/chuck/.bash_profile
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bashrc /home/chuck/.bashrc
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.gitconfig /home/chuck/.gitconfig
@@ -62,6 +62,7 @@ chmod --changes 0400 /etc/doas.conf
 passwd --delete --lock root >/dev/null 2>&1
 
 rc-update add NetworkManager default >/dev/null 2>&1
+rc-update add sshd default >/dev/null 2>&1
 
 run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
 run_as_user chuck secrets-set ssh-authorized-keys

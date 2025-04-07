@@ -1,3 +1,4 @@
 app-admin/doas persist
 app-admin/eclean-kernel zstd
+gui-wm/dwl savedconfig xinerama
 sys-kernel/installkernel dracut grub

@@ -11,6 +11,8 @@ dev-lua/luarocks
 dev-util/fnm
 dev-vcs/git
 dev-vcs/lazygit
+gui-apps/wmenu
+gui-wm/dwl
 media-video/pipewire              
 net-misc/networkmanager          
 sys-apps/eza
@@ -23,7 +25,6 @@ sys-kernel/linux-firmware
 sys-process/btop
 www-client/google-chrome         
 x11-terms/alacritty
-gui-wm/sway
 
 # media-fonts/fontawesome           
 # media-fonts/nerd-fonts           
