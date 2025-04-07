@@ -12,7 +12,7 @@ dev-util/fnm
 dev-vcs/git
 dev-vcs/lazygit
 gui-apps/wmenu
-gui-wm/dwl
+gui-wm/sway
 media-video/pipewire              
 net-misc/networkmanager          
 sys-apps/eza

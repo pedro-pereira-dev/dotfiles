@@ -1,4 +1,6 @@
 app-admin/doas persist
 app-admin/eclean-kernel zstd
-gui-wm/dwl savedconfig xinerama
+media-video/pipewire sound-server
 sys-kernel/installkernel dracut grub
+
+dev-python/pycairo X

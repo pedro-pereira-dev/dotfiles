@@ -1,1 +1,1 @@
-[[ -z "${WAYLAND_DISPLAY}"  &&  "${XDG_VTNR}" -eq 1 ]] && exec dbus-launch --sh-syntax dwl || true
+[[ -z "${WAYLAND_DISPLAY}"  &&  "${XDG_VTNR}" -eq 1 ]] && dbus-run-session sway || true
