@@ -12,6 +12,7 @@ function ustow() { run_as_user chuck stow "$@"; }
 /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.stow /usr/bin/stow
 
 stow /home/chuck/workspace/personal/dotfiles/gentoo-laptop/portage /etc/portage
+stow /home/chuck/workspace/personal/dotfiles/shared/configurations/dwl.savedconfig.h /etc/portage/savedconfig/gui-wm/dwl-0.7
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.gentoobinhost-ulisboa.conf /etc/portage/binrepos.conf/gentoobinhost-ulisboa.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.grub /etc/default/grub
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.inittab /etc/inittab
@@ -43,6 +44,7 @@ ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.github-p
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.ssh-gentoo-laptop /home/chuck/.ssh/config.d/zz-default
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/sway.config /home/chuck/.config/sway/config
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/tmux.tmux.conf /home/chuck/.config/tmux/tmux.conf
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/wayland.electron.conf /home/chuck/.config/electron-flags.conf
 
 find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
 find /etc /home /root /usr/bin -type d -empty >/dev/null 2>&1
