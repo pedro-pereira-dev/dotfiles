@@ -24,6 +24,10 @@ stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.edeclare /usr
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.edelete /usr/bin/edelete
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.eupdate /usr/bin/eupdate
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.eupgrade /usr/bin/eupgrade
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.pipewire-microphone-toggle /usr/bin/pipewire-microphone-toggle
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.pipewire-volume-down /usr/bin/pipewire-volume-down
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.pipewire-volume-toggle /usr/bin/pipewire-volume-toggle
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.pipewire-volume-up /usr/bin/pipewire-volume-up
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.regenerate-bootloader /usr/bin/regenerate-bootloader
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-bootstrap /usr/bin/secrets-bootstrap
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-create /usr/bin/secrets-create
