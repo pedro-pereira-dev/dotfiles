@@ -1,6 +1,7 @@
 app-admin/doas
 app-admin/eclean-kernel
 app-editors/neovim
+app-laptop/laptop-mode-tools
 app-misc/fastfetch
 app-misc/tmux
 app-portage/gentoolkit
@@ -11,7 +12,6 @@ dev-lua/luarocks
 dev-util/fnm
 dev-vcs/git
 dev-vcs/lazygit
-gui-apps/wmenu
 gui-wm/sway
 media-video/pipewire              
 net-misc/networkmanager          

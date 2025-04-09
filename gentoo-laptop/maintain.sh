@@ -66,6 +66,7 @@ chmod --changes 0400 /etc/doas.conf
 passwd --delete --lock root >/dev/null 2>&1
 
 rc-update add NetworkManager default >/dev/null 2>&1
+rc-update add laptop_mode default >/dev/null 2>&1
 rc-update add sshd default >/dev/null 2>&1
 
 run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
