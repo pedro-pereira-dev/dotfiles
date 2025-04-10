@@ -1,7 +1,6 @@
 app-admin/doas
 app-admin/eclean-kernel
 app-editors/neovim
-app-laptop/laptop-mode-tools
 app-misc/fastfetch
 app-misc/tmux
 app-portage/gentoolkit
@@ -22,6 +21,7 @@ sys-firmware/intel-microcode
 sys-kernel/gentoo-kernel
 sys-kernel/installkernel
 sys-kernel/linux-firmware
+sys-power/acpilight
 sys-process/btop
 www-client/google-chrome         
 x11-misc/i3status
@@ -31,11 +31,8 @@ x11-terms/alacritty
 # media-fonts/nerd-fonts           
 # media-fonts/noto-emoji           
 # media-gfx/maim
-# sys-power/acpilight             
 # sys-power/power-profiles-daemon 
 # x11-apps/setxkbmap
 # x11-apps/xinput
-# x11-base/xorg-server
 # x11-misc/rofi
 # x11-misc/xclip
-# x11-wm/jwm

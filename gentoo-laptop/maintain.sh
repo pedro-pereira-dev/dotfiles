@@ -12,6 +12,7 @@ function ustow() { run_as_user chuck stow "$@"; }
 /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.stow /usr/bin/stow
 
 stow /home/chuck/workspace/personal/dotfiles/gentoo-laptop/portage /etc/portage
+stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.dracut-i915 /etc/dracut.conf.d/i915.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.gentoobinhost-ulisboa.conf /etc/portage/binrepos.conf/gentoobinhost-ulisboa.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.grub /etc/default/grub
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.inittab /etc/inittab
@@ -19,6 +20,8 @@ stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overla
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-guru.conf /etc/portage/repos.conf/overlay-guru.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.nvim-reloadable /usr/bin/nvim-reloadable
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.sessionizer /usr/bin/code
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.backlight-down /usr/bin/backlight-down
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.backlight-up /usr/bin/backlight-up
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.eauto /usr/bin/eauto
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.edeclare /usr/bin/edeclare
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.edelete /usr/bin/edelete
@@ -65,9 +68,9 @@ chown --changes root:root /etc/doas.conf
 chmod --changes 0400 /etc/doas.conf
 passwd --delete --lock root >/dev/null 2>&1
 
+usermod --append --groups video chuck
+
 rc-update add NetworkManager default >/dev/null 2>&1
-rc-update add laptop_mode default >/dev/null 2>&1
-rc-update add sshd default >/dev/null 2>&1
 
 run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
 run_as_user chuck secrets-set ssh-authorized-keys
