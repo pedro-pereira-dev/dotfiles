@@ -38,6 +38,7 @@ stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-impo
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-remove /usr/bin/secrets-remove
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-set /usr/bin/secrets-set
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.bootstrap-dotfiles /usr/bin/bootstrap-dotfiles
+stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.install-nerd-font /usr/bin/install-nerd-font
 
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-display /home/chuck/.bash_display
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-profile /home/chuck/.bash_profile
@@ -73,6 +74,8 @@ passwd --delete --lock root >/dev/null 2>&1
 usermod --append --groups video chuck
 
 rc-update add NetworkManager default >/dev/null 2>&1
+
+run_as_user chuck install-nerd-font JetBrainsMono
 
 run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
 run_as_user chuck secrets-set ssh-authorized-keys
