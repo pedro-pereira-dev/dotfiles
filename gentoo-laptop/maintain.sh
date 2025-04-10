@@ -44,11 +44,13 @@ ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-pr
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bashrc /home/chuck/.bashrc
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.gitconfig /home/chuck/.gitconfig
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.github-pedro-pereira-dev /home/chuck/.config/git/github-pedro-pereira-dev
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.lazygit.yml /home/chuck/.config/lazygit/config.yml
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/neovim.init.lua /home/chuck/.config/nvim/init.lua
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.config /home/chuck/.ssh/config
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.github-pedro-pereira-dev /home/chuck/.ssh/config.d/github-pedro-pereira-dev
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.ssh-gentoo-laptop /home/chuck/.ssh/config.d/zz-default
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/sway.config /home/chuck/.config/sway/config
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/terminal.alacritty.toml /home/chuck/.config/alacritty/alacritty.toml
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/tmux.tmux.conf /home/chuck/.config/tmux/tmux.conf
 
 find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
