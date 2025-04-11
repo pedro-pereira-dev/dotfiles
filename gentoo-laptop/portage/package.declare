@@ -11,6 +11,7 @@ dev-lua/luarocks
 dev-util/fnm
 dev-vcs/git
 dev-vcs/lazygit
+gui-apps/wmenu
 gui-wm/sway
 media-video/pipewire              
 net-misc/networkmanager          
@@ -24,6 +25,6 @@ sys-kernel/linux-firmware
 sys-power/acpilight
 sys-power/power-profiles-daemon
 sys-process/btop
-www-client/google-chrome         
+www-client/librewolf
 x11-misc/i3status
 x11-terms/alacritty
