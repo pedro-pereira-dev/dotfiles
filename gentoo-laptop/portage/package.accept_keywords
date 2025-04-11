@@ -1,3 +1,5 @@
 app-shells/zoxide ~amd64
+dev-libs/nss ~amd64
 dev-util/fnm ~amd64
 dev-vcs/lazygit ~amd64
+www-client/librewolf ~amd64
