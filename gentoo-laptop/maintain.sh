@@ -71,9 +71,10 @@ chown --changes root:root /etc/doas.conf
 chmod --changes 0400 /etc/doas.conf
 passwd --delete --lock root >/dev/null 2>&1
 
-usermod --append --groups video chuck
+# usermod --append --groups video chuck
 
 rc-update add NetworkManager default >/dev/null 2>&1
+rc-update add power-profiles-daemon default >/dev/null 2>&1
 
 run_as_user chuck install-nerd-font JetBrainsMono
 
