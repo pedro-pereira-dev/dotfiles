@@ -26,5 +26,6 @@ sys-power/acpilight
 sys-power/power-profiles-daemon
 sys-process/btop
 www-client/google-chrome
+www-client/librewolf
 x11-misc/i3status
 x11-terms/alacritty
