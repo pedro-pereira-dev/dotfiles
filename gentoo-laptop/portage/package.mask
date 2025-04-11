@@ -1,3 +1,2 @@
 */*::gentoo-zh
 */*::guru
-*/*::librewolf

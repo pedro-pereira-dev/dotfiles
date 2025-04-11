@@ -18,7 +18,6 @@ stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.grub /
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.inittab /etc/inittab
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-gentoo.conf /etc/portage/repos.conf/overlay-gentoo.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-guru.conf /etc/portage/repos.conf/overlay-guru.conf
-stow /home/chuck/workspace/personal/dotfiles/shared/configurations/gentoo.overlay-librewolf.conf /etc/portage/repos.conf/overlay-librewolf.conf
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.nvim-reloadable /usr/bin/nvim-reloadable
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.sessionizer /usr/bin/code
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/gentoo.backlight-down /usr/bin/backlight-down

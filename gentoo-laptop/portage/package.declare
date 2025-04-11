@@ -25,6 +25,6 @@ sys-kernel/linux-firmware
 sys-power/acpilight
 sys-power/power-profiles-daemon
 sys-process/btop
-www-client/librewolf
+www-client/google-chrome
 x11-misc/i3status
 x11-terms/alacritty
