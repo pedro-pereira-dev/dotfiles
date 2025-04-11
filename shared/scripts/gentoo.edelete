@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eo pipefail
 
 [[ $# -gt 1 ]] && echo "Usage: $(basename "$0") [--unsupervised]" && exit 1
 if [[ ${EUID} -ne 0 ]]; then
