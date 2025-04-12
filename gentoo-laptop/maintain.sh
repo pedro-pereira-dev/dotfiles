@@ -47,7 +47,7 @@ ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bashrc 
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.gitconfig /home/chuck/.gitconfig
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.github-pedro-pereira-dev /home/chuck/.config/git/github-pedro-pereira-dev
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.lazygit.yml /home/chuck/.config/lazygit/config.yml
-ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/librewolf.librewolf.overrides.cfg /home/chuck/.librewolf/librewolf.overrides.cfg
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/librewolf.overrides.js /home/chuck/.librewolf/librewolf.overrides.cfg
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/neovim.init.lua /home/chuck/.config/nvim/init.lua
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.config /home/chuck/.ssh/config
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.github-pedro-pereira-dev /home/chuck/.ssh/config.d/github-pedro-pereira-dev
