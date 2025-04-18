@@ -4,5 +4,3 @@ media-video/pipewire sound-server
 sys-kernel/installkernel dracut grub
 
 dev-python/pycairo X
-
-www-client/librewolf hwaccel
