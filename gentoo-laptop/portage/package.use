@@ -1,3 +1,11 @@
+*/* CPU_FLAGS_X86: aes avx avx2 f16c fma3 mmx mmxext pclmul popcnt rdrand sse sse2 sse3 sse4_1 sse4_2 ssse3
+*/* INPUT_DEVICES: libinput
+*/* VIDEO_CARDS: intel i915
+
+*/* GENTOO_MIRRORS: https://mirrors.ptisp.pt/gentoo/ http://mirrors.ptisp.pt/gentoo/ https://ftp.rnl.tecnico.ulisboa.pt/pub/gentoo/gentoo-distfiles/ http://ftp.rnl.tecnico.ulisboa.pt/pub/gentoo/gentoo-distfiles/ ftp://ftp.rnl.tecnico.ulisboa.pt/pub/gentoo/gentoo-distfiles/ rsync://ftp.rnl.tecnico.ulisboa.pt/pub/gentoo/gentoo-distfiles/ http://ftp.dei.uc.pt/pub/linux/gentoo/ https://repo.ifca.es/gentoo-distfiles rsync://repo.ifca.es/gentoo-distfiles ftp://repo.ifca.es/gentoo-distfiles
+
+*/* USE: dbus elogind wayland -X
+
 app-admin/doas persist
 app-admin/eclean-kernel zstd
 media-video/pipewire sound-server

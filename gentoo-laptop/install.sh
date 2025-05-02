@@ -10,7 +10,7 @@ while true; do
 done
 
 bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh) \
-  --hostname 'gentoo-laptop' --disk '/dev/nvme0n1' --root-size '+128G' --password "${PASSWORD}"
+  --hostname 'gentoo-laptop' --disk '/dev/nvme0n1' --root-size '+64G' --password "${PASSWORD}"
 
 chroot /mnt/gentoo /bin/bash <<EOF
 env-update && source /etc/profile
