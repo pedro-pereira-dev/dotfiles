@@ -1,0 +1,11 @@
+app-admin/doas
+app-admin/eclean-kernel
+app-editors/neovim
+app-misc/tmux
+app-portage/eix
+app-portage/gentoolkit
+dev-vcs/git
+net-misc/networkmanager          
+sys-kernel/gentoo-kernel-bin
+sys-kernel/installkernel
+sys-kernel/linux-firmware
