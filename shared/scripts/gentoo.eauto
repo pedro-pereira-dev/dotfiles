@@ -7,6 +7,6 @@ if [[ ${EUID} -ne 0 ]]; then
 fi
 
 eupdate
-edeclare "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"
 eupgrade "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"
+edeclare "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"
 edelete "$([[ $1 == '--unsupervised' ]] && echo '--unsupervised' || echo '')"

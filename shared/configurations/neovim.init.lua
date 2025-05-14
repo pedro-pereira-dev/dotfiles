@@ -41,6 +41,7 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
 	end,
 })
+vim.diagnostic.config({ virtual_text = true })
 -- WIP
 
 -- custom commands

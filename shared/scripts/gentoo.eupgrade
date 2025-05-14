@@ -1,5 +1,4 @@
 #!/bin/bash
-set -eo pipefail
 
 [[ $# -gt 1 ]] && echo "Usage: $(basename "$0") [--unsupervised]" && exit 1
 if [[ ${EUID} -ne 0 ]]; then
@@ -7,4 +6,5 @@ if [[ ${EUID} -ne 0 ]]; then
   exit $?
 fi
 
-emerge --ask="$([[ $1 == '--unsupervised' ]] && echo 'n' || echo 'y')" --backtrack=30 --deep --newuse --update --verbose --with-bdeps=y @world
+ASK=$([[ $1 == '--unsupervised' ]] && echo 'n' || echo 'y')
+emerge --ask="${ASK}" --backtrack=30 --deep --newuse --update --verbose --with-bdeps=y @world

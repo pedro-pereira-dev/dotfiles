@@ -1,6 +1,6 @@
 #!/bin/bash
-set -eo pipefail
 
+[[ $# -gt 0 ]] && echo "Usage: $(basename "$0")" && exit 1
 if [[ ${EUID} -ne 0 ]]; then
   doas "$0" "$@"
   exit $?

@@ -25,3 +25,9 @@ Tar and untar:
 tar -czvf output.tar directory
 tar -xvf input.tar
 ```
+
+    MAKEOPTS equal to CPU core count plus 1 (or RAM limit), Emerge jobs set to half that number rounded up, both with a load average limit set to 1 more than the number of Make jobs specified in MAKEOPTS.
+
+or
+
+    MAKEOPTS set to some specific lower number, optionally with a load average limit set to the CPU core count (or RAM limit), and Emerge jobs not set (which will give you the default of 1 job).

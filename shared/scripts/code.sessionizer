@@ -1,40 +1,35 @@
 #!/bin/bash
 
-[[ $# -lt 1 ]] && echo 'Usage: tmux-sessionixidizer <dir>' && exit 1
+function has_tmux_session() { tmux has-session -t="$1" >/dev/null 2>&1; }
+function is_tmux_running() { [[ -n $(pgrep tmux) ]] && return 0 || return 1; }
+function is_tmux_session() { [[ -n ${TMUX} ]] && return 0 || return 1; }
+function find_target() {
+  find ~/workspace -type d \
+    -exec /bin/test -d '{}/.git' -a '{}' != '.' \; -print -prune \
+    -o -print
+}
 
-ZOXIDE_ENTRY=$(zoxide query "${@:1}" 2>/dev/null)
-REALPATH_ENTRY=$(realpath $1)
+TARGET=$(zoxide query "${@:1}" 2>/dev/null)
+[[ -z ${*:1} ]] && TARGET=$(find_target | fzf)
+[[ -n ${*:1} && -z ${TARGET} ]] && TARGET=$(find_target | fzf --query "${*:1}")
+[[ -z ${TARGET} ]] && exit 0
 
-if [[ ! -z $ZOXIDE_ENTRY ]]; then
-  TARGET_DIR=$ZOXIDE_ENTRY
-  SESSION_NAME=$(basename $ZOXIDE_ENTRY)
-elif [[ ! -z $REALPATH_ENTRY ]] && [[ -f $REALPATH_ENTRY || -d $REALPATH_ENTRY ]]; then
-  TARGET_DIR=$REALPATH_ENTRY
-  SESSION_NAME=$(basename $REALPATH_ENTRY)
-else
-  TARGET_DIR=~
-  SESSION_NAME=default
-fi
-
-# echo "target: $TARGET_DIR"
-# echo "session: $SESSION_NAME"
-
-function is_tmux_session() { [[ ! -z $TMUX ]] && return 0 || return 1; }
-function is_tmux_running() { [[ ! -z $(pgrep tmux) ]] && return 0 || return 1; }
-function has_tmux_session() { tmux has-session -t=$1 >/dev/null 2>&1; }
+REALPATH_TARGET=$(realpath "${TARGET}")
+SESSION_NAME=$(basename "${REALPATH_TARGET}")
 
 if is_tmux_session; then
-  if ! has_tmux_session $SESSION_NAME; then
-    # new detached session
-    tmux new-session -d -s $SESSION_NAME -c $TARGET_DIR
+  if ! has_tmux_session "${SESSION_NAME}"; then
+    # creates new detached session
+    tmux new-session -d -s "${SESSION_NAME}" -c "${REALPATH_TARGET}"
   fi
-  tmux switch-client -t $SESSION_NAME
+  # switches to session
+  tmux switch-client -t "${SESSION_NAME}"
 else
-  if has_tmux_session $SESSION_NAME; then
-    # attach to session and detach all other clients from all sessions
-    tmux attach -t $SESSION_NAME \; detach-client -a
+  if has_tmux_session "${SESSION_NAME}"; then
+    # attaches to session and detaches all other clients from all sessions
+    tmux attach -t "${SESSION_NAME}" \; detach-client -a
   else
-    # create and attach new session, and detach all other clients from all sessions
-    tmux new-session -s $SESSION_NAME -c $TARGET_DIR \; detach-client -a
+    # creates and attaches new session, and detaches all other clients from all sessions
+    tmux new-session -s "${SESSION_NAME}" -c "${REALPATH_TARGET}" \; detach-client -a
   fi
 fi
