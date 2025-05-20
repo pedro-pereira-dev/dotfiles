@@ -2,21 +2,22 @@
 -- globals
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+-- netrw
+vim.g.netrw_altfile = 1
+vim.g.netrw_banner = 0
 
 -- appearance
-vim.opt.colorcolumn = "80,100,120"
 vim.opt.cursorline = true
-vim.opt.laststatus = 0
 vim.opt.ruler = false
-vim.opt.scrolloff = 15
+vim.opt.scrolloff = 20
 vim.opt.signcolumn = "yes"
 vim.opt.termguicolors = true
--- panes direction
+-- splits direction
 vim.opt.splitbelow = true
 vim.opt.splitright = true
 -- line numbers
 vim.opt.number = true
-vim.opt.numberwidth = 5
+vim.opt.numberwidth = 4
 vim.opt.relativenumber = true
 -- smart search
 vim.opt.ignorecase = true
@@ -31,17 +32,14 @@ vim.opt.softtabstop = 2
 vim.opt.tabstop = 2
 
 -- WIP
-vim.g.netrw_banner = 0
-vim.keymap.set("n", "<leader>e", ":Ex<cr>", { desc = "Open explorer" })
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = vim.api.nvim_create_augroup("custom_netrw", { clear = true }),
-	pattern = "netrw",
+
+vim.opt.updatetime = 1000
+vim.diagnostic.config({ virtual_text = true })
+vim.api.nvim_create_autocmd("CursorHold", {
 	callback = function()
-		vim.keymap.set("n", "h", "-^", { buffer = true, remap = true })
-		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
+		vim.diagnostic.open_float(nil, { focusable = false, source = "if_many" })
 	end,
 })
-vim.diagnostic.config({ virtual_text = true })
 -- WIP
 
 -- custom commands
@@ -52,8 +50,10 @@ vim.keymap.set("n", "<leader>cm", ":Mason<cr>", { silent = true, desc = "Open Ma
 vim.keymap.set("n", "<leader>f", ":FzfLua live_grep hidden=true<cr>", { silent = true, desc = "Search word" })
 vim.keymap.set("n", "<leader>gc", ":GitConflicts<cr>", { silent = true, desc = "List git conflicts" })
 vim.keymap.set("n", "<leader>o", ":FzfLua files cwd_prompt=false<cr>", { silent = true, desc = "Search file" })
-vim.keymap.set("n", "<leader>q", ":bd!<cr>", { silent = true, desc = "Quit buffer" })
 vim.keymap.set("t", "<m-esc>", "<c-\\><c-n>", { desc = "Exit terminal mode" })
+vim.keymap.set("n", "<m-q>", ":bwipeout<cr>", { silent = true, desc = "Close buffer" })
+vim.keymap.set("n", "<m-Q>", "<c-w>q", { silent = true, desc = "Quit buffer" })
+vim.keymap.set("n", "<leader>e", ":Ex<cr>", { desc = "Open explorer" })
 -- overridden defaults
 vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clear search highlights" })
 vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { silent = true, desc = "Go to previous buffer" })
@@ -68,10 +68,10 @@ vim.keymap.set("n", "n", "'Nn'[v:searchforward].'zzzv'", { expr = true, desc = "
 vim.keymap.set("n", "{", "{zzzv", { desc = "Center previous paragraph" })
 vim.keymap.set("n", "}", "}zzzv", { desc = "Center next paragraph" })
 -- windows navigation
-vim.keymap.set("n", "<leader>h", "<c-w>h", { desc = "Go to left window" })
-vim.keymap.set("n", "<leader>j", "<c-w>j", { desc = "Go to down window" })
-vim.keymap.set("n", "<leader>k", "<c-w>k", { desc = "Go to up window" })
-vim.keymap.set("n", "<leader>l", "<c-w>l", { desc = "Go to right window" })
+vim.keymap.set("n", "<m-h>", ":TmuxNavigate h<cr>", { desc = "Go to left window", silent = true })
+vim.keymap.set("n", "<m-j>", ":TmuxNavigate j<cr>", { desc = "Go to down window", silent = true })
+vim.keymap.set("n", "<m-k>", ":TmuxNavigate k<cr>", { desc = "Go to up window", silent = true })
+vim.keymap.set("n", "<m-l>", ":TmuxNavigate l<cr>", { desc = "Go to right window", silent = true })
 -- clipboard manipulation
 vim.keymap.set({ "n", "v" }, "<leader>p", [["+p]], { desc = "Paste from clipboard" })
 vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to clipboard" })
@@ -85,8 +85,8 @@ local language_servers = {
 	jsonls = {}, -- json
 	lua_ls = {}, -- lua
 	ts_ls = {}, -- typescript
-	volar = {}, -- vue
 	vtsls = {}, -- vue typescript
+	vuels = {}, -- vue
 }
 
 local language_formatters = {
@@ -125,6 +125,16 @@ vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
 	end,
 })
 
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = vim.api.nvim_create_augroup("custom_netrw", { clear = true }),
+	pattern = "netrw",
+	callback = function()
+		vim.keymap.set("n", "<tab>", ":bwipeout<cr>", { buffer = true, remap = true })
+		vim.keymap.set("n", "h", "-^", { buffer = true, remap = true })
+		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
+	end,
+})
+
 vim.api.nvim_create_user_command("GitConflicts", function()
 	local cmd = { "rg", "--vimgrep", "--hidden", "<<<<<<< " }
 	local out = vim.system(cmd):wait()
@@ -159,9 +169,19 @@ vim.api.nvim_create_user_command("GitStatus", function()
 	vim.cmd("cwindow")
 end, { desc = "List all git status" })
 
+vim.api.nvim_create_user_command("TmuxNavigate", function(opts)
+	local direction = opts.fargs[1]
+	local mappings = { h = "L", j = "D", k = "U", l = "R" }
+	local wnr = vim.fn.winnr()
+	vim.cmd("wincmd " .. direction)
+	if wnr == vim.fn.winnr() then
+		vim.fn.system("tmux select-pane -" .. mappings[direction])
+	end
+end, { desc = "Moves window with tmux", nargs = 1 })
+
 _G.custom_status = {
 	modified = function()
-		return vim.bo.modified and "***" or ""
+		return vim.bo.modified and "%#RenderMarkdownH4Fg# *** %#Substitute# CHANGED %#RenderMarkdownH4Fg# ***" or ""
 	end,
 	path = function()
 		local path = vim.fn.expand("%") or ""
@@ -193,11 +213,11 @@ _G.custom_status = {
 	end,
 }
 
-vim.o.winbar = table.concat({
+vim.o.statusline = table.concat({
 	"%#Bold#%t",
 	"  %#LineNr#%{%v:lua.custom_status.path()%}",
 	"%{%v:lua.custom_status.diagnostics()%}",
-	"  %#RenderMarkdownH4Fg#%{%v:lua.custom_status.modified()%}",
+	"  %{%v:lua.custom_status.modified()%}",
 	"%=",
 	"  %#LineNr#%l,%-c",
 	"  %#Bold#%p%%",
