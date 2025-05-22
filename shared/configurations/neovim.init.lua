@@ -1,11 +1,7 @@
 ---@diagnostic disable: undefined-global
--- globals
+-- vim globals and options
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
--- netrw
-vim.g.netrw_altfile = 1
-vim.g.netrw_banner = 0
-
 -- appearance
 vim.opt.cursorline = true
 vim.opt.ruler = false
@@ -30,19 +26,35 @@ vim.opt.expandtab = true
 vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
 vim.opt.tabstop = 2
+-- timings
+vim.opt.timeoutlen = 5000
+vim.opt.updatetime = 500
 
--- WIP
-
-vim.opt.updatetime = 1000
-vim.diagnostic.config({ virtual_text = true })
-vim.api.nvim_create_autocmd("CursorHold", {
+-- auto commands
+local custom_group = vim.api.nvim_create_augroup("custom_group", { clear = true })
+vim.api.nvim_create_autocmd({ "TextYankPost" }, {
+	group = custom_group,
 	callback = function()
-		vim.diagnostic.open_float(nil, { focusable = false, source = "if_many" })
+		(vim.hl or vim.highlight).on_yank()
 	end,
 })
+vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
+	group = custom_group,
+	callback = function()
+		local cmd = vim.fn.getcmdline()
+		local commands = { "cn", "cp", "cfirst", "clast" }
+		if vim.tbl_contains(commands, cmd) then
+			vim.fn.setcmdline(cmd .. " | norm zzzv")
+		end
+	end,
+})
+
+-- WIP
+vim.diagnostic.config({ virtual_text = true })
 -- WIP
 
 -- custom commands
+vim.keymap.set("n", "<leader>e", ":Oil --preview<cr>", { desc = "Open explorer", silent = true })
 vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true, desc = "List open buffers" })
 vim.keymap.set("n", "<leader>O", ":FzfLuaChangeProject<cr>", { desc = "List git projects" })
 vim.keymap.set("n", "<leader>cl", ":Lazy<cr>", { silent = true, desc = "Open Lazy" })
@@ -53,7 +65,6 @@ vim.keymap.set("n", "<leader>o", ":FzfLua files cwd_prompt=false<cr>", { silent 
 vim.keymap.set("t", "<m-esc>", "<c-\\><c-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<m-q>", ":bwipeout<cr>", { silent = true, desc = "Close buffer" })
 vim.keymap.set("n", "<m-Q>", "<c-w>q", { silent = true, desc = "Quit buffer" })
-vim.keymap.set("n", "<leader>e", ":Ex<cr>", { desc = "Open explorer" })
 -- overridden defaults
 vim.keymap.set("n", "<esc>", ":nohlsearch<cr>", { silent = true, desc = "Clear search highlights" })
 vim.keymap.set("n", "<tab>", ":b#<cr>zzzv", { silent = true, desc = "Go to previous buffer" })
@@ -106,34 +117,6 @@ local language_linters = {
 	"luacheck", -- lua
 	"shellcheck", -- sh / bash
 }
-
-vim.api.nvim_create_autocmd({ "TextYankPost" }, {
-	group = vim.api.nvim_create_augroup("custom_highlight_yank", { clear = true }),
-	callback = function()
-		(vim.hl or vim.highlight).on_yank()
-	end,
-})
-
-vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
-	group = vim.api.nvim_create_augroup("custom_center_commands", { clear = true }),
-	callback = function()
-		local cmd = vim.fn.getcmdline()
-		local commands = { "cn", "cp", "cfirst", "clast" }
-		if vim.tbl_contains(commands, cmd) then
-			vim.fn.setcmdline(cmd .. " | norm zzzv")
-		end
-	end,
-})
-
-vim.api.nvim_create_autocmd({ "FileType" }, {
-	group = vim.api.nvim_create_augroup("custom_netrw", { clear = true }),
-	pattern = "netrw",
-	callback = function()
-		vim.keymap.set("n", "<tab>", ":bwipeout<cr>", { buffer = true, remap = true })
-		vim.keymap.set("n", "h", "-^", { buffer = true, remap = true })
-		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
-	end,
-})
 
 vim.api.nvim_create_user_command("GitConflicts", function()
 	local cmd = { "rg", "--vimgrep", "--hidden", "<<<<<<< " }
@@ -252,14 +235,19 @@ end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 
-	-- https://lazy.folke.io/configuration
 	performance = {
 		rtp = {
 			disabled_plugins = {
+				"editorconfig",
 				"gzip",
-				-- "matchit",
-				-- "matchparen",
-				-- "netrwPlugin",
+				"man",
+				"matchit",
+				"matchparen",
+				"netrwPlugin",
+				"osc52",
+				"rplugin",
+				"shada",
+				"spellfile",
 				"tarPlugin",
 				"tohtml",
 				"tutor",
@@ -267,7 +255,7 @@ require("lazy").setup({
 			},
 		},
 	},
-	ui = { border = "single", size = { width = 100 } },
+	ui = { border = "single", size = { width = 120 } },
 	spec = {
 
 		-- colorscheme
@@ -496,5 +484,26 @@ require("lazy").setup({
 		},
 
 		-- other plugins ...
+		{
+			"stevearc/oil.nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			cmd = { "Oil" },
+			opts = {
+				skip_confirm_for_simple_edits = true,
+				use_default_keymaps = false,
+				view_options = { show_hidden = true, natural_order = false, case_insensitive = true },
+				watch_for_changes = true,
+				win_options = { signcolumn = "yes" },
+				keymaps = {
+					["<cr>"] = "actions.select",
+					["<esc>"] = "actions.close",
+					["h"] = "actions.parent",
+					["l"] = "actions.select",
+					["q"] = "actions.close",
+				},
+			},
+		},
 	},
+
+	-- fewfwe --
 })
