@@ -79,10 +79,10 @@ vim.keymap.set("n", "n", "'Nn'[v:searchforward].'zzzv'", { expr = true, desc = "
 vim.keymap.set("n", "{", "{zzzv", { desc = "Center previous paragraph" })
 vim.keymap.set("n", "}", "}zzzv", { desc = "Center next paragraph" })
 -- windows navigation
-vim.keymap.set("n", "<m-h>", ":TmuxNavigate h<cr>", { desc = "Go to left window", silent = true })
-vim.keymap.set("n", "<m-j>", ":TmuxNavigate j<cr>", { desc = "Go to down window", silent = true })
-vim.keymap.set("n", "<m-k>", ":TmuxNavigate k<cr>", { desc = "Go to up window", silent = true })
-vim.keymap.set("n", "<m-l>", ":TmuxNavigate l<cr>", { desc = "Go to right window", silent = true })
+vim.keymap.set("n", "<m-h>", ":TmuxNavigateLeft<cr>", { silent = true })
+vim.keymap.set("n", "<m-j>", ":TmuxNavigateDown<cr>", { silent = true })
+vim.keymap.set("n", "<m-k>", ":TmuxNavigateUp<cr>", { silent = true })
+vim.keymap.set("n", "<m-l>", ":TmuxNavigateRight<cr>", { silent = true })
 -- clipboard manipulation
 vim.keymap.set({ "n", "v" }, "<leader>p", [["+p]], { desc = "Paste from clipboard" })
 vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to clipboard" })
@@ -151,16 +151,6 @@ vim.api.nvim_create_user_command("GitStatus", function()
 	vim.fn.setqflist(quickfixlist)
 	vim.cmd("cwindow")
 end, { desc = "List all git status" })
-
-vim.api.nvim_create_user_command("TmuxNavigate", function(opts)
-	local direction = opts.fargs[1]
-	local mappings = { h = "L", j = "D", k = "U", l = "R" }
-	local wnr = vim.fn.winnr()
-	vim.cmd("wincmd " .. direction)
-	if wnr == vim.fn.winnr() then
-		vim.fn.system("tmux select-pane -" .. mappings[direction])
-	end
-end, { desc = "Moves window with tmux", nargs = 1 })
 
 _G.custom_status = {
 	modified = function()
@@ -503,7 +493,14 @@ require("lazy").setup({
 				},
 			},
 		},
-	},
 
-	-- fewfwe --
+		{
+			-- integrates tmux and neovim navigation
+			-- https://github.com/christoomey/vim-tmux-navigator
+			"christoomey/vim-tmux-navigator",
+			cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
+		},
+
+		-- fewfwe --
+	},
 })
