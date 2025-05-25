@@ -34,18 +34,14 @@ vim.opt.updatetime = 500
 local custom_group = vim.api.nvim_create_augroup("custom_group", { clear = true })
 vim.api.nvim_create_autocmd({ "TextYankPost" }, {
 	group = custom_group,
-	callback = function()
-		(vim.hl or vim.highlight).on_yank()
-	end,
+	callback = function() (vim.hl or vim.highlight).on_yank() end,
 })
 vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
 	group = custom_group,
 	callback = function()
 		local cmd = vim.fn.getcmdline()
 		local commands = { "cn", "cp", "cfirst", "clast" }
-		if vim.tbl_contains(commands, cmd) then
-			vim.fn.setcmdline(cmd .. " | norm zzzv")
-		end
+		if vim.tbl_contains(commands, cmd) then vim.fn.setcmdline(cmd .. " | norm zzzv") end
 	end,
 })
 
@@ -152,60 +148,11 @@ vim.api.nvim_create_user_command("GitStatus", function()
 	vim.cmd("cwindow")
 end, { desc = "List all git status" })
 
-_G.custom_status = {
-	modified = function()
-		return vim.bo.modified and "%#RenderMarkdownH4Fg# *** %#Substitute# CHANGED %#RenderMarkdownH4Fg# ***" or ""
-	end,
-	path = function()
-		local path = vim.fn.expand("%") or ""
-		if path == "" then
-			return ""
-		end
-		return "./" .. path
-	end,
-	diagnostics = function()
-		local get = vim.diagnostic.get
-		local severity = vim.diagnostic.severity
-		local levels = {
-			{ count = #get(0, { severity = severity.ERROR }), label = "%#DiagnosticSignError# " },
-			{ count = #get(0, { severity = severity.WARN }), label = "%#DiagnosticSignWarn# " },
-			{ count = #get(0, { severity = severity.INFO }), label = "%#DiagnosticSignInfo# " },
-			{ count = #get(0, { severity = severity.HINT }), label = "%#DiagnosticSignHint# " },
-		}
-		local diagnostics = "  "
-		for _, level in ipairs(levels) do
-			if level.count > 0 then
-				diagnostics = diagnostics .. level.label .. level.count .. " "
-			end
-		end
-		return diagnostics:sub(1, -2)
-	end,
-	branch = function()
-		local branch = vim.fn.system("git branch --show-current 2>/dev/null")
-		return branch ~= "" and branch:gsub("\n", "") or ""
-	end,
-}
-
-vim.o.statusline = table.concat({
-	"%#Bold#%t",
-	"  %#LineNr#%{%v:lua.custom_status.path()%}",
-	"%{%v:lua.custom_status.diagnostics()%}",
-	"  %{%v:lua.custom_status.modified()%}",
-	"%=",
-	"  %#LineNr#%l,%-c",
-	"  %#Bold#%p%%",
-	"  %#LineNr#%{&filetype}",
-	"  %#CursorLineNr#%{%v:lua.custom_status.branch()%}",
-	"  %#Bold#" .. vim.fn.fnamemodify(vim.fn.expand("%:p:~:h"), ":t"),
-}, "")
-
 local function list_formatters(formatters)
 	local formatters_list = {}
 	for _, option in pairs(formatters) do
 		for _, formatter in pairs(option) do
-			if type(formatter) == "string" then
-				table.insert(formatters_list, formatter)
-			end
+			if type(formatter) == "string" then table.insert(formatters_list, formatter) end
 		end
 	end
 	return formatters_list
@@ -229,6 +176,7 @@ require("lazy").setup({
 		rtp = {
 			disabled_plugins = {
 				"editorconfig",
+				"fzf",
 				"gzip",
 				"man",
 				"matchit",
@@ -264,9 +212,7 @@ require("lazy").setup({
 					hl.FloatBorder = { fg = c.fg }
 				end,
 			},
-			init = function()
-				vim.cmd.colorscheme("github-monochrome-rosepine")
-			end,
+			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
 		},
 
 		-- startup page
@@ -355,9 +301,7 @@ require("lazy").setup({
 				local cmp = require("cmp")
 				cmp.setup({
 					snippet = {
-						expand = function(args)
-							vim.snippet.expand(args.body)
-						end,
+						expand = function(args) vim.snippet.expand(args.body) end,
 					},
 					window = {
 						completion = cmp.config.window.bordered(border),
@@ -387,9 +331,7 @@ require("lazy").setup({
 					default_format_opts = { lsp_format = "fallback" },
 					formatters_by_ft = language_formatters,
 					format_on_save = function(bufnr)
-						if vim.b[bufnr].disable_autoformat then
-							return
-						end
+						if vim.b[bufnr].disable_autoformat then return end
 						return { lsp_format = "fallback", timeout_ms = 500 }
 					end,
 				})
@@ -415,9 +357,7 @@ require("lazy").setup({
 					disable = function(_, buf)
 						local max_filesize = 100 * 1024 -- 100 KB
 						local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-						if ok and stats and stats.size > max_filesize then
-							return true
-						end
+						if ok and stats and stats.size > max_filesize then return true end
 					end,
 				},
 				incremental_selection = { enable = true },
@@ -463,9 +403,7 @@ require("lazy").setup({
 					require("fzf-lua").fzf_exec(find .. test .. print, {
 						actions = {
 							["enter"] = {
-								fn = function(selected)
-									vim.fn.system("tmux-sessionixidizer " .. selected[1])
-								end,
+								fn = function(selected) vim.fn.system("tmux-sessionixidizer " .. selected[1]) end,
 							},
 						},
 					})
@@ -483,7 +421,9 @@ require("lazy").setup({
 				use_default_keymaps = false,
 				view_options = { show_hidden = true, natural_order = false, case_insensitive = true },
 				watch_for_changes = true,
-				win_options = { signcolumn = "yes" },
+				win_options = {
+					signcolumn = "yes",
+				},
 				keymaps = {
 					["<cr>"] = "actions.select",
 					["<esc>"] = "actions.close",
@@ -492,6 +432,42 @@ require("lazy").setup({
 					["q"] = "actions.close",
 				},
 			},
+		},
+
+		{
+			-- integrates custom statusline
+			-- https://github.com/nvim-lualine/lualine.nvim
+			"nvim-lualine/lualine.nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			event = { "BufNewFile", "BufReadPre" },
+			opts = function()
+				local theme = require("lualine.themes.auto")
+				local modes = { "command", "inactive", "insert", "normal", "replace", "visual" }
+				for _, mode in ipairs(modes) do
+					for _, section in ipairs({ "a", "b", "c" }) do
+						theme[mode][section].bg = "#000"
+					end
+				end
+				return {
+					options = { theme = theme, component_separators = {}, section_separators = {}, refresh = {} },
+					sections = {
+						lualine_a = { { "filename", file_status = false, color = "LineNr", path = 1 } },
+						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
+						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
+						lualine_x = { { "filetype", color = "LineNr" } },
+						lualine_y = { { "location", color = "LineNr" } },
+						lualine_z = { { "branch", color = "CursorLineNr" } },
+					},
+					inactive_sections = {
+						lualine_a = { { "filename", file_status = false, color = "NonText", path = 1 } },
+						lualine_b = {},
+						lualine_c = {},
+						lualine_x = {},
+						lualine_y = { { "location", color = "NonText" } },
+						lualine_z = { { "branch", color = "NonText" } },
+					},
+				}
+			end,
 		},
 
 		{
