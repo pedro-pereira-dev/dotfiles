@@ -49,8 +49,10 @@ ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/git.lazygit.
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/neovim.init.lua /home/chuck/.config/nvim/init.lua
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.config /home/chuck/.ssh/config
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.github-pedro-pereira-dev /home/chuck/.ssh/config.d/github-pedro-pereira-dev
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.mercedes-github-pesoare /home/chuck/.ssh/config.d/mercedes-github-pesoare
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.ssh-gentoo-laptop /home/chuck/.ssh/config.d/zz-default
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/sway.config /home/chuck/.config/sway/config
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/system.dark-theme /home/chuck/.config/gtk-3.0/settings.ini
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/system.dark-theme /home/chuck/.config/gtk-4.0/settings.ini
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/terminal.alacritty.toml /home/chuck/.config/alacritty/alacritty.toml
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/tmux.tmux.conf /home/chuck/.config/tmux/tmux.conf
@@ -83,5 +85,6 @@ run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
 run_as_user chuck secrets-set ssh-authorized-keys
 run_as_user chuck secrets-set ssh-gentoo-laptop
 run_as_user chuck secrets-set ssh-github-pedro-pereira-dev
+run_as_user chuck secrets-set ssh-mercedes-github-pesoare
 run_as_user chuck secrets-import
 rm --force /home/chuck/.ssh/authorized_keys
