@@ -196,27 +196,10 @@ require("lazy").setup({
 	ui = { border = "single", size = { width = 120 } },
 	spec = {
 
-		-- colorscheme
+		-- appearance
 		{
-			"idr4n/github-monochrome.nvim",
-			priority = 1000,
-			opts = {
-				styles = { floats = "transparent" },
-				transparent = true,
-				on_highlights = function(hl, c)
-					local util = require("github-monochrome.util")
-					hl.DiagnosticUnderlineError = { bg = util.blend(c.error, 0.25, util.bg), fg = c.error }
-					hl.DiagnosticUnderlineHint = { bg = util.blend(c.hint, 0.25, util.bg), fg = c.hint }
-					hl.DiagnosticUnderlineInfo = { bg = util.blend(c.info, 0.25, util.bg), fg = c.info }
-					hl.DiagnosticUnderlineWarn = { bg = util.blend(c.warning, 0.25, util.bg), fg = c.warning }
-					hl.FloatBorder = { fg = c.fg }
-				end,
-			},
-			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
-		},
-
-		-- startup page
-		{
+			-- adds fancy dashboard
+			-- https://github.com/nvimdev/dashboard-nvim
 			"nvimdev/dashboard-nvim",
 			dependencies = { "nvim-tree/nvim-web-devicons" },
 			event = { "VimEnter" },
@@ -234,6 +217,8 @@ require("lazy").setup({
 						"",
 					},
 					shortcut = {
+						{ key = "o", group = "fg", action = "FzfLua files cwd_prompt=false", desc = "󰍉 Open" },
+						{ key = "e", group = "fg", action = "Oil --preview", desc = " Explore" },
 						{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
 						{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
 						{ key = "q", group = "fg", action = "cq", desc = " Reload" },
@@ -247,6 +232,61 @@ require("lazy").setup({
 					},
 				},
 			},
+		},
+
+		{
+			-- adds customized status line
+			-- https://github.com/nvim-lualine/lualine.nvim
+			"nvim-lualine/lualine.nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			event = { "BufNewFile", "BufReadPre" },
+			opts = function()
+				local theme = require("lualine.themes.auto")
+				local modes = { "command", "inactive", "insert", "normal", "replace", "visual" }
+				for _, mode in ipairs(modes) do
+					for _, section in ipairs({ "a", "b", "c" }) do
+						theme[mode][section].bg = "#000"
+					end
+				end
+				return {
+					options = { theme = theme, component_separators = {}, section_separators = {}, refresh = {} },
+					sections = {
+						lualine_a = { { "filename", file_status = false, color = "LineNr", path = 1 } },
+						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
+						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
+						lualine_x = { { "filetype", color = "LineNr" } },
+						lualine_y = { { "location", color = "LineNr" } },
+						lualine_z = { { "branch", color = "CursorLineNr" } },
+					},
+					inactive_sections = {
+						lualine_a = { { "filename", file_status = false, color = "NonText", path = 1 } },
+						lualine_b = {},
+						lualine_c = {},
+						lualine_x = {},
+						lualine_y = { { "location", color = "NonText" } },
+						lualine_z = {},
+					},
+				}
+			end,
+		},
+
+		-- colorscheme
+		{
+			"idr4n/github-monochrome.nvim",
+			priority = 1000,
+			opts = {
+				styles = { floats = "transparent" },
+				transparent = true,
+				on_highlights = function(hl, c)
+					local util = require("github-monochrome.util")
+					hl.DiagnosticUnderlineError = { bg = util.blend(c.error, 0.25, util.bg), fg = c.error }
+					hl.DiagnosticUnderlineHint = { bg = util.blend(c.hint, 0.25, util.bg), fg = c.hint }
+					hl.DiagnosticUnderlineInfo = { bg = util.blend(c.info, 0.25, util.bg), fg = c.info }
+					hl.DiagnosticUnderlineWarn = { bg = util.blend(c.warning, 0.25, util.bg), fg = c.warning }
+					hl.FloatBorder = { fg = c.fg }
+				end,
+			},
+			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
 		},
 
 		-- lsp
@@ -411,19 +451,19 @@ require("lazy").setup({
 			end,
 		},
 
-		-- other plugins ...
 		{
+			-- adds file explorer
+			-- https://github.com/stevearc/oil.nvim
 			"stevearc/oil.nvim",
 			dependencies = { "nvim-tree/nvim-web-devicons" },
 			cmd = { "Oil" },
 			opts = {
+				confirmation = { width = 120, border = "single" },
+				progress = { width = 120, border = "single" },
 				skip_confirm_for_simple_edits = true,
 				use_default_keymaps = false,
 				view_options = { show_hidden = true, natural_order = false, case_insensitive = true },
-				watch_for_changes = true,
-				win_options = {
-					signcolumn = "yes",
-				},
+				win_options = { signcolumn = "yes" },
 				keymaps = {
 					["<cr>"] = "actions.select",
 					["<esc>"] = "actions.close",
@@ -435,47 +475,13 @@ require("lazy").setup({
 		},
 
 		{
-			-- integrates custom statusline
-			-- https://github.com/nvim-lualine/lualine.nvim
-			"nvim-lualine/lualine.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			event = { "BufNewFile", "BufReadPre" },
-			opts = function()
-				local theme = require("lualine.themes.auto")
-				local modes = { "command", "inactive", "insert", "normal", "replace", "visual" }
-				for _, mode in ipairs(modes) do
-					for _, section in ipairs({ "a", "b", "c" }) do
-						theme[mode][section].bg = "#000"
-					end
-				end
-				return {
-					options = { theme = theme, component_separators = {}, section_separators = {}, refresh = {} },
-					sections = {
-						lualine_a = { { "filename", file_status = false, color = "LineNr", path = 1 } },
-						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
-						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
-						lualine_x = { { "filetype", color = "LineNr" } },
-						lualine_y = { { "location", color = "LineNr" } },
-						lualine_z = { { "branch", color = "CursorLineNr" } },
-					},
-					inactive_sections = {
-						lualine_a = { { "filename", file_status = false, color = "NonText", path = 1 } },
-						lualine_b = {},
-						lualine_c = {},
-						lualine_x = {},
-						lualine_y = { { "location", color = "NonText" } },
-						lualine_z = { { "branch", color = "NonText" } },
-					},
-				}
-			end,
-		},
-
-		{
 			-- integrates tmux and neovim navigation
 			-- https://github.com/christoomey/vim-tmux-navigator
 			"christoomey/vim-tmux-navigator",
 			cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
 		},
+
+		-- other plugins ...
 
 		-- fewfwe --
 	},
