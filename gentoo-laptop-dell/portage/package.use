@@ -14,5 +14,4 @@ x11-terms/alacritty -X
 gui-libs/wlroots -X
 gui-wm/sway -X -man -swaynag
 
-#www-client/firefox
 #www-client/google-chrome

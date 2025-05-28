@@ -51,6 +51,7 @@ ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.config /
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.github-pedro-pereira-dev /home/chuck/.ssh/config.d/github-pedro-pereira-dev
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/ssh.ssh-gentoo-laptop /home/chuck/.ssh/config.d/zz-default
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/sway.config /home/chuck/.config/sway/config
+ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/system.dark-theme /home/chuck/.config/gtk-3.0/settings.ini
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/system.dark-theme /home/chuck/.config/gtk-4.0/settings.ini
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/terminal.alacritty.toml /home/chuck/.config/alacritty/alacritty.toml
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/tmux.tmux.conf /home/chuck/.config/tmux/tmux.conf
