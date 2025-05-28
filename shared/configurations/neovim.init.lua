@@ -196,7 +196,26 @@ require("lazy").setup({
 	ui = { border = "single", size = { width = 120 } },
 	spec = {
 
-		-- appearance
+		{
+			-- adds colorscheme
+			-- https://github.com/idr4n/github-monochrome.nvim
+			"idr4n/github-monochrome.nvim",
+			priority = 1000,
+			opts = {
+				on_highlights = function(hl, c)
+					local util = require("github-monochrome.util")
+					hl.DiagnosticUnderlineError = { bg = util.blend(c.error, 0.25, util.bg), fg = c.error }
+					hl.DiagnosticUnderlineHint = { bg = util.blend(c.hint, 0.25, util.bg), fg = c.hint }
+					hl.DiagnosticUnderlineInfo = { bg = util.blend(c.info, 0.25, util.bg), fg = c.info }
+					hl.DiagnosticUnderlineWarn = { bg = util.blend(c.warning, 0.25, util.bg), fg = c.warning }
+					hl.FloatBorder = { fg = c.fg }
+				end,
+				styles = { floats = "transparent" },
+				transparent = true,
+			},
+			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
+		},
+
 		{
 			-- adds fancy dashboard
 			-- https://github.com/nvimdev/dashboard-nvim
@@ -270,27 +289,52 @@ require("lazy").setup({
 			end,
 		},
 
-		-- colorscheme
+		-- fuzzy finder
 		{
-			"idr4n/github-monochrome.nvim",
-			priority = 1000,
-			opts = {
-				styles = { floats = "transparent" },
-				transparent = true,
-				on_highlights = function(hl, c)
-					local util = require("github-monochrome.util")
-					hl.DiagnosticUnderlineError = { bg = util.blend(c.error, 0.25, util.bg), fg = c.error }
-					hl.DiagnosticUnderlineHint = { bg = util.blend(c.hint, 0.25, util.bg), fg = c.hint }
-					hl.DiagnosticUnderlineInfo = { bg = util.blend(c.info, 0.25, util.bg), fg = c.info }
-					hl.DiagnosticUnderlineWarn = { bg = util.blend(c.warning, 0.25, util.bg), fg = c.warning }
-					hl.FloatBorder = { fg = c.fg }
-				end,
-			},
-			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
+			-- adds colorscheme
+			-- https://github.com/idr4n/github-monochrome.nvim
+			"ibhagwan/fzf-lua",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			cmd = { "FzfLua", "FzfLuaChangeProject" },
+			config = function()
+				require("fzf-lua").setup({
+					fzf_colors = true,
+					fzf_opts = { ["--cycle"] = true },
+					keymap = { fzf = { ["ctrl-space"] = "toggle", ["shift-tab"] = "up", ["tab"] = "down" } },
+					winopts = {
+						border = "single",
+						preview = { layout = "vertical", vertical = "down:70%" },
+						width = 100,
+					},
+					-- 		grep = {
+					-- 			cmd = "rg --hidden --column --smart-case --color=always",
+					-- 			actions = { ["ctrl-g"] = false },
+					-- 		},
+					-- 		buffers = {
+					-- 			actions = {
+					-- 				["ctrl-d"] = { fn = fzf_actions.buf_del, reload = true },
+					-- 				["ctrl-x"] = false,
+					-- 			},
+					-- 		},
+				})
+
+				vim.api.nvim_create_user_command("FzfLuaChangeProject", function()
+					local find = "find ~/workspace -type d "
+					local test = "\\( -exec /bin/test -d '{}/.git' -a '{}' != '.' \\;"
+					local print = " -print -prune -o -name .git -prune \\)"
+					require("fzf-lua").fzf_exec(find .. test .. print, {
+						actions = {
+							["enter"] = {
+								fn = function(selected) vim.fn.system("tmux-sessionixidizer " .. selected[1]) end,
+							},
+						},
+					})
+				end, { desc = "Change project" })
+			end,
 		},
 
-		-- lsp
 		{
+			-- lsp
 			"neovim/nvim-lspconfig",
 			dependencies = {
 				"WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -406,48 +450,6 @@ require("lazy").setup({
 			init = function(plugin)
 				require("lazy.core.loader").add_to_rtp(plugin)
 				require("nvim-treesitter.query_predicates")
-			end,
-		},
-
-		-- fuzzy finder
-		{
-			"ibhagwan/fzf-lua",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "FzfLua", "FzfLuaChangeProject" },
-			config = function()
-				require("fzf-lua").setup({
-					fzf_colors = true,
-					fzf_opts = { ["--cycle"] = true },
-					keymap = { fzf = { ["ctrl-space"] = "toggle", ["shift-tab"] = "up", ["tab"] = "down" } },
-					winopts = {
-						border = "single",
-						preview = { layout = "vertical", vertical = "down:70%" },
-						width = 100,
-					},
-					-- 		grep = {
-					-- 			cmd = "rg --hidden --column --smart-case --color=always",
-					-- 			actions = { ["ctrl-g"] = false },
-					-- 		},
-					-- 		buffers = {
-					-- 			actions = {
-					-- 				["ctrl-d"] = { fn = fzf_actions.buf_del, reload = true },
-					-- 				["ctrl-x"] = false,
-					-- 			},
-					-- 		},
-				})
-
-				vim.api.nvim_create_user_command("FzfLuaChangeProject", function()
-					local find = "find ~/workspace -type d "
-					local test = "\\( -exec /bin/test -d '{}/.git' -a '{}' != '.' \\;"
-					local print = " -print -prune -o -name .git -prune \\)"
-					require("fzf-lua").fzf_exec(find .. test .. print, {
-						actions = {
-							["enter"] = {
-								fn = function(selected) vim.fn.system("tmux-sessionixidizer " .. selected[1]) end,
-							},
-						},
-					})
-				end, { desc = "Change project" })
 			end,
 		},
 
