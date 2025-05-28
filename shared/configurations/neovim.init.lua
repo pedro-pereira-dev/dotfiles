@@ -205,6 +205,12 @@ require("lazy").setup({
 			event = { "VimEnter" },
 			opts = {
 				config = {
+					disable_move = true,
+					footer = {
+						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+						"",
+						"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
+					},
 					header = {
 						" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
 						"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
@@ -216,19 +222,14 @@ require("lazy").setup({
 						"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
 						"",
 					},
+					mru = { enable = false },
+					project = { enable = false },
 					shortcut = {
 						{ key = "o", group = "fg", action = "FzfLua files cwd_prompt=false", desc = "󰍉 Open" },
 						{ key = "e", group = "fg", action = "Oil --preview", desc = " Explore" },
 						{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
 						{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
 						{ key = "q", group = "fg", action = "cq", desc = " Reload" },
-					},
-					project = { enable = false },
-					mru = { enable = false },
-					footer = {
-						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-						"",
-						"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
 					},
 				},
 			},
@@ -242,29 +243,28 @@ require("lazy").setup({
 			event = { "BufNewFile", "BufReadPre" },
 			opts = function()
 				local theme = require("lualine.themes.auto")
-				local modes = { "command", "inactive", "insert", "normal", "replace", "visual" }
-				for _, mode in ipairs(modes) do
+				for _, mode in ipairs({ "command", "inactive", "insert", "normal", "replace", "visual" }) do
 					for _, section in ipairs({ "a", "b", "c" }) do
 						theme[mode][section].bg = "#000"
 					end
 				end
 				return {
-					options = { theme = theme, component_separators = {}, section_separators = {}, refresh = {} },
-					sections = {
-						lualine_a = { { "filename", file_status = false, color = "LineNr", path = 1 } },
-						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
-						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
-						lualine_x = { { "filetype", color = "LineNr" } },
-						lualine_y = { { "location", color = "LineNr" } },
-						lualine_z = { { "branch", color = "CursorLineNr" } },
-					},
 					inactive_sections = {
-						lualine_a = { { "filename", file_status = false, color = "NonText", path = 1 } },
+						lualine_a = { { "filename", color = "NonText", file_status = false, path = 1 } },
 						lualine_b = {},
 						lualine_c = {},
 						lualine_x = {},
-						lualine_y = { { "location", color = "NonText" } },
-						lualine_z = {},
+						lualine_y = {},
+						lualine_z = { { "location", color = "NonText" }, { "progress", color = "NonText" } },
+					},
+					options = { theme = theme, component_separators = {}, section_separators = {}, refresh = {} },
+					sections = {
+						lualine_a = { { "filename", color = "LineNr", file_status = false, path = 1 } },
+						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
+						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
+						lualine_x = { { "lsp_status", color = "LineNr" }, { "filetype", color = "LineNr" } },
+						lualine_y = { { "branch", color = "CursorLineNr" } },
+						lualine_z = { { "location", color = "LineNr" }, { "progress", color = "LineNr" } },
 					},
 				}
 			end,
