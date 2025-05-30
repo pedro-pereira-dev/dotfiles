@@ -52,12 +52,12 @@ vim.diagnostic.config({ virtual_text = true })
 -- custom commands
 vim.keymap.set("n", "<leader>e", ":Oil --preview<cr>", { desc = "Open explorer", silent = true })
 vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true, desc = "List open buffers" })
-vim.keymap.set("n", "<leader>O", ":FzfLuaChangeProject<cr>", { desc = "List git projects" })
 vim.keymap.set("n", "<leader>cl", ":Lazy<cr>", { silent = true, desc = "Open Lazy" })
 vim.keymap.set("n", "<leader>cm", ":Mason<cr>", { silent = true, desc = "Open Mason" })
-vim.keymap.set("n", "<leader>f", ":FzfLua live_grep hidden=true<cr>", { silent = true, desc = "Search word" })
+vim.keymap.set("n", "<leader>f", ":FzfLua grep_project<cr>", { silent = true, desc = "Search word" })
+vim.keymap.set("v", "<leader>f", ":FzfLua grep_cword<cr>", { silent = true, desc = "Search word" })
 vim.keymap.set("n", "<leader>gc", ":GitConflicts<cr>", { silent = true, desc = "List git conflicts" })
-vim.keymap.set("n", "<leader>o", ":FzfLua files cwd_prompt=false<cr>", { silent = true, desc = "Search file" })
+vim.keymap.set("n", "<leader>o", ":FzfLua files<cr>", { silent = true, desc = "Search file" })
 vim.keymap.set("t", "<m-esc>", "<c-\\><c-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<m-q>", ":bwipeout<cr>", { silent = true, desc = "Close buffer" })
 vim.keymap.set("n", "<m-Q>", "<c-w>q", { silent = true, desc = "Quit buffer" })
@@ -163,6 +163,8 @@ vim.list_extend(language_tools, vim.tbl_keys(language_servers or {}))
 vim.list_extend(language_tools, list_formatters(language_formatters))
 vim.list_extend(language_tools, language_linters)
 
+-- uses plugin manager
+-- https://github.com/folke/lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 ---@diagnostic disable-next-line: undefined-field
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -171,7 +173,6 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
-
 	performance = {
 		rtp = {
 			disabled_plugins = {
@@ -193,7 +194,8 @@ require("lazy").setup({
 			},
 		},
 	},
-	ui = { border = "single", size = { width = 120 } },
+	rocks = { enabled = false },
+	ui = { border = "single", pills = false, size = { height = 0.9, width = 140 }, title = "Lazy" },
 	spec = {
 
 		{
@@ -289,48 +291,57 @@ require("lazy").setup({
 			end,
 		},
 
-		-- fuzzy finder
 		{
-			-- adds colorscheme
-			-- https://github.com/idr4n/github-monochrome.nvim
+			-- adds fuzzy finder
+			-- https://github.com/ibhagwan/fzf-lua
 			"ibhagwan/fzf-lua",
 			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "FzfLua", "FzfLuaChangeProject" },
-			config = function()
-				require("fzf-lua").setup({
-					fzf_colors = true,
-					fzf_opts = { ["--cycle"] = true },
-					keymap = { fzf = { ["ctrl-space"] = "toggle", ["shift-tab"] = "up", ["tab"] = "down" } },
-					winopts = {
-						border = "single",
-						preview = { layout = "vertical", vertical = "down:70%" },
-						width = 100,
-					},
-					-- 		grep = {
-					-- 			cmd = "rg --hidden --column --smart-case --color=always",
-					-- 			actions = { ["ctrl-g"] = false },
-					-- 		},
-					-- 		buffers = {
-					-- 			actions = {
-					-- 				["ctrl-d"] = { fn = fzf_actions.buf_del, reload = true },
-					-- 				["ctrl-x"] = false,
-					-- 			},
-					-- 		},
-				})
+			cmd = { "FzfLua" },
+			opts = {
+				buffers = { actions = { ["ctrl-x"] = false }, prompt = "" },
+				files = { cwd_prompt = false, formatter = "path.filename_first", prompt = false },
+				fzf_colors = true,
+				fzf_opts = { ["--cycle"] = true },
+				grep = { actions = { ["ctrl-g"] = false }, hidden = true, prompt = "" },
+				keymap = { fzf = { ["alt-space"] = "select-all+accept", ["shift-tab"] = "up", ["tab"] = "down" } },
+				winopts = {
+					border = "single",
+					height = 0.9,
+					preview = { border = "single", layout = "vertical", vertical = "down:75%" },
+					width = 140,
+				},
+			},
+		},
 
-				vim.api.nvim_create_user_command("FzfLuaChangeProject", function()
-					local find = "find ~/workspace -type d "
-					local test = "\\( -exec /bin/test -d '{}/.git' -a '{}' != '.' \\;"
-					local print = " -print -prune -o -name .git -prune \\)"
-					require("fzf-lua").fzf_exec(find .. test .. print, {
-						actions = {
-							["enter"] = {
-								fn = function(selected) vim.fn.system("tmux-sessionixidizer " .. selected[1]) end,
-							},
-						},
-					})
-				end, { desc = "Change project" })
-			end,
+		{
+			-- adds file explorer
+			-- https://github.com/stevearc/oil.nvim
+			"stevearc/oil.nvim",
+			dependencies = { "nvim-tree/nvim-web-devicons" },
+			cmd = { "Oil" },
+			opts = {
+				confirmation = { width = 140, border = "single" },
+				keymaps = {
+					["<cr>"] = "actions.select",
+					["<esc>"] = "actions.close",
+					["h"] = "actions.parent",
+					["l"] = "actions.select",
+					["q"] = "actions.close",
+				},
+				lsp_file_methods = { enabled = false },
+				progress = { width = 140, border = "single" },
+				skip_confirm_for_simple_edits = true,
+				use_default_keymaps = false,
+				view_options = { show_hidden = true, natural_order = false },
+				win_options = { signcolumn = "yes" },
+			},
+		},
+
+		{
+			-- integrates tmux and neovim navigation
+			-- https://github.com/christoomey/vim-tmux-navigator
+			"christoomey/vim-tmux-navigator",
+			cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
 		},
 
 		{
@@ -451,36 +462,6 @@ require("lazy").setup({
 				require("lazy.core.loader").add_to_rtp(plugin)
 				require("nvim-treesitter.query_predicates")
 			end,
-		},
-
-		{
-			-- adds file explorer
-			-- https://github.com/stevearc/oil.nvim
-			"stevearc/oil.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "Oil" },
-			opts = {
-				confirmation = { width = 120, border = "single" },
-				progress = { width = 120, border = "single" },
-				skip_confirm_for_simple_edits = true,
-				use_default_keymaps = false,
-				view_options = { show_hidden = true, natural_order = false, case_insensitive = true },
-				win_options = { signcolumn = "yes" },
-				keymaps = {
-					["<cr>"] = "actions.select",
-					["<esc>"] = "actions.close",
-					["h"] = "actions.parent",
-					["l"] = "actions.select",
-					["q"] = "actions.close",
-				},
-			},
-		},
-
-		{
-			-- integrates tmux and neovim navigation
-			-- https://github.com/christoomey/vim-tmux-navigator
-			"christoomey/vim-tmux-navigator",
-			cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
 		},
 
 		-- other plugins ...
