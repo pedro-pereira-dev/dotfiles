@@ -169,7 +169,7 @@ local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 ---@diagnostic disable-next-line: undefined-field
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-	vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+	vim.fn.system({ "git", "clone", "--branch=stable", "--filter=blob:none", lazyrepo, lazypath })
 end ---@diagnostic disable-next-line: undefined-field
 vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
@@ -348,14 +348,83 @@ require("lazy").setup({
 			-- lsp
 			"neovim/nvim-lspconfig",
 			dependencies = {
-				"WhoIsSethDaniel/mason-tool-installer.nvim",
-				"hrsh7th/cmp-nvim-lsp",
-				"williamboman/mason-lspconfig.nvim",
-				"williamboman/mason.nvim",
+
+				{
+					-- adds lsp servers package manager
+					-- https://github.com/mason-org/mason.nvim
+					"mason-org/mason.nvim",
+					opts = { ui = { border = "single", width = 140 } },
+				},
+
+				{
+					-- installs lsp servers via mason
+					-- https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim
+					"WhoIsSethDaniel/mason-tool-installer.nvim",
+					opts = {
+						auto_update = true,
+						ensure_installed = {
+							-- lua
+							"lua-language-server",
+							"luacheck",
+							"stylua",
+							-- shell / bash
+							"bash-language-server",
+							"shellcheck",
+							"shfmt",
+							-- typescript
+							"eslint_d",
+							"prettier",
+							"typescript-language-server",
+							-- vue
+							"eslint-lsp",
+							"prettier",
+							"vue-language-server",
+						},
+					},
+				},
+
+				{
+					-- implements abstraction between mason and lsp config
+					-- https://github.com/mason-org/mason-lspconfig.nvim
+					"mason-org/mason-lspconfig.nvim",
+					opts = {},
+				},
+
+				{
+					-- integrates auto completion tool
+					-- https://github.com/saghen/blink.cmp
+					"saghen/blink.cmp",
+					version = "*",
+					opts = {
+						completion = { documentation = { auto_show = true } },
+						keymap = { preset = "enter" },
+					},
+				},
 			},
 			cmd = { "Mason" },
 			event = { "BufNewFile", "BufReadPre" },
-			config = function()
+
+			opts = {
+				servers = {
+					-- lua_ls = {},
+					ts_ls = {
+						filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue" },
+						init_options = {
+							plugins = {
+								{
+									languages = { "vue" },
+									location = vim.fn.stdpath("data")
+										.. "/mason/packages/vue-language-server/node_modules/@vue/language-server",
+									name = "@vue/typescript-plugin",
+								},
+							},
+						},
+					},
+					-- vue_ls = {},
+				},
+			},
+
+			config = function(_, opts)
 				local borders = {}
 				for i, v in ipairs({ "┌", "─", "┐", "│", "┘", "─", "└", "│" }) do
 					borders[i] = { v, "FloatBorder" }
@@ -367,23 +436,13 @@ require("lazy").setup({
 					return _open_floating_preview(contents, syntax, opts, ...)
 				end
 
-				local default_capabilities = require("cmp_nvim_lsp").default_capabilities()
-				local capabilities = vim.lsp.protocol.make_client_capabilities()
-				capabilities = vim.tbl_deep_extend("force", capabilities, default_capabilities)
-				local default_handler = {
-					function(server_name)
-						local server = language_servers[server_name] or {}
-						server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-						require("lspconfig")[server_name].setup(server)
-					end,
-				}
-
-				require("mason-tool-installer").setup({ auto_update = true, ensure_installed = language_tools })
-				---@diagnostic disable-next-line: missing-fields
-				require("mason").setup({ ui = { border = "single", width = 100 } })
-				---@diagnostic disable-next-line: missing-fields
-				require("mason-lspconfig").setup({ handlers = default_handler })
 				require("mason-tool-installer").run_on_start()
+
+				local lspconfig = require("lspconfig")
+				for server, config in pairs(opts.servers) do
+					config.capabilities = require("blink.cmp").get_lsp_capabilities(config.capabilities)
+					lspconfig[server].setup(config)
+				end
 			end,
 		},
 
