@@ -1,4 +1,3 @@
----@diagnostic disable: undefined-global
 -- vim globals and options
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
@@ -133,6 +132,15 @@ local formatters = {
 	vue = { "prettierd" },
 }
 
+local linters_by_ft = {
+	lua = { "luacheck" },
+	javascript = { "eslint_d" },
+	javascriptreact = { "eslint_d" },
+	typescript = { "eslint_d" },
+	typescriptreact = { "eslint_d" },
+	vue = { "eslint_d" },
+}
+
 local servers = {
 	ts_ls = {
 		filetypes = {
@@ -173,11 +181,10 @@ end
 -- bootstraps plugin manager
 -- https://github.com/folke/lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
----@diagnostic disable-next-line: undefined-field
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
 	local lazyrepo = "https://github.com/folke/lazy.nvim.git"
 	vim.fn.system({ "git", "clone", "--branch=stable", "--filter=blob:none", lazyrepo, lazypath })
-end ---@diagnostic disable-next-line: undefined-field
+end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
@@ -367,6 +374,19 @@ require("lazy").setup({
 		},
 
 		{
+			-- integrates linters
+			-- https://github.com/mfussenegger/nvim-lint
+			"mfussenegger/nvim-lint",
+			event = { "BufWritePost", "BufReadPost", "InsertLeave" },
+			config = function() require("lint").linters_by_ft = linters_by_ft end,
+			init = function()
+				vim.api.nvim_create_autocmd({ "BufWritePost", "BufReadPost", "InsertLeave" }, {
+					callback = function() require("lint").try_lint() end,
+				})
+			end,
+		},
+
+		{
 			-- integrates better syntax highlighting
 			-- https://github.com/nvim-treesitter/nvim-treesitter
 			"nvim-treesitter/nvim-treesitter",
@@ -434,30 +454,9 @@ require("lazy").setup({
 				for server, config in pairs(servers) do
 					vim.lsp.config(server, config)
 				end
-
-				-- 	local lspconfig = require("lspconfig")
-				-- 	for server, config in pairs(servers) do
-				-- 		config.capabilities = require("blink.cmp").get_lsp_capabilities(config.capabilities)
-				-- 		lspconfig[server].setup(config)
-				-- 	end
-				--
-				-- 	-- require("mason-lspconfig").setup({
-				-- 	-- 	handlers = {
-				-- 	-- 		function(server)
-				-- 	-- 			local config = servers[server] or {}
-				-- 	-- 			config.capabilities = require("blink.cmp").get_lsp_capabilities(config.capabilities)
-				-- 	-- 			-- local capabilities = require("blink.cmp").get_lsp_capabilities(config.capabilities or {})
-				-- 	-- 			-- config.capabilities =
-				-- 	-- 			-- 	vim.tbl_deep_extend("force", {}, capabilities, config.capabilities or {})
-				-- 	-- 			require("lspconfig")[server].setup(config)
-				-- 	-- 		end,
-				-- 	-- 	},
-				-- 	-- })
 			end,
 		},
 
 		-- other plugins ...
-
-		-- fewfwe --
 	},
 })
