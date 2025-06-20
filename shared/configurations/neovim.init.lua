@@ -33,13 +33,6 @@ vim.opt.timeoutlen = 5000
 vim.opt.updatetime = 50
 
 -- custom commands
-vim.keymap.set("n", "<leader>e", ":Oil --preview<cr>", { silent = true })
-
-vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true, desc = "List open buffers" })
-vim.keymap.set("n", "<leader>f", ":FzfLua grep_project<cr>", { silent = true, desc = "Search word" })
-vim.keymap.set("v", "<leader>f", ":FzfLua grep_cword<cr>", { silent = true, desc = "Search word" })
-vim.keymap.set("n", "<leader>gc", ":GitConflicts<cr>", { silent = true, desc = "List git conflicts" })
-vim.keymap.set("n", "<leader>o", ":FzfLua files<cr>", { silent = true, desc = "Search file" })
 vim.keymap.set("t", "<m-esc>", "<c-\\><c-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("n", "<m-q>", ":bwipeout<cr>", { silent = true, desc = "Close buffer" })
 vim.keymap.set("n", "<m-Q>", "<c-w>q", { silent = true, desc = "Quit buffer" })
@@ -65,12 +58,25 @@ vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to clipboard" 
 vim.diagnostic.config({ virtual_text = true })
 
 -- auto commands
-vim.api.nvim_create_autocmd({ "TextYankPost" }, { callback = function() (vim.hl or vim.highlight).on_yank() end })
+vim.api.nvim_create_autocmd({ "TextYankPost" }, { callback = function() vim.highlight.on_yank() end })
 vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
 	callback = function()
 		local cmd = vim.fn.getcmdline()
 		local commands = { "cn", "cp", "cfirst", "clast" }
 		if vim.tbl_contains(commands, cmd) then vim.fn.setcmdline(cmd .. " | norm zzzv") end
+	end,
+})
+
+vim.keymap.set("n", "<leader>e", ":Ex<cr>", { silent = true })
+vim.g.netrw_altfile = 1
+vim.g.netrw_banner = 0
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = vim.api.nvim_create_augroup("custom_netrw", { clear = true }),
+	pattern = "netrw",
+	callback = function()
+		vim.keymap.set("n", "<tab>", ":bwipeout<cr>", { buffer = true, remap = true })
+		vim.keymap.set("n", "h", "-^", { buffer = true, remap = true })
+		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
 	end,
 })
 
@@ -90,6 +96,218 @@ vim.api.nvim_create_user_command("GitConflicts", function()
 	vim.fn.setqflist(quickfixlist)
 	vim.cmd("cwindow")
 end, { desc = "List all git conflicts" })
+
+-- WIP
+local cmd = "git ls-files -c -o --exclude-standard"
+
+vim.api.nvim_create_user_command("FilePick", function(opts)
+	if vim.tbl_count(opts.fargs) == 0 then return end
+	vim.cmd.edit({ args = opts.fargs })
+end, {
+	complete = function() return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n") end,
+	force = true,
+	nargs = "*",
+})
+
+vim.keymap.set("n", "<leader>o", function()
+	local keys = vim.api.nvim_replace_termcodes(":FilePick<tab> ", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+vim.keymap.set("n", "<leader><tab>", function()
+	local keys = vim.api.nvim_replace_termcodes(":b<tab> ", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+
+-- more things
+
+_G.basic_excludes = { ".git", "*.egg-info", "__pycache__", "wandb", "target" }
+_G.ext_excludes = vim.list_extend(vim.deepcopy(_G.basic_excludes), { ".venv" })
+
+vim.api.nvim_create_autocmd("FileType", {
+	callback = function()
+		local i = 4
+		for _, line in ipairs(vim.api.nvim_buf_get_lines(0, 0, 100, false)) do
+			local cind = line:match("^(%s+)")
+			if cind and not line:match("^%s*$") then i = math.min(i, #cind) end
+		end
+		vim.opt_local.expandtab = true
+		vim.opt_local.shiftwidth = i
+		vim.opt_local.tabstop = i
+		vim.opt_local.softtabstop = i
+	end,
+})
+
+local function scratch()
+	vim.bo.buftype = "nofile"
+	vim.bo.bufhidden = "wipe"
+	vim.bo.swapfile = false
+end
+
+local function pre_search()
+	if vim.bo.filetype == "netrw" then return vim.b.netrw_curdir, _G.basic_excludes, {} end
+	return vim.fn.getcwd(), _G.ext_excludes, {}
+end
+
+local function scratch_to_quickfix(close_qf)
+	local items, bufnr = {}, vim.api.nvim_get_current_buf()
+	for _, line in ipairs(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)) do
+		if line ~= "" then
+			local f, lnum, text = line:match("^([^:]+):(%d+):(.*)$")
+			if f and lnum then
+				-- for grep filename:line:text
+				table.insert(items, { filename = vim.fn.fnamemodify(f, ":p"), lnum = tonumber(lnum), text = text })
+			else
+				local lnum, text = line:match("^(%d+):(.*)$")
+				if lnum and text then
+					table.insert(
+						items,
+						{ filename = vim.fn.bufname(vim.fn.bufnr("#")), lnum = tonumber(lnum), text = text }
+					) -- for current buffer grep
+				else
+					table.insert(items, { filename = vim.fn.fnamemodify(line, ":p") }) -- for find results, only fnames
+				end
+			end
+		end
+	end
+	vim.api.nvim_buf_delete(bufnr, { force = true })
+	vim.fn.setqflist(items, "r")
+	vim.cmd("copen | cc")
+	if close_qf then vim.cmd("cclose") end
+end
+
+local function extcmd(cmd, qf, close_qf, novsplit)
+	output = vim.fn.systemlist(cmd)
+	if not output or #output == 0 then return end
+	vim.cmd(novsplit and "enew" or "vnew")
+	vim.api.nvim_buf_set_lines(0, 0, -1, false, output)
+	scratch()
+	if qf then scratch_to_quickfix(close_qf) end
+end
+
+vim.keymap.set("x", "<leader>p", '"_dP')
+
+vim.keymap.set("n", "<leader>x", scratch_to_quickfix)
+vim.keymap.set("n", "<leader>h", function()
+	vim.bo.buftype = ""
+	vim.bo.bufhidden = "hide"
+	vim.bo.swapfile = true
+end)
+vim.keymap.set("n", "<leader>so", function()
+	vim.cmd("enew")
+	vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.v.oldfiles)
+	scratch()
+end)
+vim.keymap.set("n", "<leader>gl", function() extcmd("git log --oneline") end)
+vim.keymap.set("n", "<leader>gd", function() extcmd("git diff") end)
+vim.keymap.set("n", "<leader>gb", function() extcmd("git blame " .. vim.fn.expand("%"), false, false, true) end)
+vim.keymap.set("n", "<leader>gs", function() extcmd("git show " .. vim.fn.expand("<cword>")) end)
+vim.keymap.set("n", "<leader>gc", function() extcmd("git diff --name-only --diff-filter=U", true) end)
+vim.keymap.set("n", "<leader>ss", function()
+	vim.ui.input({ prompt = "> " }, function(p)
+		if p then extcmd("grep -in '" .. p .. "' " .. vim.fn.shellescape(vim.api.nvim_buf_get_name(0)), false) end
+	end)
+end)
+vim.keymap.set("n", "<leader>sg", function()
+	vim.ui.input({ prompt = "> " }, function(p)
+		if p then
+			local path, excludes, ex = pre_search()
+			for _, pat in ipairs(excludes) do
+				table.insert(ex, string.format("--exclude-dir='%s'", pat))
+			end
+			extcmd(string.format("grep -IEnr %s '%s' %s", table.concat(ex, " "), p, path), true)
+		end
+	end)
+end)
+
+_G.custom_status = {
+	modified = function() return vim.bo.modified and "changed" or "" end,
+	path = function()
+		local path = vim.fn.expand("%") or ""
+		if path == "" then return "" end
+		return "./" .. path
+	end,
+	diagnostics = function()
+		local get = vim.diagnostic.get
+		local severity = vim.diagnostic.severity
+		local levels = {
+			{ count = #get(0, { severity = severity.ERROR }), label = "%#DiagnosticSignError# " },
+			{ count = #get(0, { severity = severity.WARN }), label = "%#DiagnosticSignWarn# " },
+			{ count = #get(0, { severity = severity.INFO }), label = "%#DiagnosticSignInfo# " },
+			{ count = #get(0, { severity = severity.HINT }), label = "%#DiagnosticSignHint# " },
+		}
+		local diagnostics = "  "
+		for _, level in ipairs(levels) do
+			if level.count > 0 then diagnostics = diagnostics .. level.label .. level.count .. " " end
+		end
+		return diagnostics:sub(1, -2)
+	end,
+	branch = function()
+		local branch = vim.fn.system("git branch --show-current 2>/dev/null")
+		return branch ~= "" and branch:gsub("\n", "") or ""
+	end,
+}
+
+-- 				lualine_x = { { "lsp_status", color = "LineNr" }, { "filetype", color = "LineNr" } },
+-- 				lualine_y = { { "branch", color = "CursorLineNr" } },
+-- 				lualine_z = { { "location", color = "LineNr" }, { "progress", color = "LineNr" } },
+vim.o.statusline = table.concat({
+	"%#LineNr#",
+	"%{%v:lua.custom_status.path()%}",
+	" ",
+	"%#Bold#",
+	"%{%v:lua.custom_status.modified()%}",
+	" ",
+	"%{%v:lua.custom_status.diagnostics()%}",
+	" ",
+	"%=",
+	"%#LineNr#",
+	"%{&filetype}",
+	" ",
+	"%#CursorLineNr#",
+	"%{%v:lua.custom_status.branch()%}",
+	" ",
+	"%#LineNr#",
+	"%l,%-c %p%%",
+}, "")
+
+local function list_formatters(formatters)
+	local formatters_list = {}
+	for _, option in pairs(formatters) do
+		for _, formatter in pairs(option) do
+			if type(formatter) == "string" then table.insert(formatters_list, formatter) end
+		end
+	end
+end
+
+vim.keymap.set("n", "<leader>sf", function()
+	vim.ui.input({ prompt = "> " }, function(p)
+		if p then
+			local path, excludes, ex = pre_search()
+			for _, pat in ipairs(excludes) do
+				table.insert(ex, string.format("-path '*%s*' -prune -o", pat))
+			end
+			extcmd(
+				string.format("find %s %s -path '*%s*' -print", vim.fn.shellescape(path), table.concat(ex, " "), p),
+				true,
+				true
+			)
+		end
+	end)
+end)
+local letters = "abcdefghijklmnopqrstuvwxyz"
+for i = 1, #letters do
+	local l = letters:sub(i, i)
+	local u = l:upper()
+	vim.keymap.set("n", "<leader>a" .. l, "m" .. u)
+	vim.keymap.set("n", "<leader>j" .. l, "'" .. u)
+end
+vim.keymap.set("n", "<leader>c", function()
+	vim.ui.input({ prompt = "> " }, function(c)
+		if c then extcmd(c) end
+	end)
+end)
+
+-- WIP
 
 local ensure_installed = {
 	-- bash / shell
@@ -193,7 +411,7 @@ require("lazy").setup({
 				"man",
 				"matchit",
 				"matchparen",
-				"netrwPlugin",
+				-- "netrwPlugin",
 				"osc52",
 				"rplugin",
 				"shada",
@@ -212,7 +430,8 @@ require("lazy").setup({
 		-- https://github.com/saghen/blink.cmp
 		{
 			"saghen/blink.cmp",
-			lazy = true,
+			version = "1.*",
+			event = { "UIEnter" },
 			opts = {
 				cmdline = {
 					keymap = {
@@ -222,7 +441,6 @@ require("lazy").setup({
 					},
 				},
 				completion = { menu = { draw = { treesitter = { "lsp" } } } },
-				fuzzy = { implementation = "lua" },
 				keymap = {
 					preset = "enter",
 					["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
@@ -319,21 +537,21 @@ require("lazy").setup({
 
 		-- TODO: stuff to do
 
-		-- TODO: treesitter stuff
-		-- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
-		{ "nvim-treesitter/nvim-treesitter-textobjects", lazy = true },
+		-- -- TODO: treesitter stuff
+		-- -- https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+		-- { "nvim-treesitter/nvim-treesitter-textobjects", lazy = true },
 
-		-- expands quickfix list functionality
-		-- https://github.com/stevearc/quicker.nvim
-		{ "stevearc/quicker.nvim", event = "FileType qf", opts = {} },
+		-- -- expands quickfix list functionality
+		-- -- https://github.com/stevearc/quicker.nvim
+		-- { "stevearc/quicker.nvim", event = "FileType qf", opts = {} },
 
-		-- installs brackets pair automatic closing
-		-- https://github.com/echasnovski/mini.pairs
-		{ "echasnovski/mini.pairs", opts = {}, event = { "BufNewFile", "BufReadPre" } },
+		-- -- installs brackets pair automatic closing
+		-- -- https://github.com/echasnovski/mini.pairs
+		-- { "echasnovski/mini.pairs", opts = {}, event = { "BufNewFile", "BufReadPre" } },
 
-		-- installs extended text objects support
-		-- https://github.com/echasnovski/mini.ai
-		{ "echasnovski/mini.ai", opts = {}, event = { "BufNewFile", "BufReadPre" } },
+		-- -- installs extended text objects support
+		-- -- https://github.com/echasnovski/mini.ai
+		-- { "echasnovski/mini.ai", opts = {}, event = { "BufNewFile", "BufReadPre" } },
 
 		{
 			-- adds colorscheme
@@ -355,123 +573,123 @@ require("lazy").setup({
 			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
 		},
 
-		-- installs fuzzy finder
-		-- https://github.com/ibhagwan/fzf-lua
-		{
-			"ibhagwan/fzf-lua",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "FzfLua" },
-			opts = {
-				buffers = { actions = { ["ctrl-x"] = false }, prompt = "" },
-				files = { cwd_prompt = false, formatter = "path.filename_first", prompt = false },
-				fzf_colors = true,
-				fzf_opts = { ["--cycle"] = true },
-				grep = { actions = { ["ctrl-g"] = false }, hidden = true, prompt = "" },
-				keymap = { fzf = { ["alt-space"] = "select-all+accept", ["shift-tab"] = "up", ["tab"] = "down" } },
-				winopts = {
-					border = "single",
-					height = 0.9,
-					preview = { border = "single", layout = "vertical", vertical = "down:70%" },
-					width = 140,
-				},
-			},
-		},
+		-- -- installs fuzzy finder
+		-- -- https://github.com/ibhagwan/fzf-lua
+		-- {
+		-- 	"ibhagwan/fzf-lua",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	cmd = { "FzfLua" },
+		-- 	opts = {
+		-- 		buffers = { actions = { ["ctrl-x"] = false }, prompt = "" },
+		-- 		files = { cwd_prompt = false, formatter = "path.filename_first", prompt = false },
+		-- 		fzf_colors = true,
+		-- 		fzf_opts = { ["--cycle"] = true },
+		-- 		grep = { actions = { ["ctrl-g"] = false }, hidden = true, prompt = "" },
+		-- 		keymap = { fzf = { ["alt-space"] = "select-all+accept", ["shift-tab"] = "up", ["tab"] = "down" } },
+		-- 		winopts = {
+		-- 			border = "single",
+		-- 			height = 0.9,
+		-- 			preview = { border = "single", layout = "vertical", vertical = "down:70%" },
+		-- 			width = 140,
+		-- 		},
+		-- 	},
+		-- },
 
-		{
-			-- adds fancy dashboard
-			-- https://github.com/nvimdev/dashboard-nvim
-			"nvimdev/dashboard-nvim",
-			lazy = false,
-			opts = {
-				config = {
-					disable_move = true,
-					footer = {
-						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-						"",
-						"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
-					},
-					header = {
-						" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
-						"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
-						"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
-						"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
-						"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
-						" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
-						"",
-						"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
-						"",
-					},
-					mru = { enable = false },
-					project = { enable = false },
-					shortcut = {
-						{ key = "o", group = "fg", action = "FzfLua files cwd_prompt=false", desc = "󰍉 Open" },
-						{ key = "e", group = "fg", action = "Oil --preview", desc = " Explore" },
-						{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
-						{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
-						{ key = "q", group = "fg", action = "cq", desc = " Reload" },
-					},
-				},
-			},
-		},
+		-- {
+		-- 	-- adds fancy dashboard
+		-- 	-- https://github.com/nvimdev/dashboard-nvim
+		-- 	"nvimdev/dashboard-nvim",
+		-- 	lazy = false,
+		-- 	opts = {
+		-- 		config = {
+		-- 			disable_move = true,
+		-- 			footer = {
+		-- 				"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+		-- 				"",
+		-- 				"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
+		-- 			},
+		-- 			header = {
+		-- 				" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
+		-- 				"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
+		-- 				"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
+		-- 				"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+		-- 				"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+		-- 				" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+		-- 				"",
+		-- 				"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
+		-- 				"",
+		-- 			},
+		-- 			mru = { enable = false },
+		-- 			project = { enable = false },
+		-- 			shortcut = {
+		-- 				{ key = "o", group = "fg", action = "FzfLua files cwd_prompt=false", desc = "󰍉 Open" },
+		-- 				{ key = "e", group = "fg", action = "Oil --preview", desc = " Explore" },
+		-- 				{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
+		-- 				{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
+		-- 				{ key = "q", group = "fg", action = "cq", desc = " Reload" },
+		-- 			},
+		-- 		},
+		-- 	},
+		-- },
 
-		{
-			-- adds customized status line
-			-- https://github.com/nvim-lualine/lualine.nvim
-			"nvim-lualine/lualine.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			event = { "BufNewFile", "BufReadPre" },
-			opts = function()
-				local theme = require("lualine.themes.auto")
-				for _, mode in ipairs({ "command", "inactive", "insert", "normal", "replace", "visual" }) do
-					for _, section in ipairs({ "a", "b", "c" }) do
-						theme[mode][section].bg = "#000"
-					end
-				end
-				return {
-					inactive_sections = {
-						lualine_a = { { "filename", color = "NonText", file_status = false, path = 1 } },
-						lualine_b = {},
-						lualine_c = {},
-						lualine_x = {},
-						lualine_y = {},
-						lualine_z = { { "location", color = "NonText" }, { "progress", color = "NonText" } },
-					},
-					options = { theme = theme },
-					sections = {
-						lualine_a = { { "filename", color = "LineNr", file_status = false, path = 1 } },
-						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
-						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
-						lualine_x = { { "lsp_status", color = "LineNr" }, { "filetype", color = "LineNr" } },
-						lualine_y = { { "branch", color = "CursorLineNr" } },
-						lualine_z = { { "location", color = "LineNr" }, { "progress", color = "LineNr" } },
-					},
-				}
-			end,
-		},
+		-- {
+		-- 	-- adds customized status line
+		-- 	-- https://github.com/nvim-lualine/lualine.nvim
+		-- 	"nvim-lualine/lualine.nvim",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	event = { "BufNewFile", "BufReadPre" },
+		-- 	opts = function()
+		-- 		local theme = require("lualine.themes.auto")
+		-- 		for _, mode in ipairs({ "command", "inactive", "insert", "normal", "replace", "visual" }) do
+		-- 			for _, section in ipairs({ "a", "b", "c" }) do
+		-- 				theme[mode][section].bg = "#000"
+		-- 			end
+		-- 		end
+		-- 		return {
+		-- 			inactive_sections = {
+		-- 				lualine_a = { { "filename", color = "NonText", file_status = false, path = 1 } },
+		-- 				lualine_b = {},
+		-- 				lualine_c = {},
+		-- 				lualine_x = {},
+		-- 				lualine_y = {},
+		-- 				lualine_z = { { "location", color = "NonText" }, { "progress", color = "NonText" } },
+		-- 			},
+		-- 			options = { theme = theme },
+		-- 			sections = {
+		-- 				lualine_a = { { "filename", color = "LineNr", file_status = false, path = 1 } },
+		-- 				lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
+		-- 				lualine_c = { { "diagnostics", color = { bg = "#000" } } },
+		-- 				lualine_x = { { "lsp_status", color = "LineNr" }, { "filetype", color = "LineNr" } },
+		-- 				lualine_y = { { "branch", color = "CursorLineNr" } },
+		-- 				lualine_z = { { "location", color = "LineNr" }, { "progress", color = "LineNr" } },
+		-- 			},
+		-- 		}
+		-- 	end,
+		-- },
 
-		{
-			-- adds file explorer
-			-- https://github.com/stevearc/oil.nvim
-			"stevearc/oil.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "Oil" },
-			opts = {
-				confirmation = { width = 140, border = "single" },
-				keymaps = {
-					["<cr>"] = "actions.select",
-					["<esc>"] = "actions.close",
-					["h"] = "actions.parent",
-					["l"] = "actions.select",
-					["q"] = "actions.close",
-				},
-				lsp_file_methods = { enabled = false },
-				progress = { width = 140, border = "single" },
-				skip_confirm_for_simple_edits = true,
-				use_default_keymaps = false,
-				view_options = { show_hidden = true, natural_order = false },
-				win_options = { signcolumn = "yes" },
-			},
-		},
+		-- {
+		-- 	-- adds file explorer
+		-- 	-- https://github.com/stevearc/oil.nvim
+		-- 	"stevearc/oil.nvim",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	cmd = { "Oil" },
+		-- 	opts = {
+		-- 		confirmation = { width = 140, border = "single" },
+		-- 		keymaps = {
+		-- 			["<cr>"] = "actions.select",
+		-- 			["<esc>"] = "actions.close",
+		-- 			["h"] = "actions.parent",
+		-- 			["l"] = "actions.select",
+		-- 			["q"] = "actions.close",
+		-- 		},
+		-- 		lsp_file_methods = { enabled = false },
+		-- 		progress = { width = 140, border = "single" },
+		-- 		skip_confirm_for_simple_edits = true,
+		-- 		use_default_keymaps = false,
+		-- 		view_options = { show_hidden = true, natural_order = false },
+		-- 		win_options = { signcolumn = "yes" },
+		-- 	},
+		-- },
 
 		-- integrates tmux and neovim navigation
 		-- https://github.com/christoomey/vim-tmux-navigator
@@ -480,32 +698,32 @@ require("lazy").setup({
 			cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
 		},
 
-		-- expands code movement
-		-- https://github.com/echasnovski/mini.move
-		{
-			"echasnovski/mini.move",
-			opts = {
-				mappings = {
-					down = "J",
-					left = "H",
-					line_down = "",
-					line_left = "",
-					line_right = "",
-					line_up = "",
-					right = "L",
-					up = "K",
-				},
-			},
-			event = { "BufNewFile", "BufReadPre" },
-		},
+		-- -- expands code movement
+		-- -- https://github.com/echasnovski/mini.move
+		-- {
+		-- 	"echasnovski/mini.move",
+		-- 	opts = {
+		-- 		mappings = {
+		-- 			down = "J",
+		-- 			left = "H",
+		-- 			line_down = "",
+		-- 			line_left = "",
+		-- 			line_right = "",
+		-- 			line_up = "",
+		-- 			right = "L",
+		-- 			up = "K",
+		-- 		},
+		-- 	},
+		-- 	event = { "BufNewFile", "BufReadPre" },
+		-- },
 
-		-- expands argument splitting
-		-- https://github.com/echasnovski/mini.splitjoin
-		{ "echasnovski/mini.splitjoin", opts = {}, event = { "BufNewFile", "BufReadPre" } },
+		-- -- expands argument splitting
+		-- -- https://github.com/echasnovski/mini.splitjoin
+		-- { "echasnovski/mini.splitjoin", opts = {}, event = { "BufNewFile", "BufReadPre" } },
 
-		-- expands surrounding actions
-		-- https://github.com/echasnovski/mini.surround
-		{ "echasnovski/mini.surround", opts = {}, event = { "BufNewFile", "BufReadPre" } },
+		-- -- expands surrounding actions
+		-- -- https://github.com/echasnovski/mini.surround
+		-- { "echasnovski/mini.surround", opts = {}, event = { "BufNewFile", "BufReadPre" } },
 
 		-- other plugins ...
 	},
