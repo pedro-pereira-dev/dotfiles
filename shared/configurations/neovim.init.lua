@@ -63,6 +63,13 @@ vim.diagnostic.config({ virtual_text = true })
 
 -- auto commands
 vim.api.nvim_create_autocmd({ "TextYankPost" }, { callback = function() vim.highlight.on_yank() end })
+vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
+	callback = function()
+		local cmd = vim.fn.getcmdline()
+		local commands = { "cn", "cp", "cfirst", "clast" }
+		if vim.tbl_contains(commands, cmd) then vim.fn.setcmdline(cmd .. " | norm zzzv") end
+	end,
+})
 
 -- user commands
 local cmd_palette = {
@@ -141,6 +148,24 @@ end, {
 })
 vim.keymap.set("n", "<leader>gs", function()
 	local keys = vim.api.nvim_replace_termcodes(":FilePickModified<tab> ", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+
+vim.keymap.set("n", "<leader>e", ":Ex<cr>", { silent = true })
+vim.g.netrw_altfile = 1
+vim.g.netrw_banner = 0
+vim.api.nvim_create_autocmd({ "FileType" }, {
+	group = vim.api.nvim_create_augroup("custom_netrw", { clear = true }),
+	pattern = "netrw",
+	callback = function()
+		vim.keymap.set("n", "<tab>", ":bwipeout<cr>", { buffer = true, remap = true })
+		vim.keymap.set("n", "h", "-^", { buffer = true, remap = true })
+		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
+	end,
+})
+
+vim.keymap.set("n", "<leader><tab>", function()
+	local keys = vim.api.nvim_replace_termcodes(":b<tab> ", true, false, true)
 	vim.api.nvim_input(keys)
 end)
 
@@ -246,7 +271,7 @@ require("lazy").setup({
 				"man",
 				"matchit",
 				"matchparen",
-				"netrwPlugin",
+				-- "netrwPlugin",
 				"osc52",
 				"rplugin",
 				"shada",
@@ -448,29 +473,29 @@ require("lazy").setup({
 			end,
 		},
 
-		-- adds file explorer
-		-- https://github.com/stevearc/oil.nvim
-		{
-			"stevearc/oil.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			cmd = { "Oil" },
-			opts = {
-				confirmation = { width = 140, border = "single" },
-				keymaps = {
-					["<cr>"] = "actions.select",
-					["<esc>"] = "actions.close",
-					["h"] = "actions.parent",
-					["l"] = "actions.select",
-					["q"] = "actions.close",
-				},
-				lsp_file_methods = { enabled = false },
-				progress = { width = 140, border = "single" },
-				skip_confirm_for_simple_edits = true,
-				use_default_keymaps = false,
-				view_options = { show_hidden = true, natural_order = false },
-				win_options = { signcolumn = "yes" },
-			},
-		},
+		-- -- adds file explorer
+		-- -- https://github.com/stevearc/oil.nvim
+		-- {
+		-- 	"stevearc/oil.nvim",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	cmd = { "Oil" },
+		-- 	opts = {
+		-- 		confirmation = { width = 140, border = "single" },
+		-- 		keymaps = {
+		-- 			["<cr>"] = "actions.select",
+		-- 			["<esc>"] = "actions.close",
+		-- 			["h"] = "actions.parent",
+		-- 			["l"] = "actions.select",
+		-- 			["q"] = "actions.close",
+		-- 		},
+		-- 		lsp_file_methods = { enabled = false },
+		-- 		progress = { width = 140, border = "single" },
+		-- 		skip_confirm_for_simple_edits = true,
+		-- 		use_default_keymaps = false,
+		-- 		view_options = { show_hidden = true, natural_order = false },
+		-- 		win_options = { signcolumn = "yes" },
+		-- 	},
+		-- },
 
 		-- -- integrates tmux and neovim navigation
 		-- -- https://github.com/christoomey/vim-tmux-navigator
@@ -569,49 +594,6 @@ require("lazy").setup({
 	},
 })
 
--- vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
--- 	callback = function()
--- 		local cmd = vim.fn.getcmdline()
--- 		local commands = { "cn", "cp", "cfirst", "clast" }
--- 		if vim.tbl_contains(commands, cmd) then vim.fn.setcmdline(cmd .. " | norm zzzv") end
--- 	end,
--- })
---
--- vim.keymap.set("n", "<leader>e", ":Ex<cr>", { silent = true })
--- vim.g.netrw_altfile = 1
--- vim.g.netrw_banner = 0
--- vim.api.nvim_create_autocmd({ "FileType" }, {
--- 	group = vim.api.nvim_create_augroup("custom_netrw", { clear = true }),
--- 	pattern = "netrw",
--- 	callback = function()
--- 		vim.keymap.set("n", "<tab>", ":bwipeout<cr>", { buffer = true, remap = true })
--- 		vim.keymap.set("n", "h", "-^", { buffer = true, remap = true })
--- 		vim.keymap.set("n", "l", "<cr>", { buffer = true, remap = true })
--- 	end,
--- })
---
--- vim.keymap.set("n", "<leader><tab>", function()
--- 	local keys = vim.api.nvim_replace_termcodes(":b<tab> ", true, false, true)
--- 	vim.api.nvim_input(keys)
--- end)
---
--- vim.api.nvim_create_user_command("MyGitStatus", function(opts)
--- 	if vim.tbl_count(opts.fargs) == 0 then return end
--- 	vim.cmd.edit({ args = opts.fargs })
--- end, {
--- 	complete = function()
--- 		local cmd = "git status --short | awk '{$1=\"\"; print $0}'"
--- 		return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n")
--- 	end,
--- 	force = true,
--- 	nargs = "*",
--- })
---
--- vim.keymap.set("n", "<leader>gs", function()
--- 	local keys = vim.api.nvim_replace_termcodes(":MyGitStatus<tab> ", true, false, true)
--- 	vim.api.nvim_input(keys)
--- end)
---
 -- _G.basic_excludes = { ".git", "*.egg-info", "__pycache__", "wandb", "target" }
 -- _G.ext_excludes = vim.list_extend(vim.deepcopy(_G.basic_excludes), { ".venv" })
 --
