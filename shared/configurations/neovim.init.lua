@@ -131,7 +131,7 @@ end, {
 	nargs = "*",
 })
 vim.keymap.set("n", "<leader>o", function()
-	local keys = vim.api.nvim_replace_termcodes(":FilePick<tab> ", true, false, true)
+	local keys = vim.api.nvim_replace_termcodes(":FilePick <tab>", true, false, true)
 	vim.api.nvim_input(keys)
 end)
 
@@ -147,7 +147,7 @@ end, {
 	nargs = "*",
 })
 vim.keymap.set("n", "<leader>gs", function()
-	local keys = vim.api.nvim_replace_termcodes(":FilePickModified<tab> ", true, false, true)
+	local keys = vim.api.nvim_replace_termcodes(":FilePickModified <tab>", true, false, true)
 	vim.api.nvim_input(keys)
 end)
 
@@ -168,6 +168,54 @@ vim.keymap.set("n", "<leader><tab>", function()
 	local keys = vim.api.nvim_replace_termcodes(":b<tab> ", true, false, true)
 	vim.api.nvim_input(keys)
 end)
+
+_G.custom_status = {
+	modified = function() return vim.bo.modified and "changed" or "" end,
+	path = function()
+		local path = vim.fn.expand("%") or ""
+		if path == "" then return "" end
+		return "./" .. path
+	end,
+	diagnostics = function()
+		local get = vim.diagnostic.get
+		local severity = vim.diagnostic.severity
+		local levels = {
+			{ count = #get(0, { severity = severity.ERROR }), label = "%#DiagnosticSignError# " },
+			{ count = #get(0, { severity = severity.WARN }), label = "%#DiagnosticSignWarn# " },
+			{ count = #get(0, { severity = severity.INFO }), label = "%#DiagnosticSignInfo# " },
+			{ count = #get(0, { severity = severity.HINT }), label = "%#DiagnosticSignHint# " },
+		}
+		local diagnostics = "  "
+		for _, level in ipairs(levels) do
+			if level.count > 0 then diagnostics = diagnostics .. level.label .. level.count .. " " end
+		end
+		return diagnostics:sub(1, -2)
+	end,
+	branch = function()
+		local branch = vim.fn.system("git branch --show-current 2>/dev/null")
+		return branch ~= "" and branch:gsub("\n", "") or ""
+	end,
+}
+
+vim.o.statusline = table.concat({
+	"%#LineNr#",
+	"%{%v:lua.custom_status.path()%}",
+	" ",
+	"%#Bold#",
+	"%{%v:lua.custom_status.modified()%}",
+	" ",
+	"%{%v:lua.custom_status.diagnostics()%}",
+	" ",
+	"%=",
+	"%#LineNr#",
+	"%{&filetype}",
+	" ",
+	"%#CursorLineNr#",
+	"%{%v:lua.custom_status.branch()%}",
+	" ",
+	"%#LineNr#",
+	"%l:%-c %p%%",
+}, "")
 
 local ensure_installed = {
 	-- bash / shell
@@ -438,40 +486,40 @@ require("lazy").setup({
 			},
 		},
 
-		-- adds customized status line
-		-- https://github.com/nvim-lualine/lualine.nvim
-		{
-			"nvim-lualine/lualine.nvim",
-			dependencies = { "nvim-tree/nvim-web-devicons" },
-			event = { "BufNewFile", "BufReadPre" },
-			opts = function()
-				local theme = require("lualine.themes.auto")
-				for _, mode in ipairs({ "command", "inactive", "insert", "normal", "replace", "visual" }) do
-					for _, section in ipairs({ "a", "b", "c" }) do
-						theme[mode][section].bg = "#000"
-					end
-				end
-				return {
-					inactive_sections = {
-						lualine_a = { { "filename", color = "NonText", file_status = false, path = 1 } },
-						lualine_b = {},
-						lualine_c = {},
-						lualine_x = {},
-						lualine_y = {},
-						lualine_z = { { "location", color = "NonText" }, { "progress", color = "NonText" } },
-					},
-					options = { theme = theme },
-					sections = {
-						lualine_a = { { "filename", color = "LineNr", file_status = false, path = 1 } },
-						lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
-						lualine_c = { { "diagnostics", color = { bg = "#000" } } },
-						lualine_x = { { "lsp_status", color = "LineNr" }, { "filetype", color = "LineNr" } },
-						lualine_y = { { "branch", color = "CursorLineNr" } },
-						lualine_z = { { "location", color = "LineNr" }, { "progress", color = "LineNr" } },
-					},
-				}
-			end,
-		},
+		-- -- adds customized status line
+		-- -- https://github.com/nvim-lualine/lualine.nvim
+		-- {
+		-- 	"nvim-lualine/lualine.nvim",
+		-- 	dependencies = { "nvim-tree/nvim-web-devicons" },
+		-- 	event = { "BufNewFile", "BufReadPre" },
+		-- 	opts = function()
+		-- 		local theme = require("lualine.themes.auto")
+		-- 		for _, mode in ipairs({ "command", "inactive", "insert", "normal", "replace", "visual" }) do
+		-- 			for _, section in ipairs({ "a", "b", "c" }) do
+		-- 				theme[mode][section].bg = "#000"
+		-- 			end
+		-- 		end
+		-- 		return {
+		-- 			inactive_sections = {
+		-- 				lualine_a = { { "filename", color = "NonText", file_status = false, path = 1 } },
+		-- 				lualine_b = {},
+		-- 				lualine_c = {},
+		-- 				lualine_x = {},
+		-- 				lualine_y = {},
+		-- 				lualine_z = { { "location", color = "NonText" }, { "progress", color = "NonText" } },
+		-- 			},
+		-- 			options = { theme = theme },
+		-- 			sections = {
+		-- 				lualine_a = { { "filename", color = "LineNr", file_status = false, path = 1 } },
+		-- 				lualine_b = { { function() return vim.bo.modified and "changed" or "" end, color = "Bold" } },
+		-- 				lualine_c = { { "diagnostics", color = { bg = "#000" } } },
+		-- 				lualine_x = { { "lsp_status", color = "LineNr" }, { "filetype", color = "LineNr" } },
+		-- 				lualine_y = { { "branch", color = "CursorLineNr" } },
+		-- 				lualine_z = { { "location", color = "LineNr" }, { "progress", color = "LineNr" } },
+		-- 			},
+		-- 		}
+		-- 	end,
+		-- },
 
 		-- -- adds file explorer
 		-- -- https://github.com/stevearc/oil.nvim
@@ -668,54 +716,6 @@ require("lazy").setup({
 -- 		end
 -- 	end)
 -- end)
---
--- _G.custom_status = {
--- 	modified = function() return vim.bo.modified and "changed" or "" end,
--- 	path = function()
--- 		local path = vim.fn.expand("%") or ""
--- 		if path == "" then return "" end
--- 		return "./" .. path
--- 	end,
--- 	diagnostics = function()
--- 		local get = vim.diagnostic.get
--- 		local severity = vim.diagnostic.severity
--- 		local levels = {
--- 			{ count = #get(0, { severity = severity.ERROR }), label = "%#DiagnosticSignError# " },
--- 			{ count = #get(0, { severity = severity.WARN }), label = "%#DiagnosticSignWarn# " },
--- 			{ count = #get(0, { severity = severity.INFO }), label = "%#DiagnosticSignInfo# " },
--- 			{ count = #get(0, { severity = severity.HINT }), label = "%#DiagnosticSignHint# " },
--- 		}
--- 		local diagnostics = "  "
--- 		for _, level in ipairs(levels) do
--- 			if level.count > 0 then diagnostics = diagnostics .. level.label .. level.count .. " " end
--- 		end
--- 		return diagnostics:sub(1, -2)
--- 	end,
--- 	branch = function()
--- 		local branch = vim.fn.system("git branch --show-current 2>/dev/null")
--- 		return branch ~= "" and branch:gsub("\n", "") or ""
--- 	end,
--- }
---
--- vim.o.statusline = table.concat({
--- 	"%#LineNr#",
--- 	"%{%v:lua.custom_status.path()%}",
--- 	" ",
--- 	"%#Bold#",
--- 	"%{%v:lua.custom_status.modified()%}",
--- 	" ",
--- 	"%{%v:lua.custom_status.diagnostics()%}",
--- 	" ",
--- 	"%=",
--- 	"%#LineNr#",
--- 	"%{&filetype}",
--- 	" ",
--- 	"%#CursorLineNr#",
--- 	"%{%v:lua.custom_status.branch()%}",
--- 	" ",
--- 	"%#LineNr#",
--- 	"%l,%-c %p%%",
--- }, "")
 --
 -- vim.keymap.set("n", "<leader>sf", function()
 -- 	vim.ui.input({ prompt = "> " }, function(p)
