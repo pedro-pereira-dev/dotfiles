@@ -112,6 +112,22 @@ for _, d in ipairs({ "h", "j", "k", "l" }) do
 	vim.keymap.set("n", "<m-" .. d .. ">", ":Navigate " .. d .. "<cr>", { silent = true })
 end
 
+vim.api.nvim_create_user_command("FilePick", function(opts)
+	if vim.tbl_count(opts.fargs) == 0 then return end
+	vim.cmd.edit({ args = opts.fargs })
+end, {
+	complete = function()
+		local cmd = "git ls-files -c -o --exclude-standard"
+		return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n")
+	end,
+	force = true,
+	nargs = "*",
+})
+vim.keymap.set("n", "<leader>o", function()
+	local keys = vim.api.nvim_replace_termcodes(":FilePick<tab> ", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+
 local ensure_installed = {
 	-- bash / shell
 	"bash-language-server",
@@ -244,6 +260,7 @@ require("lazy").setup({
 					},
 				},
 				completion = { menu = { draw = { treesitter = { "lsp" } } } },
+				fuzzy = { sorts = { "exact", "score", "sort_text" } },
 				keymap = {
 					preset = "enter",
 					["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
@@ -557,22 +574,6 @@ require("lazy").setup({
 -- 	end,
 -- })
 --
--- vim.api.nvim_create_user_command("FilePick", function(opts)
--- 	if vim.tbl_count(opts.fargs) == 0 then return end
--- 	vim.cmd.edit({ args = opts.fargs })
--- end, {
--- 	complete = function()
--- 		local cmd = "git ls-files -c -o --exclude-standard"
--- 		return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n")
--- 	end,
--- 	force = true,
--- 	nargs = "*",
--- })
---
--- vim.keymap.set("n", "<leader>o", function()
--- 	local keys = vim.api.nvim_replace_termcodes(":FilePick<tab> ", true, false, true)
--- 	vim.api.nvim_input(keys)
--- end)
 -- vim.keymap.set("n", "<leader><tab>", function()
 -- 	local keys = vim.api.nvim_replace_termcodes(":b<tab> ", true, false, true)
 -- 	vim.api.nvim_input(keys)
