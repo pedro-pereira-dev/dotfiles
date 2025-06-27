@@ -56,7 +56,7 @@ vim.keymap.set("v", "<leader>f", ":FzfLua grep_cword<cr>", { silent = true, desc
 vim.keymap.set("n", "<leader>e", ":Oil --preview<cr>", { silent = true })
 vim.keymap.set("n", "<leader><tab>", ":FzfLua buffers<cr>", { silent = true })
 vim.keymap.set("n", "<leader>o", ":FzfLua files<cr>", { silent = true })
-vim.keymap.set("n", "<leader>gs", ":FzfLua git_status<cr>", { silent = true })
+-- vim.keymap.set("n", "<leader>gs", ":FzfLua git_status<cr>", { silent = true })
 vim.keymap.set("n", "<leader>gb", ":FzfLua git_branches<cr>", { silent = true })
 
 vim.diagnostic.config({ virtual_text = true })
@@ -125,6 +125,22 @@ end, {
 })
 vim.keymap.set("n", "<leader>o", function()
 	local keys = vim.api.nvim_replace_termcodes(":FilePick<tab> ", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+
+vim.api.nvim_create_user_command("FilePickModified", function(opts)
+	if vim.tbl_count(opts.fargs) == 0 then return end
+	vim.cmd.edit({ args = opts.fargs })
+end, {
+	complete = function()
+		local cmd = "git status --short | awk '{$1=\"\"; print $0}'"
+		return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n")
+	end,
+	force = true,
+	nargs = "*",
+})
+vim.keymap.set("n", "<leader>gs", function()
+	local keys = vim.api.nvim_replace_termcodes(":FilePickModified<tab> ", true, false, true)
 	vim.api.nvim_input(keys)
 end)
 
