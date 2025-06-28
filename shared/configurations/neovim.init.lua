@@ -738,3 +738,40 @@ require("lazy").setup({
 -- 		if c then extcmd(c) end
 -- 	end)
 -- end)
+--
+-- vim.opt.path:append("**")
+
+-- https://www.chrisdeluca.me/2022/01/12/diy-neovim-fzy.html
+vim.api.nvim_create_user_command("TestePick", function()
+	local width = vim.o.columns - 4
+	local height = 11
+	if vim.o.columns >= 85 then width = 80 end
+	vim.api.nvim_open_win(vim.api.nvim_create_buf(false, true), true, {
+		relative = "editor",
+		-- style = "minimal",
+		-- border = "shadow",
+		noautocmd = true,
+		width = width,
+		height = height,
+		col = math.min((vim.o.columns - width) / 2),
+		row = math.min((vim.o.lines - height) / 2 - 1),
+	})
+	local file = vim.fn.tempname()
+	vim.fn.termopen("rg --files | fzf > " .. file, {
+		on_exit = function()
+			vim.api.nvim_command("bdelete!")
+			local f = io.open(file, "r")
+			local stdout = f:read("*all")
+			f:close()
+			os.remove(file)
+			vim.api.nvim_command("edit " .. stdout)
+		end,
+	})
+end, {})
+vim.keymap.set("n", "<leader>o", ":TestePick<cr>", { silent = true })
+vim.api.nvim_create_autocmd({ "TermOpen", "BufEnter" }, {
+	pattern = "*",
+	callback = function()
+		if vim.opt.buftype:get() == "terminal" then vim.cmd("startinsert") end
+	end,
+})

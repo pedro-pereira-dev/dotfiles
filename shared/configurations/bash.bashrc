@@ -1,6 +1,8 @@
 # shellcheck source=/dev/null
 [[ -f /etc/bash/bashrc ]] && source /etc/bash/bashrc
 
+export FZF_DEFAULT_OPTS="--bind 'tab:down,shift-tab:up' --cycle --reverse"
+
 command -v doas >/dev/null && complete -cf doas
 command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell bash)"
 command -v starship >/dev/null && eval "$(starship init bash)"
