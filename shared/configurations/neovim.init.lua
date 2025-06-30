@@ -59,7 +59,33 @@ vim.keymap.set("n", "<leader>o", ":FzfLua files<cr>", { silent = true })
 vim.keymap.set("n", "<leader>gs", ":FzfLua git_status<cr>", { silent = true })
 vim.keymap.set("n", "<leader>gb", ":FzfLua git_branches<cr>", { silent = true })
 
+vim.keymap.set("n", "<leader>h", ":FzfLua highlights<cr>", { silent = true })
+vim.keymap.set("n", "<leader>r", ":source %<cr>", { silent = true })
+vim.keymap.set("n", "<leader>i", ":Inspect<cr>", { silent = true })
+
 vim.diagnostic.config({ virtual_text = true })
+
+vim.keymap.set("n", "<leader><tab>", function()
+	local keys = vim.api.nvim_replace_termcodes(":b<tab> ", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+
+vim.api.nvim_create_user_command("FilePick", function(opts)
+	if vim.tbl_count(opts.fargs) == 0 then return end
+	vim.cmd.edit({ args = opts.fargs })
+end, {
+	complete = function()
+		local cmd = "git ls-files -c -o --exclude-standard"
+		return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n")
+	end,
+	force = true,
+	nargs = "*",
+})
+vim.keymap.set("n", "<leader>o", function()
+	local keys = vim.api.nvim_replace_termcodes(":FilePick <tab>", true, false, true)
+	vim.api.nvim_input(keys)
+end)
+vim.keymap.set("n", "<leader>O", ":FzfLua files<cr>", { silent = true })
 
 -- auto commands
 vim.api.nvim_create_autocmd({ "TextYankPost" }, { callback = function() vim.highlight.on_yank() end })
@@ -70,6 +96,17 @@ vim.api.nvim_create_autocmd({ "CmdlineLeave" }, {
 		if vim.tbl_contains(commands, cmd) then vim.fn.setcmdline(cmd .. " | norm zzzv") end
 	end,
 })
+
+-- https://github.com/christoomey/vim-tmux-navigator
+vim.api.nvim_create_user_command("Navigate", function(opts)
+	local mappings = { h = "L", j = "D", k = "U", l = "R" }
+	local wnr = vim.fn.winnr()
+	vim.cmd("wincmd " .. opts.fargs[1])
+	if wnr == vim.fn.winnr() then vim.fn.system("tmux select-pane -" .. mappings[opts.fargs[1]]) end
+end, { nargs = 1 })
+for _, d in ipairs({ "h", "j", "k", "l" }) do
+	vim.keymap.set("n", "<m-" .. d .. ">", ":Navigate " .. d .. "<cr>", { silent = true })
+end
 
 local ensure_installed = {
 	-- bash / shell
@@ -193,7 +230,8 @@ require("lazy").setup({
 		{
 			"saghen/blink.cmp",
 			version = "*",
-			event = { "InsertEnter" },
+			-- event = { "InsertEnter" },
+			event = { "UIEnter" },
 			opts = {
 				cmdline = {
 					keymap = {
@@ -298,25 +336,25 @@ require("lazy").setup({
 			end,
 		},
 
-		-- adds colorscheme
-		-- https://github.com/idr4n/github-monochrome.nvim
-		{
-			"idr4n/github-monochrome.nvim",
-			priority = 1000,
-			opts = {
-				on_highlights = function(hl, c)
-					local util = require("github-monochrome.util")
-					hl.DiagnosticUnderlineError = { bg = util.blend(c.error, 0.25, util.bg), fg = c.error }
-					hl.DiagnosticUnderlineHint = { bg = util.blend(c.hint, 0.25, util.bg), fg = c.hint }
-					hl.DiagnosticUnderlineInfo = { bg = util.blend(c.info, 0.25, util.bg), fg = c.info }
-					hl.DiagnosticUnderlineWarn = { bg = util.blend(c.warning, 0.25, util.bg), fg = c.warning }
-					hl.FloatBorder = { fg = c.fg }
-				end,
-				styles = { floats = "transparent" },
-				transparent = true,
-			},
-			init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
-		},
+		-- -- adds colorscheme
+		-- -- https://github.com/idr4n/github-monochrome.nvim
+		-- {
+		-- 	"idr4n/github-monochrome.nvim",
+		-- 	priority = 1000,
+		-- 	opts = {
+		-- 		on_highlights = function(hl, c)
+		-- 			local util = require("github-monochrome.util")
+		-- 			hl.DiagnosticUnderlineError = { bg = util.blend(c.error, 0.25, util.bg), fg = c.error }
+		-- 			hl.DiagnosticUnderlineHint = { bg = util.blend(c.hint, 0.25, util.bg), fg = c.hint }
+		-- 			hl.DiagnosticUnderlineInfo = { bg = util.blend(c.info, 0.25, util.bg), fg = c.info }
+		-- 			hl.DiagnosticUnderlineWarn = { bg = util.blend(c.warning, 0.25, util.bg), fg = c.warning }
+		-- 			hl.FloatBorder = { fg = c.fg }
+		-- 		end,
+		-- 		styles = { floats = "transparent" },
+		-- 		transparent = true,
+		-- 	},
+		-- 	init = function() vim.cmd.colorscheme("github-monochrome-rosepine") end,
+		-- },
 
 		-- installs fuzzy finder
 		-- https://github.com/ibhagwan/fzf-lua
@@ -404,55 +442,55 @@ require("lazy").setup({
 			},
 		},
 
-		-- integrates tmux and neovim navigation
-		-- https://github.com/christoomey/vim-tmux-navigator
-		{
-			"christoomey/vim-tmux-navigator",
-			cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
-			init = function()
-				vim.keymap.set("n", "<m-h>", ":TmuxNavigateLeft<cr>", { silent = true })
-				vim.keymap.set("n", "<m-j>", ":TmuxNavigateDown<cr>", { silent = true })
-				vim.keymap.set("n", "<m-k>", ":TmuxNavigateUp<cr>", { silent = true })
-				vim.keymap.set("n", "<m-l>", ":TmuxNavigateRight<cr>", { silent = true })
-			end,
-		},
+		-- -- integrates tmux and neovim navigation
+		-- -- https://github.com/christoomey/vim-tmux-navigator
+		-- {
+		-- 	"christoomey/vim-tmux-navigator",
+		-- 	cmd = { "TmuxNavigateDown", "TmuxNavigateLeft", "TmuxNavigateRight", "TmuxNavigateUp" },
+		-- 	init = function()
+		-- 		vim.keymap.set("n", "<m-h>", ":TmuxNavigateLeft<cr>", { silent = true })
+		-- 		vim.keymap.set("n", "<m-j>", ":TmuxNavigateDown<cr>", { silent = true })
+		-- 		vim.keymap.set("n", "<m-k>", ":TmuxNavigateUp<cr>", { silent = true })
+		-- 		vim.keymap.set("n", "<m-l>", ":TmuxNavigateRight<cr>", { silent = true })
+		-- 	end,
+		-- },
 
-		-- adds fancy dashboard
-		-- https://github.com/nvimdev/dashboard-nvim
-		{
-			"nvimdev/dashboard-nvim",
-			lazy = false,
-			opts = {
-				config = {
-					disable_move = true,
-					footer = {
-						"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
-						"",
-						"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
-					},
-					header = {
-						" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
-						"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
-						"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
-						"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
-						"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
-						" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
-						"",
-						"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
-						"",
-					},
-					mru = { enable = false },
-					project = { enable = false },
-					shortcut = {
-						{ key = "o", group = "fg", action = "FzfLua files cwd_prompt=false", desc = "󰍉 Open" },
-						{ key = "e", group = "fg", action = "Oil --preview", desc = " Explore" },
-						{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
-						{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
-						{ key = "q", group = "fg", action = "cq", desc = " Reload" },
-					},
-				},
-			},
-		},
+		-- -- adds fancy dashboard
+		-- -- https://github.com/nvimdev/dashboard-nvim
+		-- {
+		-- 	"nvimdev/dashboard-nvim",
+		-- 	lazy = false,
+		-- 	opts = {
+		-- 		config = {
+		-- 			disable_move = true,
+		-- 			footer = {
+		-- 				"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+		-- 				"",
+		-- 				"pedro-pereira-dev | https://pedro-pereira-dev.github.io",
+		-- 			},
+		-- 			header = {
+		-- 				" ██████╗ ███████╗███╗   ██╗████████╗ ██████╗  ██████╗ ██╗   ██╗██╗███╗   ███╗",
+		-- 				"██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔═══██╗██╔═══██╗██║   ██║██║████╗ ████║",
+		-- 				"██║  ███╗█████╗  ██╔██╗ ██║   ██║   ██║   ██║██║   ██║██║   ██║██║██╔████╔██║",
+		-- 				"██║   ██║██╔══╝  ██║╚██╗██║   ██║   ██║   ██║██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║",
+		-- 				"╚██████╔╝███████╗██║ ╚████║   ██║   ╚██████╔╝╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║",
+		-- 				" ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝    ╚═════╝  ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
+		-- 				"",
+		-- 				"" .. vim.fn.getcwd():gsub(vim.env.HOME, "~"),
+		-- 				"",
+		-- 			},
+		-- 			mru = { enable = false },
+		-- 			project = { enable = false },
+		-- 			shortcut = {
+		-- 				{ key = "o", group = "fg", action = "FzfLua files cwd_prompt=false", desc = "󰍉 Open" },
+		-- 				{ key = "e", group = "fg", action = "Oil --preview", desc = " Explore" },
+		-- 				{ key = "s", group = "fg", action = "Lazy sync", desc = "󰒲 Sync" },
+		-- 				{ key = "m", group = "fg", action = "Mason", desc = " Mason" },
+		-- 				{ key = "q", group = "fg", action = "cq", desc = " Reload" },
+		-- 			},
+		-- 		},
+		-- 	},
+		-- },
 
 		-- expands quickfix list functionality
 		-- https://github.com/stevearc/quicker.nvim
@@ -598,7 +636,6 @@ require("lazy").setup({
 -- 	end)
 -- end)
 --
--- vim.opt.path:append("**")
 
 -- -- https://www.chrisdeluca.me/2022/01/12/diy-neovim-fzy.html
 -- vim.api.nvim_create_user_command("TestePick", function()
@@ -635,33 +672,6 @@ require("lazy").setup({
 -- 	end,
 -- })
 
--- -- https://github.com/christoomey/vim-tmux-navigator
--- vim.api.nvim_create_user_command("Navigate", function(opts)
--- 	local mappings = { h = "L", j = "D", k = "U", l = "R" }
--- 	local wnr = vim.fn.winnr()
--- 	vim.cmd("wincmd " .. opts.fargs[1])
--- 	if wnr == vim.fn.winnr() then vim.fn.system("tmux select-pane -" .. mappings[opts.fargs[1]]) end
--- end, { nargs = 1 })
--- for _, d in ipairs({ "h", "j", "k", "l" }) do
--- 	vim.keymap.set("n", "<m-" .. d .. ">", ":Navigate " .. d .. "<cr>", { silent = true })
--- end
---
--- vim.api.nvim_create_user_command("FilePick", function(opts)
--- 	if vim.tbl_count(opts.fargs) == 0 then return end
--- 	vim.cmd.edit({ args = opts.fargs })
--- end, {
--- 	complete = function()
--- 		local cmd = "git ls-files -c -o --exclude-standard"
--- 		return vim.split(vim.trim(io.popen(cmd):read("*a")), "\n")
--- 	end,
--- 	force = true,
--- 	nargs = "*",
--- })
--- vim.keymap.set("n", "<leader>o", function()
--- 	local keys = vim.api.nvim_replace_termcodes(":FilePick <tab>", true, false, true)
--- 	vim.api.nvim_input(keys)
--- end)
---
 -- vim.api.nvim_create_user_command("FilePickModified", function(opts)
 -- 	if vim.tbl_count(opts.fargs) == 0 then return end
 -- 	vim.cmd.edit({ args = opts.fargs })
@@ -744,21 +754,6 @@ require("lazy").setup({
 -- 	"%l:%-c %p%%",
 -- }, "")
 
--- vim.cmd("hi clear")
--- local bg = "#000000"
--- -- local fg = "#ffffff"
--- local fg = "#ffa759"
--- -- local fg = "#d2d1e6"
--- -- local fg = "#00ff00"
--- -- local fg = "#ffaf00"
--- for hl_group, attrs in pairs(vim.api.nvim_get_hl(0, {})) do
--- 	if attrs.fg then attrs.fg = fg end
--- 	if attrs.bg then attrs.bg = bg end
--- 	vim.api.nvim_set_hl(0, hl_group, attrs)
--- end
--- vim.api.nvim_set_hl(0, "Visual", { bg = "#222222" })
--- vim.api.nvim_set_hl(0, "CursorLine", { bg = "#002200" })
-
 -- -- user commands
 -- local cmd_palette = {
 -- 	{ "lazy", "Lazy", "Open Lazy dialog" },
@@ -796,4 +791,57 @@ require("lazy").setup({
 -- 	vim.api.nvim_input(keys)
 -- end)
 
+-- vim.opt.path:append("**")
+-- vim.opt.wildmenu = true
+
 --
+
+-- adds custom color palette
+local custom_black = "#2e3440"
+local custom_red = "#ff3242"
+local custom_green = "#44bc44"
+local custom_yellow = "#ff9400"
+local custom_blue = "#0883ff"
+local custom_magenta = "#d930d9"
+local custom_cyan = "#00d8eb"
+local custom_white = "#d8dee9"
+local custom_bright_black = "#4c566a"
+local custom_bright_red = "#ff6e6e"
+local custom_bright_green = "#9ec875"
+local custom_bright_yellow = "#ffaf00"
+local custom_bright_blue = "#47bfe6"
+local custom_bright_magenta = "#d294ff"
+local custom_bright_cyan = "#8ae2f0"
+local custom_bright_white = "#eceff4"
+local custom_background = "#000000"
+local custom_foreground = "#d2d1e6"
+-- configures colorscheme
+vim.cmd.highlight("clear")
+for hl_group, attrs in pairs(vim.api.nvim_get_hl(0, {})) do
+	if attrs.bg then attrs.bg = custom_background end
+	if attrs.fg then attrs.fg = custom_foreground end
+	vim.api.nvim_set_hl(0, hl_group, attrs)
+end
+
+vim.api.nvim_set_hl(0, "Constant", { fg = custom_bright_white, bold = true })
+vim.api.nvim_set_hl(0, "String", { fg = custom_bright_white, bold = true })
+-- vim.api.nvim_set_hl(0, "Statement", { fg = custom_bright_white, bold = true, italic = true })
+-- vim.api.nvim_set_hl(0, "Function", { fg = custom_bright_black, italic = true })
+
+vim.api.nvim_set_hl(0, "CurSearch", { bg = custom_white, fg = custom_black, bold = true })
+vim.api.nvim_set_hl(0, "IncSearch", { bg = custom_white, fg = custom_black, bold = true })
+vim.api.nvim_set_hl(0, "Search", { bg = custom_black })
+
+vim.api.nvim_set_hl(0, "Comment", { fg = custom_bright_black, italic = true })
+vim.api.nvim_set_hl(0, "CursorLine", { bg = custom_black })
+vim.api.nvim_set_hl(0, "LineNr", { fg = custom_bright_black })
+vim.api.nvim_set_hl(0, "Visual", { bg = custom_white, fg = custom_black, bold = true })
+
+vim.api.nvim_set_hl(0, "DiagnosticError", { fg = custom_red, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticWarn", { fg = custom_yellow, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticInfo", { fg = custom_cyan, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticHint", { fg = custom_white, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { fg = custom_red, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { fg = custom_yellow, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { fg = custom_cyan, underline = true })
+vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { fg = custom_white, underline = true })
