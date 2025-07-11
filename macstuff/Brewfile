@@ -1,0 +1,48 @@
+# homebrew repositories
+tap "homebrew/bundle"
+
+# ----- ----- ----- -----
+
+# node / work related
+brew "fnm" # node version manager
+brew "git" # version control
+brew "neovim" # text editor
+brew "lazygit" # git tui
+
+# personal tools
+brew "openssh" # ssh command
+
+# enhanced tools
+brew "eza" # enchanced ls command
+brew "zoxide" # enhanced cd command
+
+# misc
+brew "fastfetch" # system details
+brew "gnupg" # encryption and signing
+brew "starship" # bash prompt customization
+
+# ----- ----- ----- -----
+
+# fonts
+cask "font-jetbrains-mono-nerd-font" # jetbrains nerd font
+
+# usability
+cask "alt-tab" # alt-tab windows like
+cask "rectangle" # tiling
+cask "karabiner-elements" # keyboard mappings
+cask "ukelele" # keyboard layout editor
+
+# work related
+cask "alacritty" # terminal emulator
+cask "figma" # ux mockups
+cask "pingid" # authenticator
+
+# personal tools
+cask "google-chrome" # web browser
+cask "firefox" # web browser
+cask "discord" # chat server
+
+brew "ripgrep"
+brew "tmux"
+brew "fzf"
+brew "btop"

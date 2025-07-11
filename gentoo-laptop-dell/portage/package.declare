@@ -35,3 +35,4 @@ sys-apps/ripgrep
 gui-wm/labwc
 www-client/firefox
 app-admin/ansible
+net-vpn/wireguard-tools
