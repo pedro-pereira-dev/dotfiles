@@ -31,3 +31,10 @@ tar -xvf input.tar
 or
 
     MAKEOPTS set to some specific lower number, optionally with a load average limit set to the CPU core count (or RAM limit), and Emerge jobs not set (which will give you the default of 1 job).
+
+### Notes
+
+```bash
+DuckDNS_Token="token" acme.sh --dns dns_duckdns --domain '*.remote-4620.duckdns.org' --issue
+cat \*.remote-4620.duckdns.org.key fullchain.cer > remote-4620.duckdns.org.pem
+```
