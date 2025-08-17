@@ -36,3 +36,5 @@ gui-wm/labwc
 www-client/firefox
 app-admin/ansible
 net-vpn/wireguard-tools
+
+app-crypt/acme-sh

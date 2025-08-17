@@ -4,3 +4,4 @@ dev-util/fnm ~amd64
 dev-vcs/lazygit ~amd64
 
 gui-wm/labwc ~amd64
+app-crypt/acme-sh ~amd64
