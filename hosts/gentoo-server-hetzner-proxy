@@ -1,0 +1,4 @@
+#!/bin/bash
+set -eou pipefail
+
+echo "applying dotfiles for gentoo-server-heztner-proxy"

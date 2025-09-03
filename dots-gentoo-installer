@@ -1,0 +1,43 @@
+#!/bin/bash
+set -eou pipefail
+
+# checks required variables
+[[ -z "$_DOTS_RAW_URL" ]] && echo "[E] missing required variable: \$_DOTS_RAW_URL" && exit 1
+[[ -z "$_GENTOO_RAW_URL" ]] && echo "[E] missing required variable: \$_GENTOO_RAW_URL" && exit 1
+
+[[ -z "$_DEV" ]] && echo "[E] missing required variable: \$_DEV" && exit 1
+[[ -z "$_BOOT" ]] && echo "[E] missing required variable: \$_BOOT" && exit 1
+[[ -z "$_ROOT" ]] && echo "[E] missing required variable: \$_ROOT" && exit 1
+[[ -z "$_HOST" ]] && echo "[E] missing required variable: \$_HOST" && exit 1
+[[ -z "$_USER" ]] && echo "[E] missing required variable: \$_USER" && exit 1
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gathers required inputs for installation
+if [[ -z $_PASSWORD ]]; then
+  echo -e "\nGathering installation setup..."
+  while true; do
+    read -r -s -p ' - System password: ' _PASSWORD && echo
+    [[ -z $_PASSWORD ]] && continue
+    read -r -s -p ' - Confirm system password: ' _PASSWORD_CONFIRMATION && echo
+    [[ "$_PASSWORD" == "$_PASSWORD_CONFIRMATION" ]] && break
+  done
+fi
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# installs gentoo on the system device
+curl -Lfs "$_GENTOO_RAW_URL/install.sh" | bash -s -- \
+  --boot "$_BOOT" \
+  --hostname "$_HOST" \
+  --keymap 'pt-latin9' \
+  --password "$_PASSWORD" \
+  --root "$_ROOT" \
+  --timezone 'Europe/Lisbon'
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# creates user account and bootstrap dotfiles
+chroot /mnt /bin/bash <<EOF
+env-update && source /etc/profile
+useradd -m -G wheel -s /bin/bash "$_USER"
+echo "$_USER:$_PASSWORD" | chpasswd
+curl -Lfs "$_DOTS_RAW_URL" | bash -s -- sync
+EOF

@@ -4,10 +4,10 @@ My custom system dotfiles - *_WORK IN PROGRESS_*
 
 ## Linux
 
-#### `gentoo-router` 
-
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/gentoo-router/install.sh)
+bash <(wget -qO - https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots)
+
+curl -Lfs https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots | bash -s -- install ...
 ```
 
 ## Keys

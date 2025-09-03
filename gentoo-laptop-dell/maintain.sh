@@ -40,6 +40,9 @@ stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-set 
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.bootstrap-dotfiles /usr/bin/bootstrap-dotfiles
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.install-nerd-font /usr/bin/install-nerd-font
 
+stow /home/chuck/workspace/personal/dotfiles/dots /usr/bin/
+stow /home/chuck/workspace/personal/dotfiles/dots-utils /usr/bin/
+
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-display /home/chuck/.bash_display
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-profile /home/chuck/.bash_profile
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bashrc /home/chuck/.bashrc
@@ -61,9 +64,9 @@ find /etc /home /root /usr/bin -xtype l -delete >/dev/null 2>&1
 find /etc /home /root /usr/bin -type d -empty >/dev/null 2>&1
 
 [[ ! -d /var/db/repos/gentoo/.git ]] && rm --force --recursive /var/db/repos/gentoo
-eauto --unsupervised
+#eauto --unsupervised
 eselect news read >/dev/null 2>&1
-regenerate-bootloader
+#regenerate-bootloader
 
 cat <<EOF >/etc/doas.conf
 permit persist :wheel

@@ -1,0 +1,128 @@
+#!/bin/bash
+# shellcheck disable=SC2015
+
+# debug variable to validate if this file was sourced
+export _IS_DOTS_UTILS_LOADED="true"
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# checks for the existence of a command in the system path
+# arguments:
+#   $1 - the name of the command to check for (e.g., 'git', 'docker', 'python3')
+# returns:
+#   0 (success) if the command is found
+#   1 (failure) if the command is not found
+function check_command() { which "$1" >/dev/null 2>&1; }
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gets the first non-root user with privileges from system
+# arguments:
+#   none
+# returns:
+#   the user id if it exists, printed to standard output
+#   0 (success) if user is found
+#   1 (failure) if user is not found
+function get_first_wheel_user() { grep '^wheel:' /etc/group | tr ',' '\n' | grep -v 'root' | head -n 1 | grep '.'; }
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gets the value of a specific command-line option
+# arguments:
+#   $1 - the name of the option to find (e.g., "--path")
+#   $@ - all subsequent command-line arguments to search through
+# returns:
+#   the value of the option if it exists, printed to standard output
+#   0 (success) if the option is found
+#   1 (failure) if the option is not found
+function get_option() {
+  _OPTION="$1" && shift
+  while [[ "$#" -gt 0 ]]; do
+    _ARG="$1" && shift
+    if [[ "$_ARG" == "$_OPTION" ]]; then
+      [[ "$#" -gt 0 ]] && ! [[ "$1" =~ ^- ]] && echo "$1"
+      return 0
+    fi
+  done
+  return 1
+}
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gets the user id executing the script
+# arguments:
+#   $@ - the parent script arguments
+# returns:
+#   the user id, printed to standard output
+#   0 (success) if user is found
+#   1 (failure) if user is not found
+function get_user() {
+  _USER="$( (is_root && get_first_wheel_user) || (! is_root && whoami) || get_option "--username" "$@")"
+  [[ -n "$_USER" ]] && echo "$_USER" || return 1
+}
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gets the user home directory path executing the script
+# arguments:
+#   $@ - the parent script arguments
+# returns:
+#   the user home directory path, printed to standard output
+#   0 (success) if path is found
+#   1 (failure) if path is not found
+function get_home() {
+  _USER="$(get_user "$@")" || return 1
+  test "$(uname)" == 'Darwin' && _HOME="/Users/$_USER"
+  test "$(uname)" == 'Linux' && _HOME="/home/$_USER"
+  [[ -n "$_HOME" ]] && echo "$_HOME" || return 1
+}
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gets the hostname of the system executing the script
+# arguments:
+#   none
+# returns:
+#   the hostname, printed to standard output
+#   0 (success) if hostname is found
+#   1 (failure) if hostname is not found
+function get_hostname() {
+  test "$(uname)" == 'Darwin' && hostname && return 0
+  test "$(uname)" == 'Linux' && cat /etc/hostname 2>/dev/null && return 0
+  return 1
+}
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# checks if the current user is root
+# arguments:
+#   none
+# returns:
+#   0 (success) if the user id is 0 - root user
+#   1 (failure) if the user id is not 0 - non-root user
+function is_root() { test $EUID -eq 0; }
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# runs a command as the root user
+# arguments:
+#   $@ - the command and its arguments to be executed with root privileges
+#        (e.g., 'emerge dev-vcs/git', 'nano /etc/hosts')
+# returns:
+#   the exit status of the executed command
+function run_as_root() {
+  is_root && {
+    "$@"
+    return
+  }
+  check_command doas && {
+    doas "$@"
+    return
+  }
+  check_command sudo && {
+    sudo "$@"
+    return
+  }
+}
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# runs a command as a specified non-root user
+# arguments:
+#   $1 - the name of the user to switch to (e.g., 'myuser').
+#   $@ - all subsequent arguments, which form the command and its arguments
+#        to be executed (e.g., 'ls -l /home/myuser')
+# returns:
+#   the exit status of the executed command
+function run_as_user() { if is_root; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
