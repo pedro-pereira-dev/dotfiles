@@ -32,12 +32,12 @@ sed --expression='s/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk /dev/sda
 EOF
 
 bash <(wget --output-document=- --quiet https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh) \
-  --hostname 'gentoo-server-hetzner-proxy' \
-  --password "${SYSTEM_PASSWORD}" \
   --boot '/dev/sda1' \
+  --hostname 'gentoo-server-hetzner-proxy' \
+  --keymap 'pt-latin9' \
+  --password "${SYSTEM_PASSWORD}" \
   --root '/dev/sda2' \
-  --timezone 'Europe/Lisbon' \
-  --keymap 'pt-latin9'
+  --timezone 'Europe/Lisbon'
 
 chroot /mnt /bin/bash <<EOF
 env-update && source /etc/profile

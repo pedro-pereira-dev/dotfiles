@@ -71,6 +71,8 @@ eauto --unsupervised
 eselect news read >/dev/null 2>&1
 regenerate-bootloader
 
+sed --in-place '/tty[2-6]/ s/^[^#]/#&/' /etc/inittab
+
 cat <<EOF >/etc/doas.conf
 permit persist :wheel
 permit nopass :wheel as root cmd reboot

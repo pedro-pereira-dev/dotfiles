@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# debug variable to validate if this file was sourced
+export IS_DOTS_UTILS_LOADED="true"
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# get_option: gets the value of a specific command-line option
+#
+# this function searches for a given option (e.g., "--path") in a list of
+# arguments and returns its value if found; it is designed to handle both
+# options that require a value and simple flags
+#
+# arguments:
+#   $1 - the name of the option to find (e.g., "--path")
+#   $@ - all subsequent command-line arguments to search through
+#
+# returns:
+#   the value of the option if it exists, printed to standard output
+#   returns 0 (success) if the option is found
+#   returns 1 (failure) if the option is not found
+function get_option() {
+  OPTION="$1" && shift
+  while [[ "$#" -gt 0 ]]; do
+    ARG="$1" && shift
+    if [[ "$ARG" == "$OPTION" ]]; then
+      [[ "$#" -gt 0 ]] && ! [[ "$1" =~ ^- ]] && echo "$1"
+      return 0
+    fi
+  done
+  return 1
+}

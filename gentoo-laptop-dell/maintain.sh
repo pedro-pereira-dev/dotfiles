@@ -40,6 +40,9 @@ stow /home/chuck/workspace/personal/dotfiles/shared/scripts/secrets.secrets-set 
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.bootstrap-dotfiles /usr/bin/bootstrap-dotfiles
 stow /home/chuck/workspace/personal/dotfiles/shared/scripts/utils.install-nerd-font /usr/bin/install-nerd-font
 
+stow /home/chuck/workspace/personal/dotfiles/dots /usr/bin/
+stow /home/chuck/workspace/personal/dotfiles/dots-utils /usr/bin/
+
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-display /home/chuck/.bash_display
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bash-profile /home/chuck/.bash_profile
 ustow /home/chuck/workspace/personal/dotfiles/shared/configurations/bash.bashrc /home/chuck/.bashrc

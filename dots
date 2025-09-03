@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# contants
+DOTFILES_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# sources auxiliary functions
+# shellcheck disable=SC2015 source=/dev/null
+which dots-utils >/dev/null 2>&1 &&
+  source "$(which dots-utils)" ||
+  source <(wget -qO - "$DOTFILES_RAW_URL/dots-utils")
+[ -z "$IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
+# forks control by the first script argument
+case $1 in
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# runs the bootstrap command to setup the system dotfiles
+# and installs required dependencies
+b | bootstrap)
+  echo "bootstrap dotfiles - wip"
+  exit 0
+  ;;
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# runs the gentoo installation script from another repository
+# after setting up the live system by its hostname
+i | install)
+  TARGET_HOSTNAME="$(get_option "--hostname" "$@")"
+  [[ -z "$TARGET_HOSTNAME" ]] && echo '[E] missing required field: --hostname' && exit 1
+  ! wget -q --spider "$DOTFILES_RAW_URL/hosts/$TARGET_HOSTNAME/install.sh" &&
+    echo "[E] unknow hostname to install gentoo to ($TARGET_HOSTNAME)" && exit 1
+  bash <(wget -qO - "$DOTFILES_RAW_URL/hosts/$TARGET_HOSTNAME/install.sh")
+  exit 0
+  ;;
+
+  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # handles unknown commands
+*)
+  echo "[E] unknown command ($1)"
+  exit 1
+  ;;
+esac
