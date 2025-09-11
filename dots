@@ -81,7 +81,7 @@ function _main() {
     _HOME="$(get_home "$@")" && _HOST="$(get_hostname)" ||
       (echo '[E] missing required argument: --username' && return 1)
 
-    bash "$_HOME/$_DOTS_DIR/hosts/$_HOST"
+    bash "$_HOME/$_DOTS_DIR/hosts/$_HOST" "$@"
 
     return 0
     ;;

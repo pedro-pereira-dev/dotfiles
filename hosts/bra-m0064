@@ -1,4 +1,13 @@
 #!/bin/bash
+# shellcheck disable=SC2015 disable=SC2088 source=/dev/null
 set -eou pipefail
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# sources auxiliary functions
+which dots-utils >/dev/null 2>&1 &&
+  source "$(which dots-utils)" ||
+  source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
+  source /dev/stdin <<<"$(curl -Lfs "$_DOTS_RAW_URL/dots-utils")"
+[ -z "$_IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
 
 echo "applying dotfiles for bra-m0064"
