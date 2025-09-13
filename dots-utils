@@ -5,6 +5,48 @@
 export _IS_DOTS_UTILS_LOADED="true"
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# finds and deletes empty directories and broken symlinks
+# arguments:
+#   $1 - the directory to clear
+# returns:
+#   0 (success) if deletion was successful
+#   1 (failure) if deletion was unsuccessful
+function clean_directories_and_links() {
+  _COUNTER=3
+  _OLD_RESULT='undefined'
+  while true; do
+    _RESULT="$(find "$1" \( \
+      -path '/Applications' -o \
+      -path '/Library' -o \
+      -path '/System' -o \
+      -path '/Volumes' -o \
+      -path '/boot' -o \
+      -path '/dev' -o \
+      -path '/efi' -o \
+      -path '/mnt' -o \
+      -path '/private' -o \
+      -path '/proc' -o \
+      -path '/run' -o \
+      -path '/sys' -o \
+      -path '/tmp' -o \
+      -name 'lost+found' \
+      \) -prune \
+      -o \( -type d -empty -o -type l -not -exec test -e {} \; \) \
+      -print)"
+    [ -n "$_RESULT" ] &&
+      echo "$_RESULT" | sed '/^\s*$/d' | while read -r _ENTRY; do
+        ([ -d "$_ENTRY" ] && rmdir -p "$_ENTRY" 2>/dev/null || rm -fr "$_ENTRY") &&
+        echo "[I] removing: $_ENTRY"
+      done
+    [ -z "$_RESULT" ] && return 0
+    [ "$_OLD_RESULT" == "$_RESULT" ] && _COUNTER=$((_COUNTER - 1))
+    [ "$_COUNTER" -lt 0 ] && return 1
+    _OLD_RESULT="$_RESULT"
+  done
+}
+export -f clean_directories_and_links
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # checks for the existence of a command in the system path
 # arguments:
 #   $1 - the name of the command to check for (e.g., 'git', 'docker', 'python3')
@@ -12,6 +54,7 @@ export _IS_DOTS_UTILS_LOADED="true"
 #   0 (success) if the command is found
 #   1 (failure) if the command is not found
 function check_command() { which "$1" >/dev/null 2>&1; }
+export -f check_command
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # gets the first non-root user with privileges from system
@@ -22,6 +65,7 @@ function check_command() { which "$1" >/dev/null 2>&1; }
 #   0 (success) if user is found
 #   1 (failure) if user is not found
 function get_first_wheel_user() { grep '^wheel:' /etc/group | tr ',' '\n' | grep -v 'root' | head -n 1 | grep '.'; }
+export -f get_first_wheel_user
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # gets the value of a specific command-line option
@@ -33,16 +77,17 @@ function get_first_wheel_user() { grep '^wheel:' /etc/group | tr ',' '\n' | grep
 #   0 (success) if the option is found
 #   1 (failure) if the option is not found
 function get_option() {
-  _OPTION="$1" && shift
+  _OPT="$1" && shift
   while [[ "$#" -gt 0 ]]; do
     _ARG="$1" && shift
-    if [[ "$_ARG" == "$_OPTION" ]]; then
+    if [[ "$_ARG" == "$_OPT" ]]; then
       [[ "$#" -gt 0 ]] && ! [[ "$1" =~ ^- ]] && echo "$1"
       return 0
     fi
   done
   return 1
 }
+export -f get_option
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # gets the user id executing the script
@@ -53,9 +98,13 @@ function get_option() {
 #   0 (success) if user is found
 #   1 (failure) if user is not found
 function get_user() {
-  _USER="$( (is_root && get_first_wheel_user) || (! is_root && whoami) || get_option "--username" "$@")"
-  [[ -n "$_USER" ]] && echo "$_USER" || return 1
+  _USER="$(get_option "--user" "$@")" || true
+  [[ -n "$_USER" ]] && echo "$_USER" && return 0
+  is_root && get_first_wheel_user && return 0 || true
+  ! is_root && whoami && return 0 || true
+  return 1
 }
+export -f get_user
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # gets the user home directory path executing the script
@@ -67,24 +116,28 @@ function get_user() {
 #   1 (failure) if path is not found
 function get_home() {
   _USER="$(get_user "$@")" || return 1
-  test "$(uname)" == 'Darwin' && _HOME="/Users/$_USER"
-  test "$(uname)" == 'Linux' && _HOME="/home/$_USER"
-  [[ -n "$_HOME" ]] && echo "$_HOME" || return 1
-}
-
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# gets the hostname of the system executing the script
-# arguments:
-#   none
-# returns:
-#   the hostname, printed to standard output
-#   0 (success) if hostname is found
-#   1 (failure) if hostname is not found
-function get_hostname() {
-  test "$(uname)" == 'Darwin' && hostname && return 0
-  test "$(uname)" == 'Linux' && cat /etc/hostname 2>/dev/null && return 0
+  [ "$(uname)" == 'Darwin' ] && echo "/Users/$_USER" && return 0 || true
+  [ "$(uname)" == 'Linux' ] && echo "/home/$_USER" && return 0 || true
   return 1
 }
+export -f get_home
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# gets the host of the system executing the script
+# arguments:
+#   $@ - the parent script arguments
+# returns:
+#   the host, printed to standard output
+#   0 (success) if host is found
+#   1 (failure) if host is not found
+function get_host() {
+  _HOST="$(get_option "--host" "$@")" || true
+  [[ -n "$_HOST" ]] && echo "$_HOST" && return 0
+  [ "$(uname)" == 'Darwin' ] && hostname && return 0 || true
+  [ "$(uname)" == 'Linux' ] && cat /etc/hostname 2>/dev/null && return 0 || true
+  return 1
+}
+export -f get_host
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # checks if the current user is root
@@ -94,6 +147,7 @@ function get_hostname() {
 #   0 (success) if the user id is 0 - root user
 #   1 (failure) if the user id is not 0 - non-root user
 function is_root() { test $EUID -eq 0; }
+export -f is_root
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # runs a command as the root user
@@ -103,19 +157,17 @@ function is_root() { test $EUID -eq 0; }
 # returns:
 #   the exit status of the executed command
 function run_as_root() {
-  is_root && {
+  if is_root; then
     "$@"
-    return
-  }
-  check_command doas && {
+  elif check_command doas; then
     doas "$@"
-    return
-  }
-  check_command sudo && {
+  elif check_command sudo; then
     sudo "$@"
-    return
-  }
+  else
+    return 1
+  fi
 }
+export -f run_as_root
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # runs a command as a specified non-root user
@@ -126,3 +178,76 @@ function run_as_root() {
 # returns:
 #   the exit status of the executed command
 function run_as_user() { if is_root; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
+export -f run_as_user
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# runs a script from the local filesystem or directly from github
+# arguments:
+#   $1 - the relative path to the script to execute from the base dotfiles directory
+#   $@ - all subsequent arguments, which form the command and its arguments
+#        to be executed (e.g., 'install', 'sync')
+# returns:
+#   the exit status of the executed command
+#   1 (failure) if any failure occurs
+function run_script() {
+  _HOME="$(get_home "$@")" || return 1
+  _LOCAL_SCRIPT="$_HOME/$_DOTS_DIR/$1"
+  _REMOTE_SCRIPT="$_DOTS_RAW_URL/$1"
+  if [ -f "$_LOCAL_SCRIPT" ]; then
+    bash "$_LOCAL_SCRIPT" "${*:2}"
+  elif curl -ILs "$_REMOTE_SCRIPT" >/dev/null; then
+    curl -Lfs "$_REMOTE_SCRIPT" | bash -s -- "${*:2}"
+  else
+    return 1
+  fi
+}
+export -f run_script
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# links a directory or file into a target directory or file, overwriting the target if it exists
+# arguments:
+#   $1 - the absolute path of the source directory or file
+#   $2 - the absolute path of the target directory or file
+# returns:
+#   0 (success) if successful linking of all files
+#   1 (failure) if unsuccessful or partial linking
+function stow() {
+  function list_files() { find "$1" \( -type f -o -type l \) -print0; }
+  function list_dirs() { find "$1" -mindepth 1 -type d -print0; }
+  [ "$2" == '/' ] && _DST='' || _DST="$2"
+  if [ -d "$1" ]; then
+    while IFS= read -r -d '' _SRC_SUBDIR; do
+      mkdir -p "$_DST${_SRC_SUBDIR/$1/}"
+    done < <(list_dirs "$1")
+    while IFS= read -r -d '' _SRC_FILE; do
+      mkdir -p "$(dirname "$_DST${_SRC_FILE/$1/}")"
+      ln -fs "$_SRC_FILE" "$_DST${_SRC_FILE/$1/}"
+      echo "[I] linking: $_SRC_FILE $_DST${_SRC_FILE/$1/}"
+    done < <(list_files "$1")
+  elif [ -f "$1" ]; then
+    mkdir -p "$(dirname "$_DST")"
+    ln -fs "$1" "$_DST"
+    echo "[I] linking: $1 $_DST"
+  else
+    return 1
+  fi
+  return 0
+}
+export -f stow
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# links a directory containing the root and home to the system
+# arguments:
+#   $1 - the directory to link
+# returns:
+#   0 (success) if successful linking of all files
+#   1 (failure) if unsuccessful or partial linking
+function stow_directory() {
+  _HOME="$(get_home "$@")" || return 1
+  _USER="$(get_user "$@")" || return 1
+  _LOCAL_DIR="$_HOME/$_DOTS_DIR/hosts/$1.d"
+  [ -d "$_LOCAL_DIR/root" ] && (run_as_root stow "$_LOCAL_DIR/root" '/' || return 1)
+  [ -d "$_LOCAL_DIR/home" ] && (run_as_user "$_USER" stow "$_LOCAL_DIR/home" "$_HOME" || return 1)
+  return 0
+}
+export -f stow_directory

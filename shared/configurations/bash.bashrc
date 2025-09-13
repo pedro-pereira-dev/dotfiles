@@ -4,6 +4,8 @@
 export FZF_DEFAULT_OPTS="--bind 'tab:down,shift-tab:up' --cycle --reverse"
 export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
 
+export PATH="$HOME/.local/bin:$PATH"
+
 command -v doas >/dev/null && complete -cf doas
 command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell bash)"
 command -v starship >/dev/null && eval "$(starship init bash)"
