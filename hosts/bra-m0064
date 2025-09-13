@@ -4,10 +4,24 @@ set -eou pipefail
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # sources auxiliary functions
-which dots-utils >/dev/null 2>&1 &&
-  source "$(which dots-utils)" ||
-  source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
+_IS_DOTS_UTILS_LOADED=""
+source "$(dirname "$(readlink -f "$0")")/../dots-utils" >/dev/null 2>&1 ||
   source /dev/stdin <<<"$(curl -Lfs "$_DOTS_RAW_URL/dots-utils")"
 [ -z "$_IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
 
-echo "applying dotfiles for bra-m0064"
+function _main() {
+  case $1 in
+
+  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # clears setup and applies dotfiles to system
+  sync)
+    echo "macos sync"
+    return 0
+    ;;
+
+  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # handles unknown commands
+  *) echo "[E] unknown command ($1)" && return 1 ;;
+  esac
+}
+_main "$@"
