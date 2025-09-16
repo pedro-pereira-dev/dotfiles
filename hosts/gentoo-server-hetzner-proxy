@@ -41,7 +41,7 @@ function _main() {
       (echo '[E] failed to symlink files for (default)' && return 1)
     stow_directory 'default.gentoo' ||
       (echo '[E] failed to symlink files for (default.gentoo)' && return 1)
-    stow_directory "$_HOST" ||
+    stow_directory "host.$_HOST" ||
       (echo "[E] failed to symlink files for ($_HOST)" && return 1)
     run_as_root clean_directories_and_links / ||
       (echo '[E] failed to clean directories and links' && return 1)

@@ -30,7 +30,7 @@ function _main() {
     is_root && echo '[E] failed cannot run as root' && return 1
     stow_directory 'default' ||
       (echo "[E] failed to symlink files for (default)" && return 1)
-    stow_directory "$_HOST" ||
+    stow_directory "host.$_HOST" ||
       (echo "[E] failed to symlink files for ($_HOST)" && return 1)
     run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
       (echo '[E] failed to clean directories and links' && return 1)
