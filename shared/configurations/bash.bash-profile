@@ -1,4 +1,0 @@
-# shellcheck source=/dev/null
-[[ -f ${HOME}/.bashrc ]] && source "${HOME}/.bashrc"
-[[ -f ${HOME}/.bash_display ]] && source "${HOME}/.bash_display"
-
