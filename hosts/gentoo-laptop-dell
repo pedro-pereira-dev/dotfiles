@@ -38,7 +38,9 @@ function _main() {
     _HOST="$(get_host "$@")"
     ! is_root && echo '[E] missing required permissions' && return 1
     stow_directory 'default' ||
-      (echo "[E] failed to symlink files for (default)" && return 1)
+      (echo '[E] failed to symlink files for (default)' && return 1)
+    stow_directory 'default.gentoo' ||
+      (echo '[E] failed to symlink files for (default.gentoo)' && return 1)
     stow_directory "$_HOST" ||
       (echo "[E] failed to symlink files for ($_HOST)" && return 1)
     run_as_root clean_directories_and_links / ||
