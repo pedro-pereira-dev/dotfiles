@@ -28,7 +28,7 @@ function is_mbr() { get_option "--mbr" "$@"; }
 ! is_gpt "$@" && ! is_mbr "$@" && echo '[E] missing required argument: --gpt or --mbr' && exit 1
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# gathers required inputs for installation
+# gathers system password for installation
 echo -e "\nGathering installation setup..."
 while true; do
   read -r -s -p ' - System password: ' _PASSWORD && echo
@@ -89,7 +89,7 @@ curl -Lfs "$_GENTOO_RAW_URL/install.sh" | bash -s -- \
   --timezone 'Europe/Lisbon'
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# creates user account and bootstrap dotfiles
+# creates user account and sets up system
 chroot /mnt /bin/bash <<EOF
 env-update && source /etc/profile
 useradd -m -G wheel -s /bin/bash "$_USER"

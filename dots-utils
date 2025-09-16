@@ -16,8 +16,9 @@ function clean_directories_and_links() {
   _OLD_RESULT='undefined'
   while true; do
     _RESULT="$(find "$1" \( \
-      -path '/Applications' -o \
-      -path '/Library' -o \
+      -name 'Applications' -o \
+      -name 'Library' -o \
+      -name 'lost+found' -o \
       -path '/System' -o \
       -path '/Volumes' -o \
       -path '/boot' -o \
@@ -28,14 +29,13 @@ function clean_directories_and_links() {
       -path '/proc' -o \
       -path '/run' -o \
       -path '/sys' -o \
-      -path '/tmp' -o \
-      -name 'lost+found' \
+      -path '/tmp' \
       \) -prune \
       -o \( -type d -empty -o -type l -not -exec test -e {} \; \) \
       -print)"
     [ -n "$_RESULT" ] &&
       echo "$_RESULT" | sed '/^\s*$/d' | while read -r _ENTRY; do
-        ([ -d "$_ENTRY" ] && rmdir -p "$_ENTRY" 2>/dev/null || rm -fr "$_ENTRY") &&
+        ([ -d "$_ENTRY" ] && rmdir -p "$_ENTRY" 2>/dev/null || rm -fr "$_ENTRY" 2>/dev/null) &&
         echo "[I] removing: $_ENTRY"
       done
     [ -z "$_RESULT" ] && return 0
@@ -57,7 +57,7 @@ function check_command() { which "$1" >/dev/null 2>&1; }
 export -f check_command
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# gets the first non-root user with privileges from system
+# gets the first non-root user with privileges from the system
 # arguments:
 #   none
 # returns:
@@ -251,3 +251,21 @@ function stow_directory() {
   return 0
 }
 export -f stow_directory
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# displays tool usage
+# arguments:
+#   none
+# returns:
+#   0 (success) always
+function usage() {
+  echo -e "\
+dots: command-line interface for managing dotfiles and gentoo systems installations
+Usage:
+  dots bootstrap  [ --user <user> ]                   >> installs git and clones dotfiles repository
+  dots install      --host <host>                     >> installs gentoo on the target system 'host'
+  dots update     [ --user <user> ]                   >> clears and updates the dotfiles directory
+  dots sync       [ --host <host> ] [ --user <user> ] >> clears setup and applies dotfiles to system
+"
+}
+export -f usage
