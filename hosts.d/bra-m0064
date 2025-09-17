@@ -1,0 +1,42 @@
+#!/bin/bash
+# shellcheck disable=SC2015 disable=SC2088 source=/dev/null
+set -eou pipefail
+
+export _HOST='bra-m0064'
+export _USER='pereiped'
+
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+# sources auxiliary functions
+_IS_DOTS_UTILS_LOADED=""
+source "$(dirname "$(readlink -f "$0")")/../dots-utils" >/dev/null 2>&1 ||
+  source /dev/stdin <<<"$(curl -Lfs "$_DOTS_RAW_URL/dots-utils")"
+[ -z "$_IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
+
+function _main() {
+  _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
+  case $_CMD in
+
+  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # clears deprecated directories and links after resetting them
+  sync)
+    _HOME="$(get_home "$@")" && _HOST="$(get_host "$@")" && _USER="$(get_user "$@")"
+    is_root && echo '[E] failed cannot run as root' && return 1
+
+    run_script 'hosts.d/default.d/install.sh' "$@" ||
+      (echo '[E] failed to install layer (default)' && return 1)
+    run_script 'hosts.d/host.bra-m0064.d/install.sh' "$@" ||
+      (echo "[E] failed to install layer ($_HOST)" && return 1)
+
+    ! get_option '--skip-cleaning' "$@" && (
+      run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
+        (echo '[E] failed to clean directories and links' && return 1)
+    )
+    return 0
+    ;;
+
+  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # handles unknown commands
+  *) usage && return 1 ;;
+  esac
+}
+_main "$@"

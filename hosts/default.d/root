@@ -1,3 +1,0 @@
-# cannot have a root directory as the default layer
-# as it will be linked by both root and non-root users
-# make sure that any file linked by default does not need elevated permissions
