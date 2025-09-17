@@ -24,7 +24,7 @@ function _main() {
 
     run_script 'hosts.d/default.d/install.sh' "$@" ||
       (echo '[E] failed to install layer (default)' && return 1)
-    run_script 'hosts.d/host.bra-m0064.d/install.sh' "$@" ||
+    run_script "hosts.d/host.$_HOST.d/install.sh" "$@" ||
       (echo "[E] failed to install layer ($_HOST)" && return 1)
 
     ! get_option '--skip-cleaning' "$@" && (
