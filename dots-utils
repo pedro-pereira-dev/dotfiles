@@ -194,9 +194,9 @@ function run_script() {
   _LOCAL_SCRIPT="$_HOME/$_DOTS_DIR/$1"
   _REMOTE_SCRIPT="$_DOTS_RAW_URL/$1"
   if [ -f "$_LOCAL_SCRIPT" ]; then
-    bash "$_LOCAL_SCRIPT" "${*:2}"
+    bash "$_LOCAL_SCRIPT" "${@:2}"
   elif curl -ILs "$_REMOTE_SCRIPT" >/dev/null; then
-    curl -Lfs "$_REMOTE_SCRIPT" | bash -s -- "${*:2}"
+    curl -Lfs "$_REMOTE_SCRIPT" | bash -s -- "${@:2}"
   else
     return 1
   fi
