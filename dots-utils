@@ -190,8 +190,7 @@ export -f run_as_user
 #   the exit status of the executed command
 #   1 (failure) if any failure occurs
 function run_script() {
-  _HOME="$(get_home "$@")" || return 1
-  _LOCAL_SCRIPT="$_HOME/$_DOTS_DIR/$1"
+  _LOCAL_SCRIPT="$(dirname "$(readlink -f "$0")")/$1"
   _REMOTE_SCRIPT="$_DOTS_RAW_URL/$1"
   if [ -f "$_LOCAL_SCRIPT" ]; then
     bash "$_LOCAL_SCRIPT" "${@:2}"
@@ -266,10 +265,10 @@ function usage() {
   echo -e "\
 dots: command-line interface for managing dotfiles and gentoo systems installations
 Usage:
-  dots bootstrap  [ --user <user> ]                   >> installs git and clones dotfiles repository
-  dots install      --host <host>                     >> installs gentoo on the target system 'host'
-  dots update     [ --user <user> ]                   >> clears and updates the dotfiles directory
-  dots sync       [ --host <host> ] [ --user <user> ] >> clears setup and applies dotfiles to system
+  dots bootstrap  [ --user <user> ]                       >> installs git and clones dotfiles repository
+  dots install      --host <host> --password <password>   >> installs gentoo on the target system 'host'
+  dots update     [ --user <user> ]                       >> clears and updates the dotfiles directory
+  dots sync       [ --host <host> ] [ --user <user> ]     >> clears setup and applies dotfiles to system
 "
 }
 export -f usage

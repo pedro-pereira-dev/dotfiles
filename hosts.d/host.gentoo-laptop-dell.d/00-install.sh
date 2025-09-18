@@ -2,7 +2,7 @@
 set -eou pipefail
 
 _HOME="$(get_home "$@")" && _USER="$(get_user "$@")"
-_SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+_SCRIPT_DIR="$_HOME/$_DOTS_DIR/hosts.d/host.gentoo-laptop-dell.d"
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # symlinks dotfiles files to target system

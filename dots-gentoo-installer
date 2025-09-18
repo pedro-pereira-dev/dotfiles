@@ -11,6 +11,7 @@ source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # checks required variables
+[ -z "$_DOTS_DIR" ] && echo "[E] missing required variable: \$_DOTS_DIR" && exit 1
 [ -z "$_DOTS_RAW_URL" ] && echo "[E] missing required variable: \$_DOTS_RAW_URL" && exit 1
 [ -z "$_GENTOO_RAW_URL" ] && echo "[E] missing required variable: \$_GENTOO_RAW_URL" && exit 1
 
@@ -18,19 +19,10 @@ source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
 [ -z "$_BOOT_SIZE" ] && echo "[E] missing required variable: \$_BOOT_SIZE" && exit 1
 [ -z "$_DEV" ] && echo "[E] missing required variable: \$_DEV" && exit 1
 [ -z "$_HOST" ] && echo "[E] missing required variable: \$_HOST" && exit 1
+[ -z "$_PASSWORD" ] && echo "[E] missing required variable: \$_PASSWORD" && exit 1
 [ -z "$_ROOT" ] && echo "[E] missing required variable: \$_ROOT" && exit 1
 [ -z "$_ROOT_SIZE" ] && echo "[E] missing required variable: \$_ROOT_SIZE" && exit 1
 [ -z "$_USER" ] && echo "[E] missing required variable: \$_USER" && exit 1
-
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# gathers system password for installation
-echo -e "\n[I] gathering installation setup..."
-while true; do
-  read -r -s -p ' - System password: ' _PASSWORD && echo
-  [[ -z $_PASSWORD ]] && continue
-  read -r -s -p ' - Confirm system password: ' _PASSWORD_CONFIRMATION && echo
-  [[ "$_PASSWORD" == "$_PASSWORD_CONFIRMATION" ]] && break
-done
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # deletes all partitions in the system device and creates defined layout
@@ -92,6 +84,7 @@ chroot /mnt /bin/bash <<EOF
 env-update && source /etc/profile
 useradd -m -G wheel -s /bin/bash "$_USER"
 echo "$_USER:$_PASSWORD" | chpasswd
-curl -Lfs "$_DOTS_RAW_URL" | bash -s -- update
-curl -Lfs "$_DOTS_RAW_URL" | bash -s -- sync
+emerge --ask=n --noreplace dev-vcs/git
+curl -Lfs "$_DOTS_RAW_URL/dots" | bash -s -- update
+/home/$_USER/$_DOTS_DIR/dots sync
 EOF

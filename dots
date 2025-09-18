@@ -45,8 +45,11 @@ function _main() {
   install)
     _HOST="$(get_host "$@")" ||
       (echo '[E] missing required argument: --host' && return 1)
+    _PASSWORD="$(get_option "--password" "$@")" ||
+      (echo '[E] missing required argument: --password' && return 1)
     ! is_root && echo '[E] missing required permissions' && return 1
-    curl -Lfs "$_DOTS_RAW_URL/hosts.d/$_HOST" | bash -s -- "@" ||
+    export _PASSWORD
+    echo '[I] installing gentoo...' && run_script "hosts.d/$_HOST" "$@" ||
       (echo "[E] failed to install gentoo to ($_HOST)" && return 1)
     return 0
     ;;
