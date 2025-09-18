@@ -22,6 +22,7 @@ run_as_user "$_USER" stow "$_SCRIPT_DIR/bin-system-regenerate-bootloader.sh" "$_
 ) || true
 run_as_root cat <<EOF >/etc/doas.conf
 permit  persist   :wheel
+permit  nopass    :wheel as root  cmd poweroff
 permit  nopass    :wheel as root  cmd reboot
 permit  nopass    :wheel as root  cmd shutdown
 EOF

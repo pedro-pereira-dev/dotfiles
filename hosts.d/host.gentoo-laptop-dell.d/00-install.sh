@@ -7,6 +7,7 @@ _SCRIPT_DIR="$_HOME/$_DOTS_DIR/hosts.d/host.gentoo-laptop-dell.d"
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # symlinks dotfiles files to target system
 run_as_root stow "$_SCRIPT_DIR/dracut-config.conf" '/etc/dracut.conf.d/dracut.conf'
+run_as_root stow "$_SCRIPT_DIR/grub-config.conf" '/etc/default/grub'
 run_as_root stow "$_SCRIPT_DIR/portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
 run_as_root stow "$_SCRIPT_DIR/portage-make.conf" '/etc/portage/make.conf'
 run_as_root stow "$_SCRIPT_DIR/portage-package-declare.conf" '/etc/portage/package.declare'
@@ -107,3 +108,6 @@ run_as_user "$_USER" stow "$_SCRIPT_DIR/sway-config.conf" "$_HOME/.config/sway/c
 # run_as_user chuck secrets-set ssh-mercedes-github-pesoare
 # run_as_user chuck secrets-import
 # rm --force /home/chuck/.ssh/authorized_keys
+#
+# emerge -1 cpuid2cpuflags
+# echo "*/* $(cpuid2cpuflags)" > file
