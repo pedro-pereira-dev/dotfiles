@@ -9,9 +9,6 @@ source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
   source /dev/stdin <<<"$(curl -Lfs "$_DOTS_RAW_URL/dots-utils")"
 [ -z "$_IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
 
-function is_gpt() { get_option "--gpt" "$@"; }
-function is_mbr() { get_option "--mbr" "$@"; }
-
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # checks required variables
 [ -z "$_DOTS_RAW_URL" ] && echo "[E] missing required variable: \$_DOTS_RAW_URL" && exit 1
@@ -25,11 +22,9 @@ function is_mbr() { get_option "--mbr" "$@"; }
 [ -z "$_ROOT_SIZE" ] && echo "[E] missing required variable: \$_ROOT_SIZE" && exit 1
 [ -z "$_USER" ] && echo "[E] missing required variable: \$_USER" && exit 1
 
-! is_gpt "$@" && ! is_mbr "$@" && echo '[E] missing required argument: --gpt or --mbr' && exit 1
-
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # gathers system password for installation
-echo -e "\nGathering installation setup..."
+echo -e "\n[I] gathering installation setup..."
 while true; do
   read -r -s -p ' - System password: ' _PASSWORD && echo
   [[ -z $_PASSWORD ]] && continue
@@ -39,27 +34,30 @@ done
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # deletes all partitions in the system device and creates defined layout
+echo '[I] preparing devices...'
 wipefs -a "$_DEV"
-if is_gpt; then
+if [ -d '/sys/firmware/efi' ]; then
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk "$_DEV"
     g  # create empty gpt partition table
     n  # create boot partition
        # choose default partition number
        # choose default sector
     $_BOOT_SIZE
+    y  # delete partition signature
     t  # choose partition type
     1  # choose efi system
     n  # create root partition
        # choose default partition number
        # choose default sector
     $_ROOT_SIZE
+    y  # delete partition signature
     t  # choose partition type
        # choose default partition number
     23 # choose linux root
     p  # print partition table
     w  # write changes to disk
 EOF
-elif is_mbr; then
+else
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk "$_DEV"
     o  # create empty mbr partition table
     n  # create boot partition

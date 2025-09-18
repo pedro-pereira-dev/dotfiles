@@ -25,14 +25,14 @@ function _main() {
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
       (echo '[E] missing required argument: --user' && return 1)
     test "$(uname)" == 'Darwin' && ! check_command brew &&
-      curl -Lfs "$_HOMEBREW_URL/install.sh" |
-      NONINTERACTIVE=1 run_as_user "$_USER" bash &&
+      echo '[I] installing homebrew...' &&
+      curl -Lfs "$_HOMEBREW_URL/install.sh" | NONINTERACTIVE=1 run_as_user "$_USER" bash &&
       export PATH="/opt/homebrew/bin:$PATH"
-    ! check_command git && (
+    ! check_command git && echo '[I] installing git...' && (
       check_command brew && run_as_user "$_USER" brew install git
       check_command emerge && ! check_command git && run_as_root emerge --ask=n --noreplace dev-vcs/git
     )
-    ! test -d "$_HOME/$_DOTS_DIR/.git" && (
+    ! test -d "$_HOME/$_DOTS_DIR/.git" && echo '[I] cloning dotfiles...' && (
       run_as_user "$_USER" rm -fr "$_HOME/$_DOTS_DIR"
       run_as_user "$_USER" mkdir -p "$(dirname "$_HOME/$_DOTS_DIR")"
       run_as_user "$_USER" git clone $_DOTS_URL "$_HOME/$_DOTS_DIR"
@@ -43,12 +43,10 @@ function _main() {
   # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
   # prepares live iso system and installs gentoo using custom script
   install)
-    _HOME="$(get_home "$@")" ||
-      (echo '[E] missing required argument: --user' && return 1)
     _HOST="$(get_host "$@")" ||
       (echo '[E] missing required argument: --host' && return 1)
     ! is_root && echo '[E] missing required permissions' && return 1
-    run_script "hosts.d/$_HOST" "$@" ||
+    curl -Lfs "$_DOTS_RAW_URL/hosts.d/$_HOST" | bash -s -- "@" ||
       (echo "[E] failed to install gentoo to ($_HOST)" && return 1)
     return 0
     ;;
@@ -58,11 +56,13 @@ function _main() {
   update)
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
       (echo '[E] missing required argument: --user' && return 1)
-    _main bootstrap
-    cd "$_HOME/$_DOTS_DIR"
-    run_as_user "$_USER" git fetch origin
-    run_as_user "$_USER" git reset --hard origin/main
-    run_as_user "$_USER" git clean -dfqx
+    _main bootstrap && (
+      echo '[I] updating dotfiles...'
+      cd "$_HOME/$_DOTS_DIR"
+      run_as_user "$_USER" git fetch origin
+      run_as_user "$_USER" git reset --hard origin/main
+      run_as_user "$_USER" git clean -dfqx
+    )
     return 0
     ;;
 
@@ -73,7 +73,7 @@ function _main() {
       (echo '[E] missing required argument: --user' && return 1)
     _HOST="$(get_host "$@")" ||
       (echo '[E] missing required argument: --host' && return 1)
-    run_script "hosts.d/$_HOST" "$@" ||
+    echo '[I] syncing dotfiles...' && run_script "hosts.d/$_HOST" "$@" ||
       (echo "[E] failed to sync to ($_HOST)" && return 1)
     return 0
     ;;

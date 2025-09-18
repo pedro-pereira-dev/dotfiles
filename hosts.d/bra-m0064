@@ -22,12 +22,14 @@ function _main() {
     _HOME="$(get_home "$@")" && _HOST="$(get_host "$@")" && _USER="$(get_user "$@")"
     is_root && echo '[E] failed cannot run as root' && return 1
 
-    run_script 'hosts.d/default.d/install.sh' "$@" ||
+    echo '[I] linking files...'
+    run_script 'hosts.d/default.d/00-install.sh' "$@" ||
       (echo '[E] failed to install layer (default)' && return 1)
-    run_script "hosts.d/host.$_HOST.d/install.sh" "$@" ||
+    run_script "hosts.d/host.$_HOST.d/00-install.sh" "$@" ||
       (echo "[E] failed to install layer ($_HOST)" && return 1)
 
     ! get_option '--skip-cleaning' "$@" && (
+      echo '[I] cleaning empty directories and stale links...'
       run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
         (echo '[E] failed to clean directories and links' && return 1)
     )

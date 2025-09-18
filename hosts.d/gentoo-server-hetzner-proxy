@@ -8,9 +8,8 @@ export _ROOT='/dev/sda2'
 export _HOST='gentoo-server-hetzner-proxy'
 export _USER='chuck'
 
-export _BOOT_SIZE='+512M'
+export _BOOT_SIZE='+1G'
 export _ROOT_SIZE=' '
-export _TABLE_TYPE='--mbr'
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # sources auxiliary functions
@@ -27,7 +26,7 @@ function _main() {
   # prepares live iso system and installs gentoo using custom script
   install)
     _HOST="$(get_host "$@")"
-    run_script 'dots-gentoo-installer' "$_TABLE_TYPE" ||
+    run_script 'dots-gentoo-installer' ||
       (echo "[E] failed to install gentoo to ($_HOST)" && return 1)
     return 0
     ;;
@@ -38,14 +37,16 @@ function _main() {
     _HOME="$(get_home "$@")" && _HOST="$(get_host "$@")"
     ! is_root && echo '[E] missing required permissions' && return 1
 
-    run_script 'hosts.d/default.d/install.sh' "$@" ||
+    echo '[I] linking files...'
+    run_script 'hosts.d/default.d/00-install.sh' "$@" ||
       (echo '[E] failed to install layer (default)' && return 1)
-    run_script 'hosts.d/default.gentoo.d/install.sh' "$@" ||
+    run_script 'hosts.d/default.gentoo.d/00-install.sh' "$@" ||
       (echo '[E] failed to install layer (default.gentoo)' && return 1)
-    run_script "hosts.d/host.$_HOST.d/install.sh" "$@" ||
+    run_script "hosts.d/host.$_HOST.d/00-install.sh" "$@" ||
       (echo "[E] failed to install layer (host.$_HOST)" && return 1)
 
     ! get_option '--skip-cleaning' "$@" && (
+      echo '[I] cleaning empty directories and stale links...'
       run_as_root clean_directories_and_links / ||
         (echo '[E] failed to clean directories and links' && return 1)
     )
