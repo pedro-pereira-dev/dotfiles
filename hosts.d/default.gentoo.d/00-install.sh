@@ -16,15 +16,18 @@ run_as_user "$_USER" stow "$_SCRIPT_DIR/bin-system-regenerate-bootloader.sh" "$_
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # wip
-! check_command doas &&
+! check_command doas && (
   echo '[I] installing doas...' &&
-  run_as_root emerge --ask=n --noreplace app-admin/doas
+    run_as_root emerge --ask=n --noreplace app-admin/doas
+) || true
 run_as_root cat <<EOF >/etc/doas.conf
-permit persist  :wheel
-permit nopass   :wheel as root  cmd reboot
-permit nopass   :wheel as root  cmd shutdown
+permit  persist   :wheel
+permit  nopass    :wheel as root  cmd reboot
+permit  nopass    :wheel as root  cmd shutdown
 EOF
-check_command doas && [ -f /etc/doas.conf ] &&
-  run_as_root chmod 0600 /etc/doas.conf &&
-  run_as_root chown root:root /etc/doas.conf &&
-  run_as_root passwd -dl root >/dev/null 2>&1
+check_command doas && [ -f /etc/doas.conf ] && (
+  true &&
+    run_as_root chmod 0600 /etc/doas.conf &&
+    run_as_root chown root:root /etc/doas.conf &&
+    run_as_root passwd -dl root >/dev/null 2>&1
+) || true

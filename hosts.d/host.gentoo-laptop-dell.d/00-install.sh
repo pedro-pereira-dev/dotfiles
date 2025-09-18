@@ -26,10 +26,12 @@ run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-gentoo-laptop.conf" "$_HOME/.ssh/con
 run_as_user "$_USER" stow "$_SCRIPT_DIR/sway-config.conf" "$_HOME/.config/sway/config"
 
 # wip
-! check_command nmtui &&
-  echo '[I] installing network manager...' &&
-  run_as_root emerge --ask=n --noreplace net-misc/networkmanager &&
-  run_as_root rc-update add NetworkManager default >/dev/null 2>&1
+! check_command nmtui && (
+  true &&
+    echo '[I] installing network manager...' &&
+    run_as_root emerge --ask=n --noreplace net-misc/networkmanager &&
+    run_as_root rc-update add NetworkManager default >/dev/null 2>&1
+) || true
 
 # stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.nvim-reloadable /usr/bin/nvim-reloadable
 # stow /home/chuck/workspace/personal/dotfiles/shared/scripts/code.sessionizer /usr/bin/code
