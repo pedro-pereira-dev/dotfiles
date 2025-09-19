@@ -31,7 +31,7 @@ function _main() {
   bootstrap) # installs required software and clones remote dotfiles git repository
     # checks required parameter
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
-      (echo "[E] dots#install : missing required parameter '--user'" && return 1)
+      (echo "[E] dots#bootstrap : missing required parameter '--user'" && return 1)
     # checks homebrew installation on macos systems
     test "$(uname)" == 'Darwin' && ! check_command brew &&
       echo '[I] installing homebrew...' &&
@@ -73,11 +73,11 @@ function _main() {
     ;;
     # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-  # resets dotfiles git repository and updates its head
-  update)
+  update) # resets dotfiles git repository and updates its head
+    # checks required parameter
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
-      (echo '[E] missing required argument: --user' && return 1)
+      (echo "[E] dots#bootstrap : missing required parameter '--user'" && return 1)
+    # updates and resets local dotfiles git repository
     _main bootstrap && (
       echo '[I] updating dotfiles...'
       cd "$_HOME/$_DOTS_DIR"
@@ -87,6 +87,7 @@ function _main() {
     )
     return 0
     ;;
+    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
   # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
   # clears deprecated directories and links after resetting them
