@@ -6,14 +6,23 @@ export _DOTS_DIR='workspace/personal/dotfiles'
 export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
 export _DOTS_URL='https://github.com/pedro-pereira-dev/dotfiles.git'
 export _GENTOO_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main'
-export _HOMEBREW_URL='https://raw.githubusercontent.com/homebrew/install/refs/heads/main'
-
+export _HOMEBREW_RAW_URL='https://raw.githubusercontent.com/homebrew/install/refs/heads/main'
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# sources auxiliary functions
-_IS_DOTS_UTILS_LOADED=""
-source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
-  source /dev/stdin <<<"$(curl -Lfs "$_DOTS_RAW_URL/dots-utils")"
-[ -z "$_IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
+
+_FILE_TO_LOAD='dots-utils'
+_IS_DOTS_UTILS_LOADED=''
+# defines reusable constants
+_LOCAL_FILE_PATH="$(dirname "$(readlink -f "$0")")/$_FILE_TO_LOAD"
+_REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
+# sources local file if it exists in the system
+if [ -f "$_LOCAL_FILE_PATH" ]; then
+  source "$_LOCAL_FILE_PATH"
+# sources remote file if it exists in remote dotfiles repository
+elif curl -ILfs "$_REMOTE_FILE_URL" >/dev/null; then
+  source /dev/stdin <<<"$(curl -Lfs "$_REMOTE_FILE_URL")"
+fi
+[ -z "$_IS_DOTS_UTILS_LOADED" ] &&
+  echo "[E] dots#_ : failed to source '$_FILE_TO_LOAD'" && exit 1
 
 function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
@@ -26,7 +35,7 @@ function _main() {
       (echo '[E] missing required argument: --user' && return 1)
     test "$(uname)" == 'Darwin' && ! check_command brew &&
       echo '[I] installing homebrew...' &&
-      curl -Lfs "$_HOMEBREW_URL/install.sh" | NONINTERACTIVE=1 run_as_user "$_USER" bash &&
+      curl -Lfs "$_HOMEBREW_RAW_URL/install.sh" | NONINTERACTIVE=1 run_as_user "$_USER" bash &&
       export PATH="/opt/homebrew/bin:$PATH"
     ! check_command git && echo '[I] installing git...' && (
       check_command brew && run_as_user "$_USER" brew install git
@@ -47,10 +56,19 @@ function _main() {
       (echo '[E] missing required argument: --host' && return 1)
     _PASSWORD="$(get_option "--password" "$@")" ||
       (echo '[E] missing required argument: --password' && return 1)
-    ! is_root && echo '[E] missing required permissions' && return 1
-    export _PASSWORD
-    echo '[I] installing gentoo...' && run_script "hosts.d/$_HOST" "$@" ||
-      (echo "[E] failed to install gentoo to ($_HOST)" && return 1)
+    ! is_root &&
+      echo '[E] missing required permissions' && return 1
+
+    echo "[I] sourcing $_HOST configuration..."
+    _SCRIPT_TO_LOAD="hosts.d/$_HOST.d/configuration.conf"
+    source_file "$_SCRIPT_TO_LOAD" ||
+      (echo "[E] failed to source $_HOST configuration" && return 1)
+
+    echo "[I] installing gentoo to $_HOST..."
+    _SCRIPT_TO_LOAD='dots-gentoo-installer'
+    source_file "$_SCRIPT_TO_LOAD" ||
+      (echo "[E] failed to install gentoo to $_HOST" && return 1)
+
     return 0
     ;;
 
@@ -76,6 +94,8 @@ function _main() {
       (echo '[E] missing required argument: --user' && return 1)
     _HOST="$(get_host "$@")" ||
       (echo '[E] missing required argument: --host' && return 1)
+    export _HOME _HOST _USER
+
     echo '[I] syncing dotfiles...' && run_script "hosts.d/$_HOST" "$@" ||
       (echo "[E] failed to sync to ($_HOST)" && return 1)
     return 0

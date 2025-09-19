@@ -1,28 +1,19 @@
 #!/bin/bash
-# shellcheck disable=SC2015 disable=SC2088 source=/dev/null
 set -eou pipefail
 
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# sources auxiliary functions
-_IS_DOTS_UTILS_LOADED=""
-source "$(dirname "$(readlink -f "$0")")/dots-utils" >/dev/null 2>&1 ||
-  source /dev/stdin <<<"$(curl -Lfs "$_DOTS_RAW_URL/dots-utils")"
-[ -z "$_IS_DOTS_UTILS_LOADED" ] && echo '[E] failed to source dots-utils' && exit 1
-
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# checks required variables
-[ -z "$_DOTS_DIR" ] && echo "[E] missing required variable: \$_DOTS_DIR" && exit 1
-[ -z "$_DOTS_RAW_URL" ] && echo "[E] missing required variable: \$_DOTS_RAW_URL" && exit 1
-[ -z "$_GENTOO_RAW_URL" ] && echo "[E] missing required variable: \$_GENTOO_RAW_URL" && exit 1
-
-[ -z "$_BOOT" ] && echo "[E] missing required variable: \$_BOOT" && exit 1
-[ -z "$_BOOT_SIZE" ] && echo "[E] missing required variable: \$_BOOT_SIZE" && exit 1
-[ -z "$_DEV" ] && echo "[E] missing required variable: \$_DEV" && exit 1
-[ -z "$_HOST" ] && echo "[E] missing required variable: \$_HOST" && exit 1
-[ -z "$_PASSWORD" ] && echo "[E] missing required variable: \$_PASSWORD" && exit 1
-[ -z "$_ROOT" ] && echo "[E] missing required variable: \$_ROOT" && exit 1
-[ -z "$_ROOT_SIZE" ] && echo "[E] missing required variable: \$_ROOT_SIZE" && exit 1
-[ -z "$_USER" ] && echo "[E] missing required variable: \$_USER" && exit 1
+echo "[I] installing from repositories:
+- _DOTS_DIR: $_DOTS_DIR
+- _DOTS_RAW_URL: $_DOTS_RAW_URL
+- _GENTOO_RAW_URL: $_GENTOO_RAW_URL"
+echo "[I] installing to system:
+- _HOST: $_HOST
+- _USER: $_USER"
+echo "[I] installing on the device $_DEV:
+- _BOOT: $_BOOT (size: '$_BOOT_SIZE')
+- _ROOT: $_ROOT (size: '$_ROOT_SIZE')"
+echo "[I] data from device $_DEV will be erased"
+read -r -p 'Do you want to continue? [Y/n]: ' _CONFIRMATION && echo ''
+[[ $_CONFIRMATION == 'n' || $_CONFIRMATION == 'N' ]] && return 0
 
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # deletes all partitions in the system device and creates defined layout

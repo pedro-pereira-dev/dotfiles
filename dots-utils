@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2015
+# shellcheck disable=SC2015 source=/dev/null
 
 # debug variable to validate if this file was sourced
 export _IS_DOTS_UTILS_LOADED="true"
@@ -194,7 +194,7 @@ function run_script() {
   _REMOTE_SCRIPT="$_DOTS_RAW_URL/$1"
   if [ -f "$_LOCAL_SCRIPT" ]; then
     bash "$_LOCAL_SCRIPT" "${@:2}"
-  elif curl -ILs "$_REMOTE_SCRIPT" >/dev/null; then
+  elif curl -ILfs "$_REMOTE_SCRIPT" >/dev/null; then
     curl -Lfs "$_REMOTE_SCRIPT" | bash -s -- "${@:2}"
   else
     return 1
@@ -272,3 +272,26 @@ Usage:
 "
 }
 export -f usage
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
+function source_file() {
+  # checks required parameter - the file to be sourced
+  _FILE_TO_LOAD='' && [ "$#" -eq 1 ] && _FILE_TO_LOAD="$1"
+  [ -z "$_FILE_TO_LOAD" ] &&
+    echo "[E] missing required parameter: \$1 '_FILE_TO_LOAD' in function ''source_file'" &&
+    return 1
+  # defines reusable constants
+  _LOCAL_FILE_PATH="$(dirname "$(readlink -f "$0")")/$_FILE_TO_LOAD"
+  _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
+  # sources local file if it exists in the system
+  if [ -f "$_LOCAL_FILE_PATH" ]; then
+    source "$_LOCAL_FILE_PATH" && return 0
+  # sources remote file if it exists in remote dotfiles repository
+  elif curl -ILfs "$_REMOTE_FILE_URL" >/dev/null; then
+    source /dev/stdin <<<"$(curl -Lfs "$_REMOTE_FILE_URL")" && return 0
+  # returns unsuccessful if file not found or any issue with the sourcing
+  fi
+  return 1
+}
+export -f source_file
+# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
