@@ -28,19 +28,21 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-  # installs required software and clones dotfiles git repository
-  bootstrap)
+  bootstrap) # installs required software and clones remote dotfiles git repository
+    # checks required parameter
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
-      (echo '[E] missing required argument: --user' && return 1)
+      (echo "[E] dots#install : missing required parameter '--user'" && return 1)
+    # checks homebrew installation on macos systems
     test "$(uname)" == 'Darwin' && ! check_command brew &&
       echo '[I] installing homebrew...' &&
       curl -Lfs "$_HOMEBREW_RAW_URL/install.sh" | NONINTERACTIVE=1 run_as_user "$_USER" bash &&
       export PATH="/opt/homebrew/bin:$PATH"
+    # checks git installation
     ! check_command git && echo '[I] installing git...' && (
       check_command brew && run_as_user "$_USER" brew install git
-      check_command emerge && ! check_command git && run_as_root emerge --ask=n --noreplace dev-vcs/git
+      check_command emerge && run_as_root emerge --ask=n --noreplace dev-vcs/git
     )
+    # checks local dotfiles git repository directory
     ! test -d "$_HOME/$_DOTS_DIR/.git" && echo '[I] cloning dotfiles...' && (
       run_as_user "$_USER" rm -fr "$_HOME/$_DOTS_DIR"
       run_as_user "$_USER" mkdir -p "$(dirname "$_HOME/$_DOTS_DIR")"
@@ -48,6 +50,7 @@ function _main() {
     )
     return 0
     ;;
+    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
   install) # prepares live iso system and installs gentoo using custom script
     # checks required parameter
