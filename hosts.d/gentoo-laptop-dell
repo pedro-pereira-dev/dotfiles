@@ -45,6 +45,19 @@ function _main() {
       run_as_root clean_directories_and_links / ||
         (echo '[E] failed to clean directories and links' && return 1)
     )
+
+    eauto --unsupervised
+    eselect news read >/dev/null 2>&1
+    regenerate-bootloader
+
+    run_as_user chuck secrets-set gpg-github-pedro-pereira-dev
+    run_as_user chuck secrets-set ssh-authorized-keys
+    run_as_user chuck secrets-set ssh-gentoo-hetzner-media
+    run_as_user chuck secrets-set ssh-gentoo-laptop
+    run_as_user chuck secrets-set ssh-github-pedro-pereira-dev
+    run_as_user chuck secrets-set ssh-mercedes-github-pesoare
+    run_as_user chuck secrets-import
+
     return 0
     ;;
 

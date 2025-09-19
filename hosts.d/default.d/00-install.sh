@@ -24,3 +24,5 @@ run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-config.conf" "$_HOME/.ssh/config"
 run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-github-pedro-pereira-dev.conf" "$_HOME/.ssh/config.d/github-pedro-pereira-dev.conf"
 run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-mercedes-github-pesoare.conf" "$_HOME/.ssh/config.d/mercedes-github-pesoare.conf"
 run_as_user "$_USER" stow "$_SCRIPT_DIR/tmux-config.conf" "$_HOME/.config/tmux/tmux.conf"
+
+run_as_user "$_USER" install-nerd-font JetBrainsMono
