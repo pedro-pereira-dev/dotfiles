@@ -49,28 +49,26 @@ function _main() {
     return 0
     ;;
 
-  # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-  # prepares live iso system and installs gentoo using custom script
-  install)
+  install) # prepares live iso system and installs gentoo using custom script
+    # checks required parameter
     _HOST="$(get_host "$@")" ||
-      (echo '[E] missing required argument: --host' && return 1)
+      (echo "[E] dots#install : missing required parameter '--host'" && return 1)
     _PASSWORD="$(get_option "--password" "$@")" ||
-      (echo '[E] missing required argument: --password' && return 1)
-    ! is_root &&
-      echo '[E] missing required permissions' && return 1
-
-    echo "[I] sourcing $_HOST configuration..."
+      (echo "[E] dots#install : missing required parameter '--password'" && return 1)
+    ! is_root && echo '[E] dots#install : missing required permissions' && return 1
+    # sources target system configuration
+    echo "[I] sourcing '$_HOST' configuration..."
     _SCRIPT_TO_LOAD="hosts.d/$_HOST.d/configuration.conf"
     source_file "$_SCRIPT_TO_LOAD" ||
-      (echo "[E] failed to source $_HOST configuration" && return 1)
-
-    echo "[I] installing gentoo to $_HOST..."
+      (echo "[E] dots#install : failed to source '$_HOST' configuration" && return 1)
+    # installs gento to target system
+    echo "[I] installing gentoo to '$_HOST'..."
     _SCRIPT_TO_LOAD='dots-gentoo-installer'
     source_file "$_SCRIPT_TO_LOAD" ||
-      (echo "[E] failed to install gentoo to $_HOST" && return 1)
-
+      (echo "[E] dots#install : failed to install gentoo to '$_HOST'" && return 1)
     return 0
     ;;
+    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
   # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
   # resets dotfiles git repository and updates its head

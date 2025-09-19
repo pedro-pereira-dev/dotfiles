@@ -14,12 +14,13 @@ echo "[I] installing on the device $_DEV:
 echo "[I] data from device $_DEV will be erased"
 read -r -p 'Do you want to continue? [Y/n]: ' _CONFIRMATION && echo ''
 [[ $_CONFIRMATION == 'n' || $_CONFIRMATION == 'N' ]] && return 0
-
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# deletes all partitions in the system device and creates defined layout
-echo '[I] preparing devices...'
+
+# prepares device layout for gentoo installation
+echo "[I] preparing device '$_DEV'..."
 wipefs -a "$_DEV"
 if [ -d '/sys/firmware/efi' ]; then
+  echo '[I] creating GPT table...'
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk "$_DEV"
     g  # create empty gpt partition table
     n  # create boot partition
@@ -41,6 +42,7 @@ if [ -d '/sys/firmware/efi' ]; then
     w  # write changes to disk
 EOF
 else
+  echo '[I] creating MBR table...'
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk "$_DEV"
     o  # create empty mbr partition table
     n  # create boot partition
@@ -58,19 +60,20 @@ else
     w  # write changes to disk
 EOF
 fi
-
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# installs gentoo on the system device
+
+# installs gentoo to the device
+echo "[I] using gentoo-installer script..."
 curl -Lfs "$_GENTOO_RAW_URL/install.sh" | bash -s -- \
-  --boot "$_BOOT" \
   --hostname "$_HOST" \
-  --keymap 'pt-latin9' \
-  --password "$_PASSWORD" \
+  --boot "$_BOOT" \
   --root "$_ROOT" \
+  --password "$_PASSWORD" \
+  --keymap 'pt-latin9' \
   --timezone 'Europe/Lisbon'
-
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# creates user account and sets up system
+
+# creates user account and sets up system using dotfiles
 chroot /mnt /bin/bash <<EOF
 env-update && source /etc/profile
 useradd -m -G wheel -s /bin/bash "$_USER"

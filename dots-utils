@@ -278,8 +278,7 @@ function source_file() {
   # checks required parameter - the file to be sourced
   _FILE_TO_LOAD='' && [ "$#" -eq 1 ] && _FILE_TO_LOAD="$1"
   [ -z "$_FILE_TO_LOAD" ] &&
-    echo "[E] missing required parameter: \$1 '_FILE_TO_LOAD' in function ''source_file'" &&
-    return 1
+    echo "[E] dots-utils#source_file : missing required parameter: '\$1'" && return 1
   # defines reusable constants
   _LOCAL_FILE_PATH="$(dirname "$(readlink -f "$0")")/$_FILE_TO_LOAD"
   _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
