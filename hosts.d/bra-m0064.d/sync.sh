@@ -8,7 +8,7 @@ function _main() {
   configure) return 0 ;;
 
   setup) # links dotfiles settings into the system
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/homebrew-brewfile.conf" "$_HOME/Brewfile"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/homebrew-brewfile.conf" "$_HOME/Brewfile.temp"
     return 0
     ;;
     # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----

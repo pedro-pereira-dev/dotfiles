@@ -5,9 +5,29 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  configure) return 0 ;;
+  configure) # configures system with dotfiles settings
+    # wip
+    run_as_root eauto --unsupervised
+    run_as_root eselect news read >/dev/null 2>&1
+    run_as_root regenerate-bootloader
+    run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
+    run_as_user "$_USER" secrets-set ssh-authorized-keys
+    run_as_user "$_USER" secrets-set ssh-gentoo-hetzner-media
+    run_as_user "$_USER" secrets-set ssh-gentoo-laptop
+    run_as_user "$_USER" secrets-set ssh-github-pedro-pereira-dev
+    run_as_user "$_USER" secrets-set ssh-mercedes-github-pesoare
+    run_as_user "$_USER" secrets-import
+    ! check_command nmtui && echo '[I] installing network manager...' &&
+      run_as_root emerge --ask=n --noreplace net-misc/networkmanager
+    run_as_root rc-update add NetworkManager default >/dev/null 2>&1
+    run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
+    run_as_root usermod --append --groups video "$_USER" # for backlight
+    run_as_user "$_USER" install-nerd-font JetBrainsMono
+    return 0
+    ;;
 
   setup) # links dotfiles settings into the system
+    run_as_root stow "$_SCRIPT_DIR/dracut-config.conf" '/etc/dracut.conf.d/dracut.conf'
     run_as_root stow "$_SCRIPT_DIR/portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
     run_as_root stow "$_SCRIPT_DIR/portage-make.conf" '/etc/portage/make.conf'
     run_as_root stow "$_SCRIPT_DIR/portage-package-declare.conf" '/etc/portage/package.declare'
@@ -15,6 +35,7 @@ function _main() {
     run_as_root stow "$_SCRIPT_DIR/portage-package-mask.conf" '/etc/portage/package.mask'
     run_as_root stow "$_SCRIPT_DIR/portage-package-unmask.conf" '/etc/portage/package.unmask'
     run_as_root stow "$_SCRIPT_DIR/portage-package-use.conf" '/etc/portage/package.use'
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-gentoo-laptop.conf" "$_HOME/.ssh/config.d/gentoo-laptop"
     return 0
     ;;
     # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----

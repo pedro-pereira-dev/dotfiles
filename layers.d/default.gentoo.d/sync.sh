@@ -18,6 +18,7 @@ function _main() {
     ;;
 
   setup) # links dotfiles settings into the system
+    run_as_root stow "$_SCRIPT_DIR/grub-config.conf" '/etc/default/grub'
     run_as_root stow "$_SCRIPT_DIR/portage-overlays.conf" '/etc/portage/repos.conf/overlays.conf'
     run_as_user "$_USER" stow "$_SCRIPT_DIR/bin-portage-eauto.sh" "$_HOME/.local/bin/eauto"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/bin-portage-edeclare.sh" "$_HOME/.local/bin/edeclare"
