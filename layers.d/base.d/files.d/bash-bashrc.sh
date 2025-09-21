@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # returns early if is a non-interactive shell
 [[ $- != *i* ]] && return
 # resizes window and appends commands to history

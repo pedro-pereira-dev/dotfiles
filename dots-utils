@@ -276,7 +276,7 @@ export -f usage
 
 function source_file() {
   # checks required parameter - the file to be sourced
-  _FILE_TO_LOAD='' && [ "$#" -eq 1 ] && _FILE_TO_LOAD="$1"
+  _FILE_TO_LOAD='' && [ "$#" -ge 1 ] && _FILE_TO_LOAD="$1"
   [ -z "$_FILE_TO_LOAD" ] &&
     echo "[E] dots-utils#source_file : missing required parameter: '\$1'" && return 1
   # defines reusable constants

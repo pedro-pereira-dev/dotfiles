@@ -11,8 +11,9 @@ export _HOMEBREW_RAW_URL='https://raw.githubusercontent.com/homebrew/install/ref
 
 _FILE_TO_LOAD='dots-utils'
 _IS_DOTS_UTILS_LOADED=''
+_SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 # defines reusable constants
-_LOCAL_FILE_PATH="$(dirname "$(readlink -f "$0")")/$_FILE_TO_LOAD"
+_LOCAL_FILE_PATH="$_SCRIPT_DIR/$_FILE_TO_LOAD"
 _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
 # sources local file if it exists in the system
 if [ -f "$_LOCAL_FILE_PATH" ]; then
@@ -58,7 +59,8 @@ function _main() {
       (echo "[E] dots#install : missing required parameter '--host'" && return 1)
     _PASSWORD="$(get_option "--password" "$@")" ||
       (echo "[E] dots#install : missing required parameter '--password'" && return 1)
-    ! is_root && echo '[E] dots#install : missing required permissions' && return 1
+    ! is_root &&
+      echo '[E] dots#install : missing required permissions' && return 1
     # sources target system configuration
     echo "[I] sourcing '$_HOST' configuration..."
     _FILE_TO_LOAD="hosts.d/$_HOST.d/configuration.conf"
@@ -100,36 +102,31 @@ function _main() {
     _LAYERS=() && _FILE_TO_LOAD="hosts.d/$_HOST.d/configuration.conf"
     source_file "$_FILE_TO_LOAD" ||
       (echo "[E] dots#sync : failed to source '$_HOST' configuration" && return 1)
-    # synchronizes layer
-    echo "[I] syncing layers on '$_HOST'..."
+    # sets up layer
+    echo "[I] setting up layers on '$_HOST'..."
     for _LAYER in "${_LAYERS[@]}"; do
       _FILE_TO_LOAD="$_LAYER/sync.sh"
-      [ ! -f "$_FILE_TO_LOAD" ] && continue
-      echo "[I] syncing layer '$_FILE_TO_LOAD'..."
-      source_file "$_FILE_TO_LOAD" ||
-        (echo "[E] dots#sync : failed to source '$_FILE_TO_LOAD'" && return 1)
+      echo "[I] setting up layer '$_FILE_TO_LOAD'..."
+      source_file "$_FILE_TO_LOAD" 'setup' || true
     done
     # clears empty directories and stale links
     ! get_option '--skip-cleaning' "$@" && (
-      ! is_root && (
-        echo "[I] cleaning empty directories and stale links from '$_HOME'..."
-        run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
-          (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
-      )
       is_root && (
         echo "[I] cleaning empty directories and stale links from '/'..."
         run_as_root clean_directories_and_links '/' ||
           (echo "[E] dots#sync : failed to clean directories and links from '/'" && return 1)
+      ) || (
+        echo "[I] cleaning empty directories and stale links from '$_HOME'..."
+        run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
+          (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
       )
     )
-    # installs layer
-    echo "[I] installing layers on '$_HOST'..."
+    # configures layer
+    echo "[I] configuring layers on '$_HOST'..."
     for _LAYER in "${_LAYERS[@]}"; do
-      _FILE_TO_LOAD="$_LAYER/install.sh"
-      [ ! -f "$_FILE_TO_LOAD" ] && continue
-      echo "[I] installing layer '$_FILE_TO_LOAD'..."
-      source_file "$_FILE_TO_LOAD" ||
-        (echo "[E] dots#sync : failed to source '$_FILE_TO_LOAD'" && return 1)
+      _FILE_TO_LOAD="$_LAYER/sync.sh"
+      echo "[I] configuring layer '$_FILE_TO_LOAD'..."
+      source_file "$_FILE_TO_LOAD" 'configure' || true
     done
     return 0
     ;;

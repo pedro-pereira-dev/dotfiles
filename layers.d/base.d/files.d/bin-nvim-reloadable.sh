@@ -1,5 +1,0 @@
-#!/bin/bash
-while true; do
-  $(which nvim) "$@"
-  [ $? -ne 1 ] && break
-done
