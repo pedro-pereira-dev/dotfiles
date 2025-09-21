@@ -213,7 +213,7 @@ export -f run_script
 function stow() {
   function list_files() { find "$1" \( -type f -o -type l \) -print0; }
   function list_dirs() { find "$1" -mindepth 1 -type d -print0; }
-  [ "$2" == '/' ] && _DST='' || _DST="$2"
+  _DST="$2" && [ "$2" == '/' ] && _DST=''
   if [ -d "$1" ]; then
     while IFS= read -r -d '' _SRC_SUBDIR; do
       [ -f "$_DST${_SRC_SUBDIR/$1/}" ] && rm -fr "$_DST${_SRC_SUBDIR/$1/}"
