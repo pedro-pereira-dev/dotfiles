@@ -7,7 +7,7 @@ function _main() {
 
   configure) return 0 ;;
 
-  setup) # links dotfiles settings into the system
+  setup)
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-backlight-down.sh" "$_HOME/.local/bin/backlight-down"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-backlight-up.sh" "$_HOME/.local/bin/backlight-up"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
@@ -18,11 +18,9 @@ function _main() {
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gtk-config.toml" "$_HOME/.config/gtk-3.0/settings.ini"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gtk-config.toml" "$_HOME/.config/gtk-4.0/settings.ini"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-sway-config.conf" "$_HOME/.config/sway/config"
-    return 0
     ;;
-    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  *) return 1 ;; # handles unknown commands
+  *) return 1 ;;
   esac
 }
 _main "$@"
