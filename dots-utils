@@ -122,6 +122,11 @@ function get_home() {
 }
 export -f get_home
 
+function is_macos() { test "$(uname)" == 'Darwin'; }
+export -f is_macos
+function is_linux() { test "$(uname)" == 'Linux'; }
+export -f is_linux
+
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # gets the host of the system executing the script
 # arguments:

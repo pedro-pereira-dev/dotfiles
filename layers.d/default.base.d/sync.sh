@@ -11,6 +11,7 @@ function _main() {
     run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/bash-bashrc.sh" "$_HOME/.bashrc"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/git-config-work.conf" "$_HOME/workspace/work/.gitconfig"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/git-config.conf" "$_HOME/.gitconfig"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-config.conf" "$_HOME/.ssh/config"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-github-pedro-pereira-dev.conf" "$_HOME/.ssh/config.d/github-pedro-pereira-dev"
