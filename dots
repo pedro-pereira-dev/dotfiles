@@ -63,7 +63,7 @@ function _main() {
       echo '[E] dots#install : missing required permissions' && return 1
     # sources target system configuration
     echo "[I] sourcing '$_HOST' configuration..."
-    _FILE_TO_LOAD="hosts.d/$_HOST.d/configuration.conf"
+    _FILE_TO_LOAD="hosts.d/$_HOST.d/dots-configuration.conf"
     source_file "$_FILE_TO_LOAD" ||
       (echo "[E] dots#install : failed to source '$_HOST' configuration" && return 1)
     # installs gento to target system
@@ -99,13 +99,13 @@ function _main() {
       (echo "[E] dots#sync : missing required parameter '--host'" && return 1)
     # sources target system configuration
     echo "[I] sourcing '$_HOST' configuration..."
-    _LAYERS=() && _FILE_TO_LOAD="hosts.d/$_HOST.d/configuration.conf"
+    _LAYERS=() && _FILE_TO_LOAD="hosts.d/$_HOST.d/dots-configuration.conf"
     source_file "$_FILE_TO_LOAD" ||
       (echo "[E] dots#sync : failed to source '$_HOST' configuration" && return 1)
     # sets up layer
     echo "[I] setting up layers on '$_HOST'..."
     for _LAYER in "${_LAYERS[@]}"; do
-      _FILE_TO_LOAD="$_LAYER/sync.sh"
+      _FILE_TO_LOAD="$_LAYER/dots-sync.sh"
       echo "[I] setting up layer '$_FILE_TO_LOAD'..."
       source_file "$_FILE_TO_LOAD" 'setup' || true
     done
@@ -124,7 +124,7 @@ function _main() {
     # configures layer
     echo "[I] configuring layers on '$_HOST'..."
     for _LAYER in "${_LAYERS[@]}"; do
-      _FILE_TO_LOAD="$_LAYER/sync.sh"
+      _FILE_TO_LOAD="$_LAYER/dots-sync.sh"
       echo "[I] configuring layer '$_FILE_TO_LOAD'..."
       source_file "$_FILE_TO_LOAD" 'configure' || true
     done
