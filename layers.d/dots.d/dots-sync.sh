@@ -7,7 +7,7 @@ function _main() {
 
   configure) return 0 ;;
 
-  setup) run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-config.conf" "$_HOME/.ssh/config" ;;
+  setup) run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots" ;;
 
   *) return 1 ;;
   esac

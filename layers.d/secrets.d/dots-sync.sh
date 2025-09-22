@@ -7,18 +7,15 @@ function _main() {
 
   configure) return 0 ;;
 
-  setup) # links dotfiles settings into the system
+  setup)
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-bootstrap.sh" "$_HOME/.local/bin/secrets-bootstrap"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-create.sh" "$_HOME/.local/bin/secrets-create"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-import.sh" "$_HOME/.local/bin/secrets-import"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-remove.sh" "$_HOME/.local/bin/secrets-remove"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-set.sh" "$_HOME/.local/bin/secrets-set"
-
-    return 0
     ;;
-    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  *) return 1 ;; # handles unknown commands
+  *) return 1 ;;
   esac
 }
 _main "$@"

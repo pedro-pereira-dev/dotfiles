@@ -7,7 +7,7 @@ function _main() {
 
   configure) return 0 ;;
 
-  setup) run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-config.conf" "$_HOME/.ssh/config" ;;
+  setup) run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-alacritty.toml" "$_HOME/.config/alacritty/alacritty.toml" ;;
 
   *) return 1 ;;
   esac
