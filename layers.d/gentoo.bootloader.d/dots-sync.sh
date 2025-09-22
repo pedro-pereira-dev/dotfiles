@@ -5,11 +5,13 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  configure) return 0 ;;
+  configure)
+    run_as_root regenerate-bootloader
+    ;;
 
   setup)
+    run_as_root stow "$_SCRIPT_DIR/layer-bin-regenerate-bootloader.sh" '/usr/bin/regenerate-bootloader'
     run_as_root stow "$_SCRIPT_DIR/layer-grub.conf" '/etc/default/grub'
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-regenerate-bootloader.sh" "$_HOME/.local/bin/regenerate-bootloader"
     ;;
 
   *) return 1 ;;

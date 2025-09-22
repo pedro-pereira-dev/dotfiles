@@ -7,9 +7,10 @@ function _main() {
 
   configure) # configures system with dotfiles settings
     # wip
-    run_as_root eauto --unsupervised
-    run_as_root eselect news read >/dev/null 2>&1
-    run_as_root regenerate-bootloader
+    # run_as_root eauto --unsupervised
+    # run_as_root eselect news read >/dev/null 2>&1
+    # run_as_root regenerate-bootloader
+
     run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
     run_as_user "$_USER" secrets-set ssh-authorized-keys
     run_as_user "$_USER" secrets-set ssh-gentoo-hetzner-media
@@ -17,12 +18,14 @@ function _main() {
     run_as_user "$_USER" secrets-set ssh-github-pedro-pereira-dev
     run_as_user "$_USER" secrets-set ssh-mercedes-github-pesoare
     run_as_user "$_USER" secrets-import
+
     ! check_command nmtui && echo '[I] installing network manager...' &&
       run_as_root emerge --ask=n --noreplace net-misc/networkmanager
     run_as_root rc-update add NetworkManager default >/dev/null 2>&1
     run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
     run_as_root usermod --append --groups video "$_USER" # for backlight
     run_as_user "$_USER" install-nerd-font JetBrainsMono
+
     return 0
     ;;
 

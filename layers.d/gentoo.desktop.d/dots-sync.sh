@@ -8,9 +8,10 @@ function _main() {
   configure) return 0 ;;
 
   setup)
+
+    run_as_root stow "$_SCRIPT_DIR/layer-bin-install-nerd-font.sh" '/usr/bin/install-nerd-font'
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-backlight-down.sh" "$_HOME/.local/bin/backlight-down"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-backlight-up.sh" "$_HOME/.local/bin/backlight-up"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-microphone-toggle.sh" "$_HOME/.local/bin/microphone-toggle"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-volume-down.sh" "$_HOME/.local/bin/volume-down"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-volume-toggle.sh" "$_HOME/.local/bin/volume-toggle"
