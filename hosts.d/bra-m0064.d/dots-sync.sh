@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eou pipefail
 function _main() {
-  _SCRIPT_DIR="$_HOME/$_DOTS_DIR/$(dirname "$1")/files.d" && shift
+  _SCRIPT_DIR="$_HOME/$_DOTS_DIR/$(dirname "$1")" && shift
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
@@ -16,7 +16,7 @@ function _main() {
     ;;
 
   setup) # links dotfiles settings into the system
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/homebrew-brewfile.conf" "$_HOME/Brewfile"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-homebrew-brewfile.conf" "$_HOME/Brewfile"
     return 0
     ;;
     # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----

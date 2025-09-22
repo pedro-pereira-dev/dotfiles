@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eou pipefail
 function _main() {
-  _SCRIPT_DIR="$_HOME/$_DOTS_DIR/$(dirname "$1")/files.d" && shift
+  _SCRIPT_DIR="$_HOME/$_DOTS_DIR/$(dirname "$1")" && shift
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
@@ -9,13 +9,13 @@ function _main() {
 
   setup) # links dotfiles settings into the system
     run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/bash-bashrc.sh" "$_HOME/.bashrc"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/git-config-work.conf" "$_HOME/workspace/work/.gitconfig"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/git-config.conf" "$_HOME/.gitconfig"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-config.conf" "$_HOME/.ssh/config"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-github-pedro-pereira-dev.conf" "$_HOME/.ssh/config.d/github-pedro-pereira-dev"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/ssh-mercedes-github-pesoare.conf" "$_HOME/.ssh/config.d/mercedes-github-pesoare"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bash-bashrc.sh" "$_HOME/.bashrc"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-git-config-work.conf" "$_HOME/workspace/work/.gitconfig"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-git-config.conf" "$_HOME/.gitconfig"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-config.conf" "$_HOME/.ssh/config"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-github-pedro-pereira-dev.conf" "$_HOME/.ssh/config.d/github-pedro-pereira-dev"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-mercedes-github-pesoare.conf" "$_HOME/.ssh/config.d/mercedes-github-pesoare"
     return 0
     ;;
     # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
