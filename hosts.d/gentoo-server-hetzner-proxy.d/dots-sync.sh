@@ -5,7 +5,9 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  configure) return 0 ;;
+  configure)
+    run_as_root rc-update add sshd default >/dev/null 2>&1
+    ;;
 
   setup) # links dotfiles settings into the system
     run_as_root stow "$_SCRIPT_DIR/layer-portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
