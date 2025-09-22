@@ -10,7 +10,6 @@ function _main() {
   setup) # links dotfiles settings into the system
     run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bash-bashrc.sh" "$_HOME/.bashrc"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-git-config-work.conf" "$_HOME/workspace/work/.gitconfig"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-git-config.conf" "$_HOME/.gitconfig"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-config.conf" "$_HOME/.ssh/config"
