@@ -80,7 +80,7 @@ function _main() {
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
       (echo "[E] dots#update : missing required parameter '--user'" && return 1)
     # updates and resets local dotfiles git repository
-    _main bootstrap && (
+    _main bootstrap "$@" && (
       echo '[I] updating dotfiles...'
       cd "$_HOME/$_DOTS_DIR"
       run_as_user "$_USER" git fetch origin
