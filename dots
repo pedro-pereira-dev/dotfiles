@@ -63,7 +63,7 @@ function _main() {
       echo '[E] dots#install : missing required permissions' && return 1
     # sources target system configuration
     echo "[I] sourcing '$_HOST' configuration..."
-    _FILE_TO_LOAD="hosts.d/$_HOST.d/dots-configuration.conf"
+    _FILE_TO_LOAD="hosts.d/$_HOST.d/$_HOST-configuration.conf"
     source_file "$_FILE_TO_LOAD" ||
       (echo "[E] dots#install : failed to source '$_HOST' configuration" && return 1)
     # installs gento to target system
@@ -100,7 +100,7 @@ function _main() {
     _CLEAN_FLAG='--clean' && _FULL_FLAG='--full' && _INSTALL_FLAG='--install'
     # sources target system configuration
     echo "[I] sourcing '$_HOST' configuration..."
-    _LAYERS=() && _FILE_TO_LOAD="hosts.d/$_HOST.d/dots-configuration.conf"
+    _LAYERS=() && _FILE_TO_LOAD="hosts.d/$_HOST.d/$_HOST-configuration.conf"
     source_file "$_FILE_TO_LOAD" ||
       (echo "[E] dots#sync : failed to source '$_HOST' configuration" && return 1)
     # sets up layer
