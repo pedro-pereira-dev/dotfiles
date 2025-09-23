@@ -6,11 +6,18 @@ function _main() {
   case $_CMD in
 
   configure)
+    if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
+      run_as_root eauto --unsupervised
+      run_as_root eselect news read >/dev/null 2>&1
+    fi
+    if get_option "$_FULL_FLAG" "$@"; then
+      run_as_root regenerate-bootloader
+    fi
     run_as_root rc-update add sshd default >/dev/null 2>&1
     return 0
     ;;
 
-  setup) # links dotfiles settings into the system
+  setup)
     run_as_root stow "$_SCRIPT_DIR/layer-portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-make.conf" '/etc/portage/make.conf'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-declare.conf" '/etc/portage/package.declare'
@@ -20,9 +27,8 @@ function _main() {
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-use.conf" '/etc/portage/package.use'
     return 0
     ;;
-    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  *) return 1 ;; # handles unknown commands
+  *) return 1 ;;
   esac
 }
 _main "$@"

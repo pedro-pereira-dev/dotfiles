@@ -5,31 +5,29 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  configure) # configures system with dotfiles settings
-    # wip
-    # run_as_root eauto --unsupervised
-    # run_as_root eselect news read >/dev/null 2>&1
-    # run_as_root regenerate-bootloader
-
-    run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
-    run_as_user "$_USER" secrets-set ssh-authorized-keys
-    run_as_user "$_USER" secrets-set ssh-gentoo-hetzner-media
-    run_as_user "$_USER" secrets-set ssh-gentoo-laptop
-    run_as_user "$_USER" secrets-set ssh-github-pedro-pereira-dev
-    run_as_user "$_USER" secrets-set ssh-mercedes-github-pesoare
-    run_as_user "$_USER" secrets-import
-
-    ! check_command nmtui && echo '[I] installing network manager...' &&
-      run_as_root emerge --ask=n --noreplace net-misc/networkmanager
+  configure)
+    if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
+      run_as_root eauto --unsupervised
+      run_as_root eselect news read >/dev/null 2>&1
+    fi
+    if get_option "$_FULL_FLAG" "$@"; then
+      run_as_root regenerate-bootloader
+      run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
+      run_as_user "$_USER" secrets-set ssh-authorized-keys
+      run_as_user "$_USER" secrets-set ssh-gentoo-hetzner-media
+      run_as_user "$_USER" secrets-set ssh-gentoo-laptop
+      run_as_user "$_USER" secrets-set ssh-github-pedro-pereira-dev
+      run_as_user "$_USER" secrets-set ssh-mercedes-github-pesoare
+      run_as_user "$_USER" secrets-import
+    fi
     run_as_root rc-update add NetworkManager default >/dev/null 2>&1
     run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
     run_as_root usermod --append --groups video "$_USER" # for backlight
     run_as_user "$_USER" install-nerd-font JetBrainsMono
-
     return 0
     ;;
 
-  setup) # links dotfiles settings into the system
+  setup)
     run_as_root stow "$_SCRIPT_DIR/layer-dracut-config.conf" '/etc/dracut.conf.d/dracut.conf'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-make.conf" '/etc/portage/make.conf'
@@ -41,9 +39,8 @@ function _main() {
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-gentoo-laptop.conf" "$_HOME/.ssh/config.d/gentoo-laptop"
     return 0
     ;;
-    # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  *) return 1 ;; # handles unknown commands
+  *) return 1 ;;
   esac
 }
 _main "$@"
