@@ -1,21 +1,18 @@
 #!/bin/bash
+# shellcheck source=/dev/null
+[[ $- != *i* ]] && return        # returns early if is non-interactive shell
+shopt -s checkwinsize histappend # resizes window and appends commands to history
 
-# returns early if is a non-interactive shell
-[[ $- != *i* ]] && return
-# resizes window and appends commands to history
-shopt -s checkwinsize histappend
+_UNAME="$(uname)"
+function is_macos() { test "$_UNAME" == 'Darwin'; }
 
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# appends directories to path if not there already
-[[ ":$PATH:" != *":/opt/homebrew/bin:"* ]] && export PATH="/opt/homebrew/bin:$PATH"
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$HOME/.local/bin:$PATH"
+[[ ":$PATH:" != *':/usr/bin:'* ]] && export PATH="/usr/bin:$PATH"
+is_macos && [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"
 
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# silences deprecation warnings for default shell in macos
-export BASH_SILENCE_DEPRECATION_WARNING=1
+is_macos && export BASH_SILENCE_DEPRECATION_WARNING=1
 
 # WIP
-
 command -v sway >/dev/null && [[ -z "${WAYLAND_DISPLAY}" && "${XDG_VTNR}" -eq 1 ]] && dbus-run-session sway || true
 
 export FZF_DEFAULT_OPTS="--bind 'tab:down,shift-tab:up' --cycle --reverse"
