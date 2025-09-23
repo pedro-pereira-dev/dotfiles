@@ -10,6 +10,7 @@ function _main() {
   setup)
     is_linux && run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-lazygit-config.yml" "$_HOME/.config/lazygit/config.yml"
     is_macos && run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-lazygit-config.yml" "$_HOME/Library/Application Support/lazygit/config.yml"
+    return 0
     ;;
 
   *) return 1 ;;

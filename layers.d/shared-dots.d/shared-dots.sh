@@ -18,6 +18,7 @@ function _main() {
   setup)
     run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
     run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots-utils" "$_HOME/.local/bin/dots-utils"
+    return 0
     ;;
 
   *) return 1 ;;

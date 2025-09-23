@@ -10,6 +10,7 @@ function _main() {
   setup)
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-code.sh" "$_HOME/.local/bin/code"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-tmux.conf" "$_HOME/.config/tmux/tmux.conf"
+    return 0
     ;;
 
   *) return 1 ;;

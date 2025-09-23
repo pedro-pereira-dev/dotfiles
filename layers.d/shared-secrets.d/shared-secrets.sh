@@ -13,6 +13,7 @@ function _main() {
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-import.sh" "$_HOME/.local/bin/secrets-import"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-remove.sh" "$_HOME/.local/bin/secrets-remove"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-secrets-set.sh" "$_HOME/.local/bin/secrets-set"
+    return 0
     ;;
 
   *) return 1 ;;

@@ -20,6 +20,7 @@ function _main() {
   setup)
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-homebrew-brewfile.conf" "$_HOME/Brewfile"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-brew-upgrade.sh" "$_HOME/.local/bin/brew-upgrade"
+    return 0
     ;;
 
   *) return 1 ;;

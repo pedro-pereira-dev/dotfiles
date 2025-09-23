@@ -7,6 +7,7 @@ function _main() {
 
   configure)
     run_as_root rc-update add sshd default >/dev/null 2>&1
+    return 0
     ;;
 
   setup) # links dotfiles settings into the system

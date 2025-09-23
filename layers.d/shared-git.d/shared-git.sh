@@ -11,6 +11,7 @@ function _main() {
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gitconfig-default.conf" "$_HOME/.gitconfig.default"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gitconfig-mercedes.conf" "$_HOME/.gitconfig.mercedes"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gitconfig.conf" "$_HOME/.gitconfig"
+    return 0
     ;;
 
   *) return 1 ;;

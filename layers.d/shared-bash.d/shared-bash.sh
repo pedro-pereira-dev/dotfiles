@@ -7,7 +7,10 @@ function _main() {
 
   configure) return 0 ;;
 
-  setup) run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bashrc.sh" "$_HOME/.bashrc" ;;
+  setup)
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bashrc.sh" "$_HOME/.bashrc"
+    return 0
+    ;;
 
   *) return 1 ;;
   esac

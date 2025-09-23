@@ -8,6 +8,7 @@ function _main() {
   configure)
     run_as_root eauto --unsupervised
     run_as_root eselect news read >/dev/null 2>&1
+    return 0
     ;;
 
   setup)
@@ -18,6 +19,7 @@ function _main() {
     run_as_root stow "$_SCRIPT_DIR/layer-bin-portage-eupgrade.sh" '/usr/bin/eupgrade'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-overlays.conf" '/etc/portage/repos.conf/overlays.conf'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-mask.conf" '/etc/portage/package.mask'
+    return 0
     ;;
 
   *) return 1 ;;

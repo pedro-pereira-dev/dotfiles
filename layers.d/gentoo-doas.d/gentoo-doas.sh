@@ -13,6 +13,7 @@ function _main() {
       run_as_root chmod 0600 /etc/doas.conf &&
       run_as_root chown root:root /etc/doas.conf &&
       run_as_root passwd -dl root >/dev/null 2>&1
+    return 0
     ;;
 
   setup) return 0 ;;

@@ -18,6 +18,7 @@ function _main() {
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gtk-config.toml" "$_HOME/.config/gtk-3.0/settings.ini"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-gtk-config.toml" "$_HOME/.config/gtk-4.0/settings.ini"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-sway-config.conf" "$_HOME/.config/sway/config"
+    return 0
     ;;
 
   *) return 1 ;;

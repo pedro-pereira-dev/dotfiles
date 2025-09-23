@@ -7,6 +7,7 @@ function _main() {
 
   configure)
     run_as_root regenerate-bootloader
+    return 0
     ;;
 
   setup)
