@@ -6,13 +6,6 @@ function _main() {
   case $_CMD in
 
   configure)
-    if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
-      run_as_root eauto --unsupervised
-      run_as_root eselect news read >/dev/null 2>&1
-    fi
-    if get_option "$_FULL_FLAG" "$@"; then
-      run_as_root regenerate-bootloader
-    fi
     run_as_root rc-update add sshd default >/dev/null 2>&1
     return 0
     ;;

@@ -6,12 +6,7 @@ function _main() {
   case $_CMD in
 
   configure)
-    if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
-      run_as_root eauto --unsupervised
-      run_as_root eselect news read >/dev/null 2>&1
-    fi
     if get_option "$_FULL_FLAG" "$@"; then
-      run_as_root regenerate-bootloader
       run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
       run_as_user "$_USER" secrets-set ssh-authorized-keys
       run_as_user "$_USER" secrets-set ssh-gentoo-hetzner-media

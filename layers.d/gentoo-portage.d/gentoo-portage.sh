@@ -5,7 +5,13 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  configure) return 0 ;;
+  configure)
+    if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
+      run_as_root eauto --unsupervised
+      run_as_root eselect news read >/dev/null
+    fi
+    return 0
+    ;;
 
   setup)
     run_as_root stow "$_SCRIPT_DIR/layer-bin-portage-eauto.sh" '/usr/bin/eauto'

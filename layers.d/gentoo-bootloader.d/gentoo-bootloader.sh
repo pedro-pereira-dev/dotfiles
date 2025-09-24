@@ -5,7 +5,12 @@ function _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  configure) return 0 ;;
+  configure)
+    if get_option "$_FULL_FLAG" "$@"; then
+      run_as_root regenerate-bootloader
+    fi
+    return 0
+    ;;
 
   setup)
     run_as_root stow "$_SCRIPT_DIR/layer-bin-regenerate-bootloader.sh" '/usr/bin/regenerate-bootloader'
