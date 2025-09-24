@@ -11,6 +11,7 @@ function _main() {
     ;;
 
   setup)
+    run_as_root stow "$_SCRIPT_DIR/layer-hwclock.conf" '/etc/conf.d/hwclock'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-make.conf" '/etc/portage/make.conf'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-declare.conf" '/etc/portage/package.declare'
