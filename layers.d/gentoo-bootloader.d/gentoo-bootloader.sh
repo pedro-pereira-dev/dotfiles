@@ -9,6 +9,11 @@ function _main() {
     if get_option "$_FULL_FLAG" "$@"; then
       run_as_root regenerate-bootloader
     fi
+    run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1
+    run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1
+    run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1
+    run_as_root rc-update del agetty.tty5 default >/dev/null 2>&1
+    run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1
     return 0
     ;;
 
