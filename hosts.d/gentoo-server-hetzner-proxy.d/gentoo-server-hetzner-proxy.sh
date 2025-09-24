@@ -6,6 +6,11 @@ function _main() {
   case $_CMD in
 
   configure)
+    if get_option "$_FULL_FLAG" "$@"; then
+      run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
+      run_as_user "$_USER" secrets-set ssh-github-pedro-pereira-dev
+      run_as_user "$_USER" secrets-import
+    fi
     run_as_root rc-update add sshd default >/dev/null 2>&1
     return 0
     ;;
