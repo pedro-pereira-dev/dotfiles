@@ -4,6 +4,7 @@
 shopt -s checkwinsize histappend # resizes window and appends commands to history
 
 _UNAME="$(uname)"
+function is_linux() { test "$_UNAME" == 'Linux'; }
 function is_macos() { test "$_UNAME" == 'Darwin'; }
 
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$HOME/.local/bin:$PATH"
@@ -23,13 +24,13 @@ command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell bash)" || true
 command -v starship >/dev/null && eval "$(starship init bash)" || true
 command -v zoxide >/dev/null && eval "$(zoxide init --cmd cd bash)" || true
 
-alias ls='eza --all --long --icons --sort=type'
-alias tree='eza --all --tree --icons --sort=type'
+command -v eza >/dev/null && alias ls='eza --all --long --icons --sort=type'
+command -v eza >/dev/null && alias tree='eza --all --tree --icons --sort=type'
 alias vi='nvim-reloadable'
 
-alias poweroff='doas poweroff'
-alias reboot='doas reboot'
-alias shutdown='doas shutdown -h now'
+is_linux && alias poweroff='doas poweroff'
+is_linux && alias reboot='doas reboot'
+is_linux && alias shutdown='doas shutdown -h now'
 
 alias ~='cd ~'
 alias ..='cd ..'
