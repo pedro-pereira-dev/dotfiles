@@ -7,18 +7,18 @@ function _main() {
 
   configure)
     if get_option "$_FULL_FLAG" "$@"; then
-      run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev
-      run_as_user "$_USER" secrets-set ssh-authorized-keys
-      run_as_user "$_USER" secrets-set ssh-gentoo-hetzner-media
-      run_as_user "$_USER" secrets-set ssh-gentoo-laptop
-      run_as_user "$_USER" secrets-set ssh-github-pedro-pereira-dev
-      run_as_user "$_USER" secrets-set ssh-mercedes-github-pesoare
-      run_as_user "$_USER" secrets-import
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" gpg-github-pedro-pereira-dev
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-authorized-keys
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-gentoo-hetzner-media
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-gentoo-laptop
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-github-pedro-pereira-dev
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-mercedes-github-pesoare
+      run_as_user "$_USER" "$_HOME/.local/bin/secrets-import"
     fi
     run_as_root rc-update add NetworkManager default >/dev/null 2>&1
     run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
     run_as_root usermod --append --groups video "$_USER" # for backlight
-    run_as_user "$_USER" install-nerd-font JetBrainsMono
+    run_as_user "$_USER" /usr/bin/install-nerd-font JetBrainsMono
     return 0
     ;;
 

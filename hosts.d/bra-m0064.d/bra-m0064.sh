@@ -7,7 +7,7 @@ function _main() {
 
   configure)
     if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
-      run_as_user "$_USER" brew-upgrade
+      run_as_user "$_USER" "$_HOME/.local/bin/brew-upgrade"
     fi
     # if get_option "$_FULL_FLAG" "$@"; then
     #   run_as_user "$_USER" secrets-set gpg-github-pedro-pereira-dev

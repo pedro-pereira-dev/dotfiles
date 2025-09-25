@@ -7,7 +7,7 @@ function _main() {
 
   configure)
     if get_option "$_FULL_FLAG" "$@" || get_option "$_INSTALL_FLAG" "$@"; then
-      run_as_root eauto --unsupervised
+      run_as_root /usr/bin/eauto --unsupervised
       run_as_root eselect news read >/dev/null
     fi
     return 0
