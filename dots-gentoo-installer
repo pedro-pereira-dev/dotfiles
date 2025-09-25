@@ -14,7 +14,6 @@ echo "[I] installing on the device $_DEV:
 echo "[I] data from device $_DEV will be erased"
 read -r -p 'Do you want to continue? [Y/n]: ' _CONFIRMATION && echo ''
 [[ $_CONFIRMATION == 'n' || $_CONFIRMATION == 'N' ]] && return 0
-# ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 # prepares device layout for gentoo installation
 echo "[I] preparing device '$_DEV'..."
@@ -60,6 +59,7 @@ else
     w  # write changes to disk
 EOF
 fi
+type -t after_partitioning >/dev/null && after_partitioning
 # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 # installs gentoo to the device
