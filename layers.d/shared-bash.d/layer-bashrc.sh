@@ -8,7 +8,6 @@ function is_linux() { test "$_UNAME" == 'Linux'; }
 function is_macos() { test "$_UNAME" == 'Darwin'; }
 
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$HOME/.local/bin:$PATH"
-[[ ":$PATH:" != *':/usr/bin:'* ]] && export PATH="/usr/bin:$PATH"
 is_macos && [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"
 
 is_macos && export BASH_SILENCE_DEPRECATION_WARNING=1
