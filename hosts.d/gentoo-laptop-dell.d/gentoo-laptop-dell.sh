@@ -18,7 +18,7 @@ function _main() {
     run_as_root rc-update add NetworkManager default >/dev/null 2>&1
     run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
     run_as_root usermod --append --groups video "$_USER" # for backlight
-    run_as_user "$_USER" /usr/bin/install-nerd-font JetBrainsMono
+    run_as_user "$_USER" "$_HOME/.local/bin/install-nerd-font" JetBrainsMono
     return 0
     ;;
 

@@ -7,7 +7,7 @@ function _main() {
 
   configure)
     if get_option "$_FULL_FLAG" "$@"; then
-      run_as_root /usr/bin/regenerate-bootloader
+      run_as_root "$_HOME/.local/bin/regenerate-bootloader"
     fi
     run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1
     run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1
@@ -18,7 +18,7 @@ function _main() {
     ;;
 
   setup)
-    run_as_root stow "$_SCRIPT_DIR/layer-bin-regenerate-bootloader.sh" '/usr/bin/regenerate-bootloader'
+    run_as_root stow "$_SCRIPT_DIR/layer-bin-regenerate-bootloader.sh" "$_HOME/.local/bin/regenerate-bootloader"
     run_as_root stow "$_SCRIPT_DIR/layer-grub.conf" '/etc/default/grub'
     ;;
 
