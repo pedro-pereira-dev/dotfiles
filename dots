@@ -105,7 +105,7 @@ function _main() {
       # generates alphanumeric and special characters passwords
       password)
         _KEY_LENGTH="$(get_option '--length' "$@")" || _KEY_LENGTH=''
-        [ -z "$_KEY_LENGTH" ] && _KEY_LENGTH='512'
+        [ -z "$_KEY_LENGTH" ] && _KEY_LENGTH='64'
         openssl rand -base64 "$((_KEY_LENGTH * 3 / 4))" | tr -d '\n'
         ;;
 
@@ -118,12 +118,12 @@ function _main() {
       echo '[I] exporting git-crypt key...'
       _LOCAL_DOTS_DIR="$(dirname "$(readlink -f "$0")")"
       git-crypt export-key "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
-      _PASSPHRASE="$(_main secrets generate password --length 2)"
+      echo '[I] encrypting git-crypt key...'
+      _PASSPHRASE="$(_main secrets generate password --length 128)"
       echo "$_PASSPHRASE" | gpg --cipher-algo AES256 \
         -o "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY.enc" \
         --passphrase-fd 0 --pinentry-mode loopback --symmetric \
         "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
-      echo '[I] encrypting git-crypt key...'
       echo '[W] git-crypt key passphrase:'
       echo "$_PASSPHRASE"
       ;;
