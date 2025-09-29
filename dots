@@ -92,7 +92,7 @@ function _main() {
     ;;
     # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-    # handles dotfiles secrets
+  # handles dotfiles secrets
   secrets)
     _CMD='' && [ "$#" -ge 2 ] && _CMD="$2"
     case $_CMD in

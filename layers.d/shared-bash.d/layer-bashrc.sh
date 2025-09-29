@@ -10,7 +10,9 @@ function is_macos() { test "$_UNAME" == 'Darwin'; }
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$HOME/.local/bin:$PATH"
 is_macos && [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"
 
-is_macos && export BASH_SILENCE_DEPRECATION_WARNING=1
+is_macos &&
+  export BASH_SILENCE_DEPRECATION_WARNING=1 &&
+  export HOMEBREW_NO_ENV_HINTS=1
 
 # WIP
 command -v sway >/dev/null && [[ -z "${WAYLAND_DISPLAY}" && "${XDG_VTNR}" -eq 1 ]] && dbus-run-session sway || true
