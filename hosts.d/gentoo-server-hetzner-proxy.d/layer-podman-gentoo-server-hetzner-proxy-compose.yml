@@ -1,0 +1,5 @@
+version: "3"
+services:
+  haproxy:
+    container_name: haproxy
+    image: docker.io/haproxy:latest

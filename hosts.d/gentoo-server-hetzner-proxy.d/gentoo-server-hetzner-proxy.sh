@@ -17,6 +17,7 @@ function _main() {
 
   setup)
     run_as_root stow "$_SCRIPT_DIR/layer-hwclock.conf" '/etc/conf.d/hwclock'
+    run_as_root stow "$_SCRIPT_DIR/layer-podman-kernel-module-ip-tables.conf" '/etc/modules-load.d/ip-tables.conf'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-make.conf" '/etc/portage/make.conf'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-declare.conf" '/etc/portage/package.declare'
@@ -24,6 +25,7 @@ function _main() {
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-mask.conf" '/etc/portage/package.mask'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-unmask.conf" '/etc/portage/package.unmask'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-use.conf" '/etc/portage/package.use'
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-podman-gentoo-server-hetzner-proxy-compose.yml" "$_HOME/.podman/compose.yml"
     return 0
     ;;
 
