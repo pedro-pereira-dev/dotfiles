@@ -25,7 +25,7 @@ function _main() {
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-mask.conf" '/etc/portage/package.mask'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-unmask.conf" '/etc/portage/package.unmask'
     run_as_root stow "$_SCRIPT_DIR/layer-portage-package-use.conf" '/etc/portage/package.use'
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-podman-gentoo-server-hetzner-proxy-compose.yml" "$_HOME/.podman/compose.yml"
+    # run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-podman-gentoo-server-hetzner-proxy-compose.yaml" "$_HOME/.podman/compose.yaml"
     return 0
     ;;
 

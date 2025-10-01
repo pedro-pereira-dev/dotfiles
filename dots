@@ -163,17 +163,17 @@ function _main() {
       source_file "$_FILE_TO_LOAD" 'setup' "$@" || true
     done
     # clears empty directories and stale links
-    (get_option "$_CLEAN_FLAG" "$@" || get_option "$_FULL_FLAG" "$@") && (
-      is_root && (
-        echo "[I] cleaning empty directories and stale links from '/'..."
-        run_as_root clean_directories_and_links '/' ||
-          (echo "[E] dots#sync : failed to clean directories and links from '/'" && return 1)
-      ) || (
-        echo "[I] cleaning empty directories and stale links from '$_HOME'..."
-        run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
-          (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
-      )
-    )
+    # (get_option "$_CLEAN_FLAG" "$@" || get_option "$_FULL_FLAG" "$@") && (
+    #   is_root && (
+    #     echo "[I] cleaning empty directories and stale links from '/'..."
+    #     run_as_root clean_directories_and_links '/' ||
+    #       (echo "[E] dots#sync : failed to clean directories and links from '/'" && return 1)
+    #   ) || (
+    #     echo "[I] cleaning empty directories and stale links from '$_HOME'..."
+    #     run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
+    #       (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
+    #   )
+    # )
     # configures layer
     for _LAYER in "${_LAYERS[@]}"; do
       _FILE_TO_LOAD="$_LAYER/$(basename "${_LAYER%??}").sh"
