@@ -10,7 +10,7 @@ function _main() {
     ;;
 
   setup)
-    run_as_root stow "$_SCRIPT_DIR/layer-podman-compose-service.sh" '/etc/init.d/podman-compose'
+    # run_as_root stow "$_SCRIPT_DIR/layer-podman-compose-service.sh" '/etc/init.d/podman-compose'
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-compose.yaml" "$_HOME/.podman/compose.yaml"
     return 0
     ;;
