@@ -219,23 +219,36 @@ function stow() {
   function list_files() { find "$1" \( -type f -o -type l \) -print0; }
   function list_dirs() { find "$1" -mindepth 1 -type d -print0; }
   _DST="$2" && [ "$2" == '/' ] && _DST=''
+
   if [ -d "$1" ]; then
-    while IFS= read -r -d '' _SRC_SUBDIR; do
-      [ -f "$_DST${_SRC_SUBDIR/$1/}" ] && rm -fr "$_DST${_SRC_SUBDIR/$1/}"
-      mkdir -p "$_DST${_SRC_SUBDIR/$1/}"
-    done < <(list_dirs "$1")
-    while IFS= read -r -d '' _SRC_FILE; do
-      [ -f "$(dirname "$_DST${_SRC_FILE/$1/}")" ] && rm -fr "$(dirname "$_DST${_SRC_FILE/$1/}")"
-      mkdir -p "$(dirname "$_DST${_SRC_FILE/$1/}")"
-      rm -fr "$_DST${_SRC_FILE/$1/}"
-      ln -fs "$_SRC_FILE" "$_DST${_SRC_FILE/$1/}"
-      echo "[I] linking: $_SRC_FILE $_DST${_SRC_FILE/$1/}"
-    done < <(list_files "$1")
+    if [[ "$_DST" == */ ]]; then
+      mkdir -p "$(dirname "${_DST%/}")"
+      rm -fr "${_DST%/}"
+      ln -fs "$1" "${_DST%/}"
+      echo "[I] linking directory to directory: $1 ${_DST%/}"
+    else
+      while IFS= read -r -d '' _SRC_SUBDIR; do
+        [ -f "$_DST${_SRC_SUBDIR/$1/}" ] && rm -fr "$_DST${_SRC_SUBDIR/$1/}"
+        mkdir -p "$_DST${_SRC_SUBDIR/$1/}"
+      done < <(list_dirs "$1")
+      while IFS= read -r -d '' _SRC_FILE; do
+        [ -f "$(dirname "$_DST${_SRC_FILE/$1/}")" ] && rm -fr "$(dirname "$_DST${_SRC_FILE/$1/}")"
+        mkdir -p "$(dirname "$_DST${_SRC_FILE/$1/}")"
+        rm -fr "$_DST${_SRC_FILE/$1/}"
+        ln -fs "$_SRC_FILE" "$_DST${_SRC_FILE/$1/}"
+        echo "[I] linking directory to file: $_SRC_FILE $_DST${_SRC_FILE/$1/}"
+      done < <(list_files "$1")
+    fi
   elif [ -f "$1" ]; then
-    mkdir -p "$(dirname "$_DST")"
-    rm -fr "$_DST"
-    ln -fs "$1" "$_DST"
-    echo "[I] linking: $1 $_DST"
+    if [[ "$_DST" == */ ]]; then
+      echo "[E] dots-utils#stow : cannot link file to directory: $1 -> ${_DST%/}" && return 1
+    else
+      mkdir -p "$(dirname "$_DST")"
+      rm -fr "$_DST"
+      ln -fs "$1" "$_DST"
+      echo "[I] linking file to file: $1 $_DST"
+    fi
+
   else
     return 1
   fi

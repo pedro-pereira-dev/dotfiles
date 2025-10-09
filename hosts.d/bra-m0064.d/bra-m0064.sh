@@ -24,8 +24,9 @@ function _main() {
   setup)
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-bin-brew-upgrade.sh" "$_HOME/.local/bin/brew-upgrade"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-homebrew-brewfile.conf" "$_HOME/Brewfile"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-karabiner.json" "$_HOME/.config/karabiner/karabiner.json"
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-rectangle.json" "$_HOME/.config/rectangle/rectangle.json"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-karabiner/" "$_HOME/.config/karabiner/"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-rectangle.json" "$_HOME/.config/rectangle/config.json"
+    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ukelele-20251009/" "$_HOME/.config/ukelele/20251009/"
     run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ukelele.zip" "$_HOME/.config/ukelele/ukelele.zip"
     return 0
     ;;
