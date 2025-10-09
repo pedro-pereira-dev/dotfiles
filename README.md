@@ -38,3 +38,37 @@ or
 DuckDNS_Token="token" acme.sh --dns dns_duckdns --domain '*.remote-4620.duckdns.org' --issue
 cat \*.remote-4620.duckdns.org.key fullchain.cer > remote-4620.duckdns.org.pem
 ```
+
+#### Setup Oracle VPS
+
+- Create virtual network with default parameters.
+- Create compute instance using default parameters, but changing the shape to ampere 4 cpu 24 gb mem and using ubuntu.
+- Connect with the ssh key pair into the instance and change the ubuntu user password with:
+```bash
+sudo su
+passwd ubuntu
+```
+- Open cloud shell connection on: Compute > <select instance> > OS Management > Console connection > Launch Cloud Shell connection and run:
+```bash
+sudo su
+cd /boot/efi
+wget https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi
+```
+- Reboot and press ESC repeatdly until the UEFI shell appear then choose Boot Maintenance Manager > Boot From File > search for the netboot file
+- Choose Linux Network Installers > Alpine > Login as root with not password and setup environment:
+```bash
+echo 'auto eth0' >> /etc/network/interfaces
+echo 'iface eth0 inet dhcp' >> /etc/network/interfaces
+/etc/init.d/networking restart
+ping -c 3 gentoo.org
+setup-sshd # type 'yes' to 'Allow root ssh login?'
+passwd
+```
+- Login with ssh to root@<ip> and setup installation:
+```bash
+setup-apkrepos
+apk update
+apk add util-linux dosfstools e2fsprogs curl tar xz
+```
+
+[Source](https://gist.github.com/amishmm/e2dc93e65cf79116f2ef2d542f05e61b)
