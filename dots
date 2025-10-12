@@ -17,10 +17,8 @@ _FILE_TO_SOURCE='dots.d/utils.sh'
 _SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 _IS_DOTS_UTILS_LOADED=''
 if [ -f "$_SCRIPT_DIR/$_FILE_TO_SOURCE" ]; then
-  echo "source dots here"
   . "$_SCRIPT_DIR/$_FILE_TO_SOURCE"
 elif curl -ILfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >/dev/null; then
-  echo "source dots remote"
   _TMP_FILE=$(mktemp)
   curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
   . "$_TMP_FILE" && rm "$_TMP_FILE"

@@ -7,7 +7,7 @@ My custom system dotfiles - *_WORK IN PROGRESS_*
 ```bash
 bash <(wget -qO - https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots)
 
-curl -Lfs https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots | bash -s -- install ...
+curl -Lfs https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots | sh -s -- install ...
 ```
 
 ## Keys

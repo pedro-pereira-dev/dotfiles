@@ -1,42 +1,57 @@
 #!/bin/sh
+# shellcheck source=/dev/null
 set -eou pipefail
 
 _GENTOO_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main'
+
+_HOSTNAME=${_HOSTNAME:-'gentoo-system-undefined'}
+_USER=${_USER:-'user'}
+
+_DEV=${_DEV:-"$(lsblk -bdno NAME,SIZE | awk '/^(sd|nvme)/ {print "/dev/"$1" "$2}' | sort -nk2 | head -n1 | cut -d' ' -f1)"}
 
 _BOOT_SIZE=${_BOOT_SIZE:-'1025MiB'} # 1gb
 _SWAP_SIZE=${_SWAP_SIZE:-'5121MiB'} # 4gb
 _ROOT_SIZE=${_ROOT_SIZE:-'100%'}    # remaining space
 
-wipefs -a "$_DEV"*
 if is_bios; then
-  parted -a optimal -s "$_DEV" \
-    mklabel msdos \
-    mkpart primary 1MiB "$_BOOT_SIZE" \
-    set 1 boot on name 1 _BOOT \
-    mkpart primary "$_BOOT_SIZE" "$_SWAP_SIZE" \
-    name 2 _SWAP \
-    mkpart primary "$_SWAP_SIZE" "$_ROOT_SIZE" \
-    name 3 _ROOT \
-    print
-  EOF
+  _BOOT_FLAG='boot'
+  _PART_TABLE='msdos'
 elif is_uefi; then
-  parted -a optimal -s "$_DEV" \
-    mklabel gpt \
-    mkpart primary 1MiB "$_BOOT_SIZE" \
-    set 1 esp on name 1 _BOOT \
-    mkpart primary "$_BOOT_SIZE" "$_SWAP_SIZE" \
-    name 2 _SWAP \
-    mkpart primary "$_SWAP_SIZE" "$_ROOT_SIZE" \
-    name 3 _ROOT \
-    print
+  _BOOT_FLAG='esp'
+  _PART_TABLE='gpt'
 fi
 
-curl -Lfs "$_GENTOO_RAW_URL/install.sh" | sh -s -- \
+wipefs -a "$_DEV"*
+parted -a optimal -s "$_DEV" \
+  mklabel "$_PART_TABLE" \
+  mkpart primary 1MiB "$_BOOT_SIZE" \
+  set 1 "$_BOOT_FLAG" on name 1 _BOOT \
+  mkpart primary "$_BOOT_SIZE" "$_SWAP_SIZE" \
+  name 2 _SWAP \
+  mkpart primary "$_SWAP_SIZE" "$_ROOT_SIZE" \
+  name 3 _ROOT \
+  print
+
+_BOOT_DEV='/dev/disk/by-partlabel/_BOOT'
+_SWAP_DEV='/dev/disk/by-partlabel/_SWAP'
+_ROOT_DEV='/dev/disk/by-partlabel/_ROOT'
+
+_TMP_FILE=$(mktemp)
+curl -Lfs "$_GENTOO_RAW_URL/install.sh" >"$_TMP_FILE"
+sh "$_TMP_FILE" \
   --hostname "$_HOSTNAME" \
   --password "$_PASSWORD" \
   --boot '/dev/disk/by-partlabel/_BOOT' \
   --swap '/dev/disk/by-partlabel/_SWAP' \
   --root '/dev/disk/by-partlabel/_ROOT'
+# rm -f "$_TMP_FILE"
+
+# curl -Lfs "$_GENTOO_RAW_URL/install.sh" | sh -s -- \
+#   --hostname "$_HOSTNAME" \
+#   --password "$_PASSWORD" \
+#   --boot '/dev/disk/by-partlabel/_BOOT' \
+#   --swap '/dev/disk/by-partlabel/_SWAP' \
+#   --root '/dev/disk/by-partlabel/_ROOT'
 
 # # creates user account and sets up system using dotfiles
 # chroot /mnt /bin/bash <<EOF
