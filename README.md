@@ -57,8 +57,8 @@ wget https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi
 - Reboot and press ESC repeatdly until the UEFI shell appear then choose Boot Maintenance Manager > Boot From File > search for the netboot file
 - Choose Linux Network Installers > Alpine > Login as root with not password and setup environment:
 ```bash
-echo 'auto eth0' >> /etc/network/interfaces
-echo 'iface eth0 inet dhcp' >> /etc/network/interfaces
+printf 'auto eth0' >> /etc/network/interfaces
+printf 'iface eth0 inet dhcp' >> /etc/network/interfaces
 /etc/init.d/networking restart
 ping -c 3 gentoo.org
 setup-sshd # type 'yes' to 'Allow root ssh login?'
@@ -68,7 +68,7 @@ passwd
 ```bash
 setup-apkrepos
 apk update
-apk add util-linux dosfstools e2fsprogs curl tar xz
+apk add util-linux dosfstools e2fsprogs curl tar xz parted
 ```
 
 [Source](https://gist.github.com/amishmm/e2dc93e65cf79116f2ef2d542f05e61b)

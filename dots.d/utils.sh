@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2015,SC2329 source=/dev/null
+# shellcheck source=/dev/null
 
 _IS_DOTS_UTILS_LOADED='true'
 
@@ -9,16 +9,43 @@ is_amd64() { test "$(uname -m)" = 'x86_64'; }
 is_bios() { ! test -d '/sys/firmware/efi'; }
 is_uefi() { test -d '/sys/firmware/efi'; }
 
+is_linux() { test "$(uname)" = 'Linux'; }
+is_macos() { test "$(uname)" = 'Darwin'; }
+
+is_non_root() { ! is_root; }
+is_root() { test "$(id -u)" -eq 0; }
+
 source_file() {
   _FILE_TO_SOURCE='' && [ "$#" -ge 1 ] && _FILE_TO_SOURCE="$1"
   [ -z "$_FILE_TO_SOURCE" ] &&
     echo "[E] dots-utils#source_file : missing required parameter: '\$1' for file to source" && return 1
-  _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_SOURCE"
   if [ -f "$_SCRIPT_DIR/$_FILE_TO_SOURCE" ]; then
     . "$_SCRIPT_DIR/$_FILE_TO_SOURCE" && return 0
   elif curl -ILfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >/dev/null; then
-    curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" | . /dev/stdin && return 0
+    _TMP_FILE=$(mktemp)
+    curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
+    . "$_TMP_FILE" && rm "$_TMP_FILE" && return 0
   fi
+  return 1
+}
+
+get_option() {
+  _OPT="$1" && shift
+  while [ "$#" -gt 0 ]; do
+    _ARG="$1" && shift
+    if [ "$_OPT" = "$_ARG" ]; then
+      [ "$#" -gt 0 ] && expr "x$1" : 'x[^-]' >/dev/null && echo "$1"
+      return 0
+    fi
+  done
+  return 1
+}
+
+get_hostname() {
+  _HOSTNAME="$(get_option "--hostname" "$@")" || true
+  [ -n "$_HOSTNAME" ] && echo "$_HOSTNAME" && return 0
+  is_linux && cat /etc/hostname 2>/dev/null && return 0 || true
+  is_macos && hostname && return 0 || true
   return 1
 }
 

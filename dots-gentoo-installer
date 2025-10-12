@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -eou pipefail
 
 echo "[I] installing from repositories:
@@ -10,6 +10,7 @@ echo "[I] installing to system:
 - _USER: $_USER"
 echo "[I] installing on the device $_DEV:
 - _BOOT: $_BOOT (size: '$_BOOT_SIZE')
+- _BOOT: $_SWAP (size: '$_SWAP_SIZE')
 - _ROOT: $_ROOT (size: '$_ROOT_SIZE')"
 echo "[I] data from device $_DEV will be erased"
 read -r -p 'Do you want to continue? [Y/n]: ' _CONFIRMATION && echo ''
