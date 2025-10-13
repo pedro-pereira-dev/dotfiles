@@ -6,10 +6,6 @@ export _DOTS_DIR='workspace/personal/dotfiles'
 export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
 export _GIT_CRYPT_KEY='.git-crypt-key'
 
-# # defines reusable constants
-# _LOCAL_FILE_PATH="$_SCRIPT_DIR/$_FILE_TO_LOAD"
-# _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
-
 _FILE_TO_SOURCE='dots.d/utils.sh'
 _SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 _IS_DOTS_UTILS_LOADED=''
@@ -121,7 +117,7 @@ _main() {
   #   ;;
   # # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  # merges dotfiles settings into the system
+  # configures dotfiles in the system
   sync)
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
       (echo "[E] dots#sync : missing required parameter '--user'" && return 1)
@@ -131,30 +127,7 @@ _main() {
     source_file "host-$_HOSTNAME.d/system.conf" ||
       (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
     configure "$@"
-
-    # for _LAYER in "${_LAYERS[@]}"; do
-    #   _FILE_TO_SOURCE="$_LAYER/$(basename "${_LAYER%??}").sh"
-    #   echo "[I] setting up layer '$_FILE_TO_SOURCE'..."
-    #   source_file "$_FILE_TO_SOURCE" 'setup' "$@" || true
-    # done
-    # # clears empty directories and stale links
-    # # (get_option "$_CLEAN_FLAG" "$@" || get_option "$_FULL_FLAG" "$@") && (
-    # #   is_root && (
-    # #     echo "[I] cleaning empty directories and stale links from '/'..."
-    # #     run_as_root clean_directories_and_links '/' ||
-    # #       (echo "[E] dots#sync : failed to clean directories and links from '/'" && return 1)
-    # #   ) || (
-    # #     echo "[I] cleaning empty directories and stale links from '$_HOME'..."
-    # #     run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
-    # #       (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
-    # #   )
-    # # )
-    # # configures layer
-    # for _LAYER in "${_LAYERS[@]}"; do
-    #   _FILE_TO_SOURCE="$_LAYER/$(basename "${_LAYER%??}").sh"
-    #   echo "[I] configuring layer '$_FILE_TO_SOURCE'..."
-    #   source_file "$_FILE_TO_SOURCE" 'configure' "$@" || true
-    # done
+    get_option '--full' "$@" && run_as_root remove_broken_links || true
     return 0
     ;;
 

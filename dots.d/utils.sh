@@ -69,15 +69,20 @@ get_wheel_user() {
   grep '^wheel:' /etc/group | cut -d',' -f2 | grep -v 'root'
 }
 
+remove_broken_links() {
+  find "${1:-/}" -type l -exec sh -c \
+    'test ! -e "$1" && rm -f "$1" >/dev/null 2>&1 && echo "[I] removing broken link: $1"' \
+    _ {} \;
+}
+
 run_as_root() {
+  _UTILS_SCRIPT="$_SCRIPT_DIR/dots.d/utils.sh"
   if is_root; then
     "$@"
   elif check_command doas; then
-    doas "$@"
+    echo ". $_UTILS_SCRIPT" | doas sh -c ". /dev/stdin && $*"
   elif check_command sudo; then
-    sudo "$@"
-  else
-    return 1
+    echo ". $_UTILS_SCRIPT" | sudo sh -c ". /dev/stdin && $*"
   fi
 }
 
@@ -122,134 +127,3 @@ stow() {
   )
   return 1
 }
-
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # finds and deletes empty directories and broken symlinks
-# # arguments:
-# #   $1 - the directory to clear
-# # returns:
-# #   0 (success) if deletion was successful
-# #   1 (failure) if deletion was unsuccessful
-# function clean_directories_and_links() {
-#   _COUNTER=3
-#   _OLD_RESULT='undefined'
-#   while true; do
-#     _RESULT="$(find "$1" \( \
-#       -name 'Applications' -o \
-#       -name 'Library' -o \
-#       -name 'lost+found' -o \
-#       -path '/System' -o \
-#       -path '/Volumes' -o \
-#       -path '/boot' -o \
-#       -path '/dev' -o \
-#       -path '/efi' -o \
-#       -path '/mnt' -o \
-#       -path '/private' -o \
-#       -path '/proc' -o \
-#       -path '/run' -o \
-#       -path '/sys' -o \
-#       -path '/tmp' \
-#       \) -prune \
-#       -o \( -type d -empty -o -type l -not -exec test -e {} \; \) \
-#       -print)"
-#     [ -n "$_RESULT" ] &&
-#       echo "$_RESULT" | sed '/^\s*$/d' | while read -r _ENTRY; do
-#         ([ -d "$_ENTRY" ] && rmdir -p "$_ENTRY" 2>/dev/null || rm -fr "$_ENTRY" 2>/dev/null) &&
-#         echo "[I] removing: $_ENTRY"
-#       done
-#     [ -z "$_RESULT" ] && return 0
-#     [ "$_OLD_RESULT" == "$_RESULT" ] && _COUNTER=$((_COUNTER - 1))
-#     [ "$_COUNTER" -lt 0 ] && return 1
-#     _OLD_RESULT="$_RESULT"
-#   done
-# }
-# export -f clean_directories_and_links
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # runs a script from the local filesystem or directly from github
-# # arguments:
-# #   $1 - the relative path to the script to execute from the base dotfiles directory
-# #   $@ - all subsequent arguments, which form the command and its arguments
-# #        to be executed (e.g., 'install', 'sync')
-# # returns:
-# #   the exit status of the executed command
-# #   1 (failure) if any failure occurs
-# function run_script() {
-#   _LOCAL_SCRIPT="$(dirname "$(readlink -f "$0")")/$1"
-#   _REMOTE_SCRIPT="$_DOTS_RAW_URL/$1"
-#   if [ -f "$_LOCAL_SCRIPT" ]; then
-#     bash "$_LOCAL_SCRIPT" "${@:2}"
-#   elif curl -ILfs "$_REMOTE_SCRIPT" >/dev/null; then
-#     curl -Lfs "$_REMOTE_SCRIPT" | bash -s -- "${@:2}"
-#   else
-#     return 1
-#   fi
-# }
-# export -f run_script
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # links a directory or file into a target directory or file, overwriting the target if it exists
-# # arguments:
-# #   $1 - the absolute path of the source directory or file
-# #   $2 - the absolute path of the target directory or file
-# # returns:
-# #   0 (success) if successful linking of all files
-# #   1 (failure) if unsuccessful or partial linking
-# function stow() {
-#   function list_files() { find "$1" \( -type f -o -type l \) -print0; }
-#   function list_dirs() { find "$1" -mindepth 1 -type d -print0; }
-#   _DST="$2" && [ "$2" == '/' ] && _DST=''
-#
-#   if [ -d "$1" ]; then
-#     if [[ "$_DST" == */ ]]; then
-#       mkdir -p "$(dirname "${_DST%/}")"
-#       rm -fr "${_DST%/}"
-#       ln -fs "$1" "${_DST%/}"
-#       echo "[I] linking directory to directory: $1 ${_DST%/}"
-#     else
-#       while IFS= read -r -d '' _SRC_SUBDIR; do
-#         [ -f "$_DST${_SRC_SUBDIR/$1/}" ] && rm -fr "$_DST${_SRC_SUBDIR/$1/}"
-#         mkdir -p "$_DST${_SRC_SUBDIR/$1/}"
-#       done < <(list_dirs "$1")
-#       while IFS= read -r -d '' _SRC_FILE; do
-#         [ -f "$(dirname "$_DST${_SRC_FILE/$1/}")" ] && rm -fr "$(dirname "$_DST${_SRC_FILE/$1/}")"
-#         mkdir -p "$(dirname "$_DST${_SRC_FILE/$1/}")"
-#         rm -fr "$_DST${_SRC_FILE/$1/}"
-#         ln -fs "$_SRC_FILE" "$_DST${_SRC_FILE/$1/}"
-#         echo "[I] linking directory to file: $_SRC_FILE $_DST${_SRC_FILE/$1/}"
-#       done < <(list_files "$1")
-#     fi
-#   elif [ -f "$1" ]; then
-#     if [[ "$_DST" == */ ]]; then
-#       echo "[E] dots-utils#stow : cannot link file to directory: $1 -> ${_DST%/}" && return 1
-#     else
-#       mkdir -p "$(dirname "$_DST")"
-#       rm -fr "$_DST"
-#       ln -fs "$1" "$_DST"
-#       echo "[I] linking file to file: $1 $_DST"
-#     fi
-#
-#   else
-#     return 1
-#   fi
-#   return 0
-# }
-# export -f stow
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # links a directory containing the root and home to the system
-# # arguments:
-# #   $1 - the directory to link
-# # returns:
-# #   0 (success) if successful linking of all files
-# #   1 (failure) if unsuccessful or partial linking
-# function stow_directory() {
-#   _HOME="$(get_home "$@")" || return 1
-#   _USER="$(get_user "$@")" || return 1
-#   _LOCAL_DIR="$_HOME/$_DOTS_DIR/hosts/$1.d"
-#   [ -d "$_LOCAL_DIR/root" ] && (run_as_root stow "$_LOCAL_DIR/root" '/' || return 1)
-#   [ -d "$_LOCAL_DIR/home" ] && (run_as_user "$_USER" stow "$_LOCAL_DIR/home" "$_HOME" || return 1)
-#   return 0
-# }
-# export -f stow_directory
-#
