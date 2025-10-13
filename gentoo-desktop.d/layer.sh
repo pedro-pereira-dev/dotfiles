@@ -1,0 +1,11 @@
+#!/bin/sh
+run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-install-nerd-font.sh" "$_HOME/.local/bin/install-nerd-font"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-backlight-down.sh" "$_HOME/.local/bin/backlight-down"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-backlight-up.sh" "$_HOME/.local/bin/backlight-up"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-microphone-toggle.sh" "$_HOME/.local/bin/microphone-toggle"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-volume-down.sh" "$_HOME/.local/bin/volume-down"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-volume-toggle.sh" "$_HOME/.local/bin/volume-toggle"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-bin-volume-up.sh" "$_HOME/.local/bin/volume-up"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-gtk-config.toml" "$_HOME/.config/gtk-3.0/settings.ini"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-gtk-config.toml" "$_HOME/.config/gtk-4.0/settings.ini"
+run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/gentoo-desktop.d/layer-sway-config.conf" "$_HOME/.config/sway/config"

@@ -130,7 +130,7 @@ _main() {
     _FULL_FLAG='--full' && _INSTALL_FLAG='--install'
     source_file "host-$_HOSTNAME.d/system.conf" ||
       (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
-    configure
+    configure "$@"
 
     # for _LAYER in "${_LAYERS[@]}"; do
     #   _FILE_TO_SOURCE="$_LAYER/$(basename "${_LAYER%??}").sh"
