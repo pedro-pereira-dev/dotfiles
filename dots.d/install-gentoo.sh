@@ -1,13 +1,10 @@
 #!/bin/sh
 set -eou pipefail
 
-_GENTOO_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main'
-
 _HOSTNAME=${_HOSTNAME:-'gentoo-system-undefined'}
 _USER=${_USER:-'user'}
 
 get_smallest_device() { lsblk -bdno NAME,SIZE | awk '/^(sd|nvme)/ {print "/dev/"$1" "$2}' | sort -nk2 | head -n1 | cut -d' ' -f1; }
-
 _DEV=${_DEV:-"$(get_smallest_device)"}
 
 _BOOT_SIZE=${_BOOT_SIZE:-'1025MiB'} # 1gb
@@ -32,34 +29,24 @@ parted -a optimal -s "$_DEV" \
   print
 
 get_partuuid() { blkid "$(readlink -f "$1")" | awk '{print $3}' | cut -d'"' -f2; }
-
 _BOOT_DEV="/dev/disk/by-partuuid/$(get_partuuid /dev/disk/by-partlabel/_BOOT)"
 _SWAP_DEV="/dev/disk/by-partuuid/$(get_partuuid /dev/disk/by-partlabel/_SWAP)"
 _ROOT_DEV="/dev/disk/by-partuuid/$(get_partuuid /dev/disk/by-partlabel/_ROOT)"
 
 _TMP_FILE=$(mktemp)
-curl -Lfs "$_GENTOO_RAW_URL/install.sh" >"$_TMP_FILE"
+curl -Lfs 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh' >"$_TMP_FILE"
 sh "$_TMP_FILE" \
   --hostname "$_HOSTNAME" \
   --password "$_PASSWORD" \
   --boot "$_BOOT_DEV" \
   --swap "$_SWAP_DEV" \
   --root "$_ROOT_DEV"
-# rm -f "$_TMP_FILE"
 
-# curl -Lfs "$_GENTOO_RAW_URL/install.sh" | sh -s -- \
-#   --hostname "$_HOSTNAME" \
-#   --password "$_PASSWORD" \
-#   --boot '/dev/disk/by-partlabel/_BOOT' \
-#   --swap '/dev/disk/by-partlabel/_SWAP' \
-#   --root '/dev/disk/by-partlabel/_ROOT'
-
-# # creates user account and sets up system using dotfiles
-# chroot /mnt /bin/bash <<EOF
-# env-update && source /etc/profile
-# useradd -m -G wheel -s /bin/bash "$_USER"
-# echo "$_USER:$_PASSWORD" | chpasswd
-# emerge --ask=n --noreplace dev-vcs/git
-# curl -Lfs "$_DOTS_RAW_URL/dots" | bash -s -- update
-# /home/$_USER/$_DOTS_DIR/dots sync --full
-# EOF
+chroot /mnt /bin/sh <<EOF
+env-update && source /etc/profile
+useradd -m -G wheel -s /bin/bash "$_USER"
+echo "$_USER:$_PASSWORD" | chpasswd
+emerge --ask=n --noreplace dev-vcs/git
+curl -Lfs "$_DOTS_RAW_URL/dots" | sh -s -- update
+/home/$_USER/$_DOTS_DIR/dots sync --full
+EOF

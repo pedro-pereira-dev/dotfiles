@@ -15,22 +15,23 @@ is_macos() { test "$(uname)" = 'Darwin'; }
 is_non_root() { ! is_root; }
 is_root() { test "$(id -u)" -eq 0; }
 
-source_file() {
-  _FILE_TO_SOURCE='' && [ "$#" -ge 1 ] && _FILE_TO_SOURCE="$1"
-  [ -z "$_FILE_TO_SOURCE" ] &&
-    echo "[E] dots-utils#source_file : missing required parameter: '\$1' for file to source" && return 1
-  if [ -f "$_SCRIPT_DIR/$_FILE_TO_SOURCE" ]; then
-    . "$_SCRIPT_DIR/$_FILE_TO_SOURCE" && return 0
-  elif curl -ILfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >/dev/null; then
-    _TMP_FILE=$(mktemp)
-    curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
-    . "$_TMP_FILE" && rm "$_TMP_FILE" && return 0
-  fi
-  return 1
+check_command() { which "$1" >/dev/null 2>&1; }
+
+install_homebrew() {
+  _TMP_FILE=$(mktemp)
+  curl -Lfs 'https://raw.githubusercontent.com/homebrew/install/refs/heads/main/install.sh' >"$_TMP_FILE"
+  NONINTERACTIVE=1 sh "$_TMP_FILE"
+  rm "$_TMP_FILE"
+}
+
+install_git() {
+  _USER='' && [ "$#" -ge 1 ] && _USER="$1"
+  check_command brew && run_as_user "$_USER" brew install git
+  check_command emerge && run_as_root emerge --ask=n --noreplace dev-vcs/git
 }
 
 get_option() {
-  _OPT="$1" && shift
+  _OPT='' && [ "$#" -ge 1 ] && _OPT="$1" && shift
   while [ "$#" -gt 0 ]; do
     _ARG="$1" && shift
     if [ "$_OPT" = "$_ARG" ]; then
@@ -41,11 +42,84 @@ get_option() {
   return 1
 }
 
+get_home() {
+  _USER="$(get_user "$@")" || return 1
+  [ "$(uname)" = 'Darwin' ] && echo "/Users/$_USER" && return 0
+  [ "$(uname)" = 'Linux' ] && echo "/home/$_USER" && return 0
+  return 1
+}
+
 get_hostname() {
-  _HOSTNAME="$(get_option "--hostname" "$@")" || true
+  _HOSTNAME="$(get_option '--hostname' "$@")" || true
   [ -n "$_HOSTNAME" ] && echo "$_HOSTNAME" && return 0
-  is_linux && cat /etc/hostname 2>/dev/null && return 0 || true
-  is_macos && hostname && return 0 || true
+  is_linux && cat /etc/hostname 2>/dev/null && return 0
+  is_macos && hostname && return 0
+  return 1
+}
+
+get_user() {
+  _USER="$(get_option '--user' "$@")" || true
+  [ -n "$_USER" ] && echo "$_USER" && return 0
+  is_non_root && whoami && return 0
+  is_root && get_wheel_user && return 0
+  return 1
+}
+
+get_wheel_user() {
+  grep '^wheel:' /etc/group | cut -d',' -f2 | grep -v 'root'
+}
+
+run_as_root() {
+  if is_root; then
+    "$@"
+  elif check_command doas; then
+    doas "$@"
+  elif check_command sudo; then
+    sudo "$@"
+  else
+    return 1
+  fi
+}
+
+run_as_user() {
+  _USER='' && [ "$#" -ge 1 ] && _USER="$1" && shift
+  if is_non_root; then "$@" && echo; fi
+  if is_root; then su "$_USER" -c "$@"; fi
+}
+
+source_file() {
+  _FILE_TO_SOURCE='' && [ "$#" -ge 1 ] && _FILE_TO_SOURCE="$1"
+  [ -z "$_FILE_TO_SOURCE" ] && return 1
+  if [ -f "$_SCRIPT_DIR/$_FILE_TO_SOURCE" ]; then
+    . "$_SCRIPT_DIR/$_FILE_TO_SOURCE" && return 0
+  elif curl -ILfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >/dev/null; then
+    _TMP_FILE=$(mktemp)
+    curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
+    . "$_TMP_FILE" && rm "$_TMP_FILE" && return 0
+  fi
+  return 1
+}
+
+stow() {
+  _SOURCE="$1"
+  _TARGET="$2" && [ "$2" = '/' ] && _TARGET=''
+  is_source_a_dir() { test -d "$_SOURCE"; }
+  is_target_a_dir() { expr "$_TARGET" : '.*/$' >/dev/null; }
+  is_source_a_dir && is_target_a_dir && (
+    _TARGET_DIR="${_TARGET%/}"
+    mkdir -p "$(dirname "$_TARGET_DIR")"
+    rm -fr "$_TARGET_DIR"
+    ln -fs "$_SOURCE" "$_TARGET_DIR"
+    echo "[I] linking directory to directory: $_SOURCE $_TARGET_DIR"
+    return 0
+  )
+  ! is_source_a_dir && ! is_target_a_dir && (
+    mkdir -p "$(dirname "$_TARGET")"
+    rm -fr "$_TARGET"
+    ln -fs "$1" "$_TARGET"
+    echo "[I] linking file to file: $1 $_TARGET"
+    return 0
+  )
   return 1
 }
 
@@ -90,145 +164,6 @@ get_hostname() {
 #   done
 # }
 # export -f clean_directories_and_links
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # checks for the existence of a command in the system path
-# # arguments:
-# #   $1 - the name of the command to check for (e.g., 'git', 'docker', 'python3')
-# # returns:
-# #   0 (success) if the command is found
-# #   1 (failure) if the command is not found
-# function check_command() { which "$1" >/dev/null 2>&1; }
-# export -f check_command
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # gets the first non-root user with privileges from the system
-# # arguments:
-# #   none
-# # returns:
-# #   the user id if it exists, printed to standard output
-# #   0 (success) if user is found
-# #   1 (failure) if user is not found
-# function get_first_wheel_user() { grep '^wheel:' /etc/group | tr ',' '\n' | grep -v 'root' | head -n 1 | grep '.'; }
-# export -f get_first_wheel_user
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # gets the value of a specific command-line option
-# # arguments:
-# #   $1 - the name of the option to find (e.g., "--path")
-# #   $@ - all subsequent command-line arguments to search through
-# # returns:
-# #   the value of the option if it exists, printed to standard output
-# #   0 (success) if the option is found
-# #   1 (failure) if the option is not found
-# function get_option() {
-#   _OPT="$1" && shift
-#   while [[ "$#" -gt 0 ]]; do
-#     _ARG="$1" && shift
-#     if [[ "$_ARG" == "$_OPT" ]]; then
-#       [[ "$#" -gt 0 ]] && ! [[ "$1" =~ ^- ]] && echo "$1"
-#       return 0
-#     fi
-#   done
-#   return 1
-# }
-# export -f get_option
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # gets the user id executing the script
-# # arguments:
-# #   $@ - the parent script arguments
-# # returns:
-# #   the user id, printed to standard output
-# #   0 (success) if user is found
-# #   1 (failure) if user is not found
-# function get_user() {
-#   _USER="$(get_option "--user" "$@")" || true
-#   [[ -n "$_USER" ]] && echo "$_USER" && return 0
-#   is_root && get_first_wheel_user && return 0 || true
-#   ! is_root && whoami && return 0 || true
-#   return 1
-# }
-# export -f get_user
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # gets the user home directory path executing the script
-# # arguments:
-# #   $@ - the parent script arguments
-# # returns:
-# #   the user home directory path, printed to standard output
-# #   0 (success) if path is found
-# #   1 (failure) if path is not found
-# function get_home() {
-#   _USER="$(get_user "$@")" || return 1
-#   [ "$(uname)" == 'Darwin' ] && echo "/Users/$_USER" && return 0 || true
-#   [ "$(uname)" == 'Linux' ] && echo "/home/$_USER" && return 0 || true
-#   return 1
-# }
-# export -f get_home
-#
-# function is_macos() { test "$(uname)" == 'Darwin'; }
-# export -f is_macos
-# function is_linux() { test "$(uname)" == 'Linux'; }
-# export -f is_linux
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # gets the host of the system executing the script
-# # arguments:
-# #   $@ - the parent script arguments
-# # returns:
-# #   the host, printed to standard output
-# #   0 (success) if host is found
-# #   1 (failure) if host is not found
-# function get_host() {
-#   _HOST="$(get_option "--host" "$@")" || true
-#   [[ -n "$_HOST" ]] && echo "$_HOST" && return 0
-#   [ "$(uname)" == 'Darwin' ] && hostname && return 0 || true
-#   [ "$(uname)" == 'Linux' ] && cat /etc/hostname 2>/dev/null && return 0 || true
-#   return 1
-# }
-# export -f get_host
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # checks if the current user is root
-# # arguments:
-# #   none
-# # returns:
-# #   0 (success) if the user id is 0 - root user
-# #   1 (failure) if the user id is not 0 - non-root user
-# function is_root() { test $EUID -eq 0; }
-# export -f is_root
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # runs a command as the root user
-# # arguments:
-# #   $@ - the command and its arguments to be executed with root privileges
-# #        (e.g., 'emerge dev-vcs/git', 'nano /etc/hosts')
-# # returns:
-# #   the exit status of the executed command
-# function run_as_root() {
-#   if is_root; then
-#     "$@"
-#   elif check_command doas; then
-#     doas "$@"
-#   elif check_command sudo; then
-#     sudo "$@"
-#   else
-#     return 1
-#   fi
-# }
-# export -f run_as_root
-#
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # runs a command as a specified non-root user
-# # arguments:
-# #   $1 - the name of the user to switch to (e.g., 'myuser').
-# #   $@ - all subsequent arguments, which form the command and its arguments
-# #        to be executed (e.g., 'ls -l /home/myuser')
-# # returns:
-# #   the exit status of the executed command
-# function run_as_user() { if is_root; then su "$1" -c "${*:2}"; else "${@:2}"; fi; }
-# export -f run_as_user
 #
 # # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 # # runs a script from the local filesystem or directly from github
@@ -318,42 +253,3 @@ get_hostname() {
 # }
 # export -f stow_directory
 #
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-# # displays tool usage
-# # arguments:
-# #   none
-# # returns:
-# #   0 (success) always
-# function usage() {
-#   echo -e "\
-# dots: command-line interface for managing dotfiles and gentoo systems installations
-# Usage:
-#   dots bootstrap  [ --user <user> ]                       >> installs git and clones dotfiles repository
-#   dots install      --host <host> --password <password>   >> installs gentoo on the target system 'host'
-#   dots update     [ --user <user> ]                       >> clears and updates the dotfiles directory
-#   dots sync       [ --host <host> ] [ --user <user> ]     >> clears setup and applies dotfiles to system
-# "
-# }
-# export -f usage
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-#
-# function source_file() {
-#   # checks required parameter - the file to be sourced
-#   _FILE_TO_LOAD='' && [ "$#" -ge 1 ] && _FILE_TO_LOAD="$1"
-#   [ -z "$_FILE_TO_LOAD" ] &&
-#     echo "[E] dots-utils#source_file : missing required parameter: '\$1'" && return 1
-#   # defines reusable constants
-#   _LOCAL_FILE_PATH="$(dirname "$(readlink -f "$0")")/$_FILE_TO_LOAD"
-#   _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
-#   # sources local file if it exists in the system
-#   if [ -f "$_LOCAL_FILE_PATH" ]; then
-#     source "$_LOCAL_FILE_PATH" && return 0
-#   # sources remote file if it exists in remote dotfiles repository
-#   elif curl -ILfs "$_REMOTE_FILE_URL" >/dev/null; then
-#     source /dev/stdin <<<"$(curl -Lfs "$_REMOTE_FILE_URL")" && return 0
-#   # returns unsuccessful if file not found or any issue with the sourcing
-#   fi
-#   return 1
-# }
-# export -f source_file
-# # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----

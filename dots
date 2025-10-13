@@ -3,15 +3,12 @@
 set -eou pipefail
 
 export _DOTS_DIR='workspace/personal/dotfiles'
-export _DOTS_URL='https://github.com/pedro-pereira-dev/dotfiles.git'
+export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
 export _GIT_CRYPT_KEY='.git-crypt-key'
-export _HOMEBREW_RAW_URL='https://raw.githubusercontent.com/homebrew/install/refs/heads/main'
 
 # # defines reusable constants
 # _LOCAL_FILE_PATH="$_SCRIPT_DIR/$_FILE_TO_LOAD"
 # _REMOTE_FILE_URL="$_DOTS_RAW_URL/$_FILE_TO_LOAD"
-
-_DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
 
 _FILE_TO_SOURCE='dots.d/utils.sh'
 _SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
@@ -30,29 +27,20 @@ _main() {
   _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
   case $_CMD in
 
-  # bootstrap) # installs required software and clones remote dotfiles git repository
-  #   # checks required parameter
-  #   _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
-  #     (echo "[E] dots#bootstrap : missing required parameter '--user'" && return 1)
-  #   # checks homebrew installation on macos systems
-  #   test "$(uname)" == 'Darwin' && ! check_command brew &&
-  #     echo '[I] installing homebrew...' &&
-  #     curl -Lfs "$_HOMEBREW_RAW_URL/install.sh" | NONINTERACTIVE=1 run_as_user "$_USER" bash &&
-  #     export PATH="/opt/homebrew/bin:$PATH"
-  #   # checks git installation
-  #   ! check_command git && echo '[I] installing git...' && (
-  #     check_command brew && run_as_user "$_USER" brew install git
-  #     check_command emerge && run_as_root emerge --ask=n --noreplace dev-vcs/git
-  #   )
-  #   # checks local dotfiles git repository directory
-  #   ! test -d "$_HOME/$_DOTS_DIR/.git" && echo '[I] cloning dotfiles...' && (
-  #     run_as_user "$_USER" rm -fr "$_HOME/$_DOTS_DIR"
-  #     run_as_user "$_USER" mkdir -p "$(dirname "$_HOME/$_DOTS_DIR")"
-  #     run_as_user "$_USER" git clone $_DOTS_URL "$_HOME/$_DOTS_DIR"
-  #   )
-  #   return 0
-  #   ;;
-  #   # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # installs required software and clones remote dotfiles git repository
+  bootstrap)
+    _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
+      (echo "[E] dots#bootstrap : missing required parameter '--user'" && return 1)
+    is_macos && ! check_command brew &&
+      run_as_user "$_USER" install_homebrew && export PATH="/opt/homebrew/bin:$PATH"
+    ! check_command git && install_git "$_USER"
+    [ ! -d "$_HOME/$_DOTS_DIR/.git" ] && (
+      run_as_user "$_USER" rm -fr "$_HOME/$_DOTS_DIR"
+      run_as_user "$_USER" mkdir -p "$(dirname "$_HOME/$_DOTS_DIR")"
+      run_as_user "$_USER" git clone 'https://github.com/pedro-pereira-dev/dotfiles.git' "$_HOME/$_DOTS_DIR"
+    )
+    return 0
+    ;;
 
   # prepares live iso system and installs gentoo using custom script
   install)
@@ -62,28 +50,24 @@ _main() {
       (echo "[E] dots#install : missing required parameter '--password'" && return 1)
     ! is_root &&
       echo '[E] dots#install : missing required permissions' && return 1
-    source_file "$_HOSTNAME.d/$_HOSTNAME.conf" ||
+    source_file "host-$_HOSTNAME.d/system.conf" ||
       (echo "[E] dots#install : failed to source '$_HOSTNAME' configuration" && return 1)
     source_file 'dots.d/install-gentoo.sh' ||
       (echo "[E] dots#install : failed to install gentoo to '$_HOSTNAME'" && return 1)
     return 0
     ;;
 
-  # update) # resets dotfiles git repository and updates its head
-  #   # checks required parameter
-  #   _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
-  #     (echo "[E] dots#update : missing required parameter '--user'" && return 1)
-  #   # updates and resets local dotfiles git repository
-  #   _main bootstrap "$@" && (
-  #     echo '[I] updating dotfiles...'
-  #     cd "$_HOME/$_DOTS_DIR"
-  #     run_as_user "$_USER" git fetch origin
-  #     run_as_user "$_USER" git reset --hard origin/main
-  #     run_as_user "$_USER" git clean -dfqx
-  #   )
-  #   return 0
-  #   ;;
-  #   # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # resets dotfiles git repository and updates its head
+  update)
+    _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
+      (echo "[E] dots#update : missing required parameter '--user'" && return 1)
+    _main bootstrap "$@" && (
+      run_as_user "$_USER" git -C "$_HOME/$_DOTS_DIR" fetch origin
+      run_as_user "$_USER" git -C "$_HOME/$_DOTS_DIR" reset --hard origin/main
+      run_as_user "$_USER" git -C "$_HOME/$_DOTS_DIR" clean -dfqx
+    )
+    return 0
+    ;;
 
   # # handles dotfiles secrets
   # secrets)
@@ -137,45 +121,42 @@ _main() {
   #   ;;
   # # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
-  # sync) # merges dotfiles settings into the system
-  #   # checks required parameter
-  #   _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
-  #     (echo "[E] dots#sync : missing required parameter '--user'" && return 1)
-  #   _HOST="$(get_host "$@")" ||
-  #     (echo "[E] dots#sync : missing required parameter '--host'" && return 1)
-  #   _CLEAN_FLAG='--clean' && _FULL_FLAG='--full' && _INSTALL_FLAG='--install'
-  #   # sources target system configuration
-  #   echo "[I] sourcing '$_HOST' configuration..."
-  #   _LAYERS=() && _FILE_TO_LOAD="hosts.d/$_HOST.d/$_HOST.conf"
-  #   source_file "$_FILE_TO_LOAD" ||
-  #     (echo "[E] dots#sync : failed to source '$_HOST' configuration" && return 1)
-  #   # sets up layer
-  #   for _LAYER in "${_LAYERS[@]}"; do
-  #     _FILE_TO_LOAD="$_LAYER/$(basename "${_LAYER%??}").sh"
-  #     echo "[I] setting up layer '$_FILE_TO_LOAD'..."
-  #     source_file "$_FILE_TO_LOAD" 'setup' "$@" || true
-  #   done
-  #   # clears empty directories and stale links
-  #   # (get_option "$_CLEAN_FLAG" "$@" || get_option "$_FULL_FLAG" "$@") && (
-  #   #   is_root && (
-  #   #     echo "[I] cleaning empty directories and stale links from '/'..."
-  #   #     run_as_root clean_directories_and_links '/' ||
-  #   #       (echo "[E] dots#sync : failed to clean directories and links from '/'" && return 1)
-  #   #   ) || (
-  #   #     echo "[I] cleaning empty directories and stale links from '$_HOME'..."
-  #   #     run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
-  #   #       (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
-  #   #   )
-  #   # )
-  #   # configures layer
-  #   for _LAYER in "${_LAYERS[@]}"; do
-  #     _FILE_TO_LOAD="$_LAYER/$(basename "${_LAYER%??}").sh"
-  #     echo "[I] configuring layer '$_FILE_TO_LOAD'..."
-  #     source_file "$_FILE_TO_LOAD" 'configure' "$@" || true
-  #   done
-  #   return 0
-  #   ;;
-  #   # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # merges dotfiles settings into the system
+  sync)
+    _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
+      (echo "[E] dots#sync : missing required parameter '--user'" && return 1)
+    _HOSTNAME="$(get_hostname "$@")" ||
+      (echo "[E] dots#sync : missing required parameter '--hostname'" && return 1)
+    _FULL_FLAG='--full' && _INSTALL_FLAG='--install'
+    source_file "host-$_HOSTNAME.d/system.conf" ||
+      (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
+    configure
+
+    # for _LAYER in "${_LAYERS[@]}"; do
+    #   _FILE_TO_SOURCE="$_LAYER/$(basename "${_LAYER%??}").sh"
+    #   echo "[I] setting up layer '$_FILE_TO_SOURCE'..."
+    #   source_file "$_FILE_TO_SOURCE" 'setup' "$@" || true
+    # done
+    # # clears empty directories and stale links
+    # # (get_option "$_CLEAN_FLAG" "$@" || get_option "$_FULL_FLAG" "$@") && (
+    # #   is_root && (
+    # #     echo "[I] cleaning empty directories and stale links from '/'..."
+    # #     run_as_root clean_directories_and_links '/' ||
+    # #       (echo "[E] dots#sync : failed to clean directories and links from '/'" && return 1)
+    # #   ) || (
+    # #     echo "[I] cleaning empty directories and stale links from '$_HOME'..."
+    # #     run_as_user "$_USER" clean_directories_and_links "$_HOME" ||
+    # #       (echo "[E] dots#sync : failed to clean directories and links from '$_HOME'" && return 1)
+    # #   )
+    # # )
+    # # configures layer
+    # for _LAYER in "${_LAYERS[@]}"; do
+    #   _FILE_TO_SOURCE="$_LAYER/$(basename "${_LAYER%??}").sh"
+    #   echo "[I] configuring layer '$_FILE_TO_SOURCE'..."
+    #   source_file "$_FILE_TO_SOURCE" 'configure' "$@" || true
+    # done
+    return 0
+    ;;
 
   *) echo '[E] dots#_main : undefined command' && return 1 ;;
   esac
