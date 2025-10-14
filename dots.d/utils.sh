@@ -76,18 +76,16 @@ remove_broken_links() {
 }
 
 run_as_root() {
-  _UTILS_SCRIPT="$_HOME/$_DOTS_DIR/dots.d/utils.sh"
   if is_root; then
     "$@"
   elif check_command doas; then
-    echo ". $_UTILS_SCRIPT" | doas sh -c ". /dev/stdin && $*"
+    doas sh -c ". $_TMP_UTILS_FILE && $*"
   elif check_command sudo; then
-    echo ". $_UTILS_SCRIPT" | sudo sh -c ". /dev/stdin && $*"
+    sudo sh -c ". $_TMP_UTILS_FILE && $*"
   fi
 }
 
 run_as_user() {
-  _UTILS_SCRIPT="$_HOME/$_DOTS_DIR/dots.d/utils.sh"
   _USER='' && [ "$#" -ge 1 ] && _USER="$1" && shift
   if is_non_root; then
     "$@"
@@ -106,6 +104,7 @@ source_file() {
     curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
     . "$_TMP_FILE" && rm "$_TMP_FILE" && return 0
   fi
+  echo "falhou aqui pelos vistos"
   return 1
 }
 
