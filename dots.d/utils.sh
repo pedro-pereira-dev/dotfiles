@@ -111,26 +111,18 @@ stow() {
   is_source_a_dir() { test -d "$_SOURCE"; }
   is_target_a_dir() { expr "$_TARGET" : '.*/$' >/dev/null; }
   is_source_a_dir && is_target_a_dir && (
-    _TARGET_DIR="${_TARGET%/}"
-    list_dirs() { find "$1" -mindepth 1 -type d -print; }
-    list_files() { find "$1" \( -type f -o -type l \) -print; }
-    list_dirs "$_SOURCE" | while IFS= read -r _SOURCE_DIR; do
-      [ -f "$_TARGET_DIR${_SOURCE_DIR#"$_SOURCE"}" ] &&
-        rm -f "$_TARGET_DIR${_SOURCE_DIR#"$_SOURCE"}" || true
-      mkdir -p "$_TARGET_DIR${_SOURCE_DIR#"$_SOURCE"}"
-      stow "$_SOURCE_DIR" "$_TARGET_DIR${_SOURCE_DIR#"$_SOURCE"}/"
-    done
-    list_files "$1" | while IFS= read -r _SOURCE_FILE; do
-      [ -e "$_TARGET_DIR${_SOURCE_FILE#"$_SOURCE"}" ] &&
-        rm -fr "$_TARGET_DIR${_SOURCE_FILE#"$_SOURCE"}" || true
-      mkdir -p "$(dirname "$_TARGET_DIR${_SOURCE_FILE#"$_SOURCE"}")"
-      ln -fs "$_SOURCE_FILE" "$_TARGET${_SOURCE_FILE#"$_SOURCE"}"
-      echo "[I] linking nested file to file: $_SOURCE_FILE $_TARGET${_SOURCE_FILE#"$_SOURCE"}"
+    for _SOURCE_ENTRY in "$_SOURCE"*; do
+      _SOURCE_PATH="${_SOURCE_ENTRY#"$_SOURCE"}"
+      mkdir -p "$(dirname "$_TARGET$_SOURCE_PATH")"
+      rm -fr "$_TARGET$_SOURCE_PATH"
+      ln -fs "$_SOURCE_ENTRY" "$_TARGET$_SOURCE_PATH"
+      echo "[I] linking entry to path: $_SOURCE_ENTRY $_TARGET$_SOURCE_PATH"
     done
     return 0
   )
   is_source_a_dir && ! is_target_a_dir && (
-    mkdir -p "$_TARGET" && rm -fr "$_TARGET"
+    mkdir -p "$(dirname "$_TARGET")"
+    rm -fr "$_TARGET"
     ln -fs "$_SOURCE" "$_TARGET"
     echo "[I] linking directory to directory: $_SOURCE $_TARGET"
     return 0
