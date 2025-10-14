@@ -89,7 +89,7 @@ run_as_root() {
 run_as_user() {
   _USER='' && [ "$#" -ge 1 ] && _USER="$1" && shift
   if is_non_root; then "$@" && echo; fi
-  if is_root; then su "$_USER" -c "$@"; fi
+  if is_root; then su "$_USER" -c "$*"; fi
 }
 
 source_file() {
@@ -127,11 +127,18 @@ stow() {
     echo "[I] linking directory to directory: $_SOURCE $_TARGET"
     return 0
   )
+  ! is_source_a_dir && is_target_a_dir && (
+    mkdir -p "$_TARGET"
+    rm -fr "$_TARGET$(basename "$_SOURCE")"
+    ln -fs "$_SOURCE" "$_TARGET$(basename "$_SOURCE")"
+    echo "[I] linking file to directory: $_SOURCE $_TARGET$(basename "$_SOURCE")"
+    return 0
+  )
   ! is_source_a_dir && ! is_target_a_dir && (
     mkdir -p "$(dirname "$_TARGET")"
     rm -fr "$_TARGET"
-    ln -fs "$1" "$_TARGET"
-    echo "[I] linking file to file: $1 $_TARGET"
+    ln -fs "$_SOURCE" "$_TARGET"
+    echo "[I] linking file to file: $_SOURCE $_TARGET"
     return 0
   )
   return 1

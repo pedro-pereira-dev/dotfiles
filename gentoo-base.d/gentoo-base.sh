@@ -2,7 +2,7 @@
 run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/gentoo-tools/" '/usr/bin/'
 run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/system-confs/grub.conf" '/etc/default/grub'
 run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/system-confs/overlays.conf" '/etc/portage/repos.conf/overlays.conf'
-run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/system-confs/package-mask.conf" '/etc/portage/package.mask'
+run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/system-confs/package.mask" '/etc/portage/'
 
 ! check_command doas && run_as_root emerge --ask=n --noreplace app-admin/doas || true
 check_command doas &&

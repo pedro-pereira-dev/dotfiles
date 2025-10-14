@@ -1,0 +1,11 @@
+app-admin/doas
+app-containers/podman-compose
+app-misc/tmux
+app-shells/fzf
+dev-vcs/git
+dev-vcs/git-crypt
+sys-kernel/gentoo-kernel-bin
+sys-kernel/installkernel
+sys-kernel/linux-firmware
+sys-process/btop
+sys-process/htop

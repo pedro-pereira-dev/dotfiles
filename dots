@@ -31,8 +31,8 @@ _main() {
       run_as_user "$_USER" install_homebrew && export PATH="/opt/homebrew/bin:$PATH"
     ! check_command git && install_git "$_USER"
     [ ! -d "$_HOME/$_DOTS_DIR/.git" ] && (
-      run_as_user "$_USER" rm -fr "$_HOME/$_DOTS_DIR"
       run_as_user "$_USER" mkdir -p "$(dirname "$_HOME/$_DOTS_DIR")"
+      run_as_user "$_USER" rm -fr "$_HOME/$_DOTS_DIR"
       run_as_user "$_USER" git clone 'https://github.com/pedro-pereira-dev/dotfiles.git' "$_HOME/$_DOTS_DIR"
     )
     return 0

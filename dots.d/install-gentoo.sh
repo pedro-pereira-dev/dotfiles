@@ -46,7 +46,6 @@ chroot /mnt /bin/sh <<EOF
 env-update && source /etc/profile
 useradd -m -G wheel -s /bin/bash "$_USER"
 echo "$_USER:$_PASSWORD" | chpasswd
-emerge --ask=n --noreplace dev-vcs/git
 curl -Lfs "$_DOTS_RAW_URL/dots" | sh -s -- update
 /home/$_USER/$_DOTS_DIR/dots sync --full
 EOF
