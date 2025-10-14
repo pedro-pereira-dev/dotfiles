@@ -123,7 +123,7 @@ _main() {
       (echo "[E] dots#sync : missing required parameter '--user'" && return 1)
     _HOSTNAME="$(get_hostname "$@")" ||
       (echo "[E] dots#sync : missing required parameter '--hostname'" && return 1)
-    _FULL_FLAG='--full' && _INSTALL_FLAG='--install'
+    [ ! -d "$_HOME/$_DOTS_DIR/.git" ] && _main bootstrap "$@"
     source_file "host-$_HOSTNAME.d/$_HOSTNAME.sh" ||
       (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
     configure "$@"
