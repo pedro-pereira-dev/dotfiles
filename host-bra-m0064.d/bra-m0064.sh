@@ -7,11 +7,11 @@ configure() {
   source_file 'shared-code.d/shared-code.sh'
   source_file 'shared-desktop.d/shared-desktop.sh'
 
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-bin-brew-upgrade.sh" "$_HOME/.local/bin/brew-upgrade"
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-homebrew-brewfile.conf" "$_HOME/Brewfile"
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-karabiner/" "$_HOME/.config/karabiner"
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-rectangle.json" "$_HOME/.config/rectangle/config.json"
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-ukelele-20251009/" "$_HOME/.config/ukelele/20251009"
+  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/custom-confs/brewfile.conf" "$_HOME/Brewfile"
+  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/custom-confs/karabiner/" "$_HOME/.config/karabiner"
+  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/custom-confs/rectangle.json" "$_HOME/.config/rectangle/config.json"
+  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/custom-confs/ukelele-20251009/" "$_HOME/.config/ukelele/20251009"
+  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/custom-tools/" "$_HOME/.local/bin/"
 
   get_option '--full' "$@" && run_as_user "$_USER" "$_HOME/.local/bin/brew-upgrade" || true
 }
