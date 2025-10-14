@@ -1,6 +1,5 @@
 #!/bin/sh
 run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
-run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/shared-base.d/custom-confs/alacritty.toml" "$_HOME/.config/alacritty/alacritty.toml"
 run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/shared-base.d/custom-confs/bashrc.sh" "$_HOME/.bashrc"
 run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/shared-base.d/custom-confs/gitconfig" "$_HOME/.gitconfig"
 run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/shared-base.d/custom-confs/gitconfig-default.conf" "$_HOME/.gitconfig.default"
