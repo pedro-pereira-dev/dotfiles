@@ -92,7 +92,7 @@ run_as_user() {
   if is_non_root; then
     "$@"
   elif is_root; then
-    su "$_USER" -c ". $_UTILS_SCRIPT && $*"
+    su "$_USER" -c ". $_TMP_UTILS_FILE && $*"
   fi
 }
 

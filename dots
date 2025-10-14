@@ -7,18 +7,16 @@ export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfil
 # export _GIT_CRYPT_KEY='.gitcryptkey'
 
 _FILE_TO_SOURCE='dots.d/utils.sh'
-_SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 _IS_DOTS_UTILS_LOADED=''
-
-echo "vai sourcar isto: $_SCRIPT_DIR/$_FILE_TO_SOURCE"
-
+_SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+_TMP_UTILS_FILE=$(mktemp)
+chmod a+r "$_TMP_UTILS_FILE"
 if [ -f "$_SCRIPT_DIR/$_FILE_TO_SOURCE" ]; then
-  . "$_SCRIPT_DIR/$_FILE_TO_SOURCE"
+  cat "$_SCRIPT_DIR/$_FILE_TO_SOURCE" >"$_TMP_UTILS_FILE"
 elif curl -ILfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >/dev/null; then
-  _TMP_FILE=$(mktemp)
-  curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
-  . "$_TMP_FILE" && rm "$_TMP_FILE"
+  curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_UTILS_FILE"
 fi
+. "$_TMP_UTILS_FILE"
 [ -z "$_IS_DOTS_UTILS_LOADED" ] &&
   echo "[E] dots#_ : failed to source '$_FILE_TO_SOURCE'" && exit 1
 
@@ -138,3 +136,4 @@ _main() {
   esac
 }
 _main "$@"
+rm -fr "$_TMP_UTILS_FILE"
