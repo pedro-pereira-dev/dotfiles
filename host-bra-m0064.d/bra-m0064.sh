@@ -5,17 +5,19 @@ _USER='pereiped'
 configure() {
   # dotfiles tooling
   source_file 'dots.d/layer.sh'
+  source_file 'shared-base.d/shared-base.sh'
+  source_file 'shared-code.d/shared-code.sh'
   # # base system settings
-  source_file 'shared-bash.d/layer.sh'
-  source_file 'shared-git.d/layer.sh'
-  source_file 'shared-secrets.d/layer.sh'
-  source_file 'shared-ssh.d/layer.sh'
+  # source_file 'shared-bash.d/layer.sh'
+  # source_file 'shared-git.d/layer.sh'
+  # source_file 'shared-secrets.d/layer.sh'
+  # source_file 'shared-ssh.d/layer.sh'
   # # code settings and tooling
-  source_file 'shared-lazygit.d/layer.sh'
-  source_file 'shared-neovim.d/layer.sh'
-  source_file 'shared-tmux.d/layer.sh'
+  # source_file 'shared-lazygit.d/layer.sh'
+  # source_file 'shared-neovim.d/layer.sh'
+  # source_file 'shared-tmux.d/layer.sh'
   # # desktop environment
-  source_file 'shared-alacritty.d/layer.sh'
+  # source_file 'shared-alacritty.d/layer.sh'
   # host specific settings
   run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-bin-brew-upgrade.sh" "$_HOME/.local/bin/brew-upgrade"
   run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/layer-homebrew-brewfile.conf" "$_HOME/Brewfile"

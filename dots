@@ -4,7 +4,7 @@ set -eou pipefail
 
 export _DOTS_DIR='workspace/personal/dotfiles'
 export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
-export _GIT_CRYPT_KEY='.git-crypt-key'
+# export _GIT_CRYPT_KEY='.gitcryptkey'
 
 _FILE_TO_SOURCE='dots.d/utils.sh'
 _SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
@@ -124,7 +124,7 @@ _main() {
     _HOSTNAME="$(get_hostname "$@")" ||
       (echo "[E] dots#sync : missing required parameter '--hostname'" && return 1)
     _FULL_FLAG='--full' && _INSTALL_FLAG='--install'
-    source_file "host-$_HOSTNAME.d/system.conf" ||
+    source_file "host-$_HOSTNAME.d/$_HOSTNAME.sh" ||
       (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
     configure "$@"
     get_option '--full' "$@" && run_as_root remove_broken_links || true

@@ -1,2 +1,2 @@
 *.enc filter=git-crypt diff=git-crypt
-.git-crypt-key.enc !filter !diff
+.gitcryptkey.enc !filter !diff
