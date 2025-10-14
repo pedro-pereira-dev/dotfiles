@@ -76,7 +76,7 @@ remove_broken_links() {
 }
 
 run_as_root() {
-  _UTILS_SCRIPT="$_SCRIPT_DIR/dots.d/utils.sh"
+  _UTILS_SCRIPT="$_HOME/$_DOTS_DIR/dots.d/utils.sh"
   if is_root; then
     "$@"
   elif check_command doas; then
@@ -87,9 +87,13 @@ run_as_root() {
 }
 
 run_as_user() {
+  _UTILS_SCRIPT="$_HOME/$_DOTS_DIR/dots.d/utils.sh"
   _USER='' && [ "$#" -ge 1 ] && _USER="$1" && shift
-  if is_non_root; then "$@" && echo; fi
-  if is_root; then su "$_USER" -c "$*"; fi
+  if is_non_root; then
+    "$@"
+  elif is_root; then
+    su "$_USER" -c ". $_UTILS_SCRIPT && $*"
+  fi
 }
 
 source_file() {
