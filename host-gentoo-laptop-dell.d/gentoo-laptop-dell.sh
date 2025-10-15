@@ -1,41 +1,33 @@
-#!/bin/bash
-set -eou pipefail
-function _main() {
-  _SCRIPT_DIR="$_HOME/$_DOTS_DIR/$(dirname "$1")" && shift
-  _CMD='' && [ "$#" -ge 1 ] && _CMD="$1"
-  case $_CMD in
+#!/bin/sh
+_HOST='gentoo-laptop-dell'
+_USER='chuck'
 
-  configure)
-    if get_option "$_FULL_FLAG" "$@"; then
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" gpg-github-pedro-pereira-dev
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-authorized-keys
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-gentoo-hetzner-media
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-gentoo-laptop
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-github-pedro-pereira-dev
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-set" ssh-mercedes-github-pesoare
-      run_as_user "$_USER" "$_HOME/.local/bin/secrets-import"
-    fi
-    run_as_root rc-update add NetworkManager default >/dev/null 2>&1
-    run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
-    run_as_root usermod --append --groups video "$_USER" # for backlight
-    run_as_user "$_USER" "$_HOME/.local/bin/install-nerd-font" JetBrainsMono
-    return 0
-    ;;
+configure() {
+  source_file 'shared-base.d/shared-base.sh'
+  source_file 'shared-code.d/shared-code.sh'
+  source_file 'shared-desktop.d/shared-desktop.sh'
+  source_file 'gentoo-base.d/gentoo-base.sh'
+  source_file 'gentoo-desktop.d/gentoo-desktop.sh'
 
-  setup)
-    run_as_root stow "$_SCRIPT_DIR/layer-dracut-config.conf" '/etc/dracut.conf.d/dracut.conf'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-accept-keywords.conf" '/etc/portage/package.accept_keywords'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-make.conf" '/etc/portage/make.conf'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-package-declare.conf" '/etc/portage/package.declare'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-package-license.conf" '/etc/portage/package.license'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-package-mask.conf" '/etc/portage/package.mask'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-package-unmask.conf" '/etc/portage/package.unmask'
-    run_as_root stow "$_SCRIPT_DIR/layer-portage-package-use.conf" '/etc/portage/package.use'
-    run_as_user "$_USER" stow "$_SCRIPT_DIR/layer-ssh-gentoo-laptop.conf" "$_HOME/.ssh/config.d/gentoo-laptop"
-    return 0
-    ;;
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/gentoo-confs/" '/etc/portage/'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/system-confs/dracut.conf" '/etc/dracut.conf.d/dracut.conf'
+  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/system-confs/ssh-gentoo-laptop.conf" "$_HOME/.ssh/config.d/gentoo-laptop"
 
-  *) return 1 ;;
-  esac
+  get_option '--full' "$@" && (
+    run_as_root '/usr/bin/eauto' --unsupervised
+    run_as_root eselect news read >/dev/null
+    run_as_root '/usr/bin/regenerate-bootloader'
+  ) || true
+
+  run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty5 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1
+
+  run_as_root rc-update add NetworkManager default >/dev/null 2>&1
+  run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
+
+  run_as_root usermod --append --groups video "$_USER" # for backlight
+  run_as_user "$_USER" "$_HOME/.local/bin/install-nerd-font" JetBrainsMono
 }
-_main "$@"

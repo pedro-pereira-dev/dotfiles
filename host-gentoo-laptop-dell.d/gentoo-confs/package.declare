@@ -1,10 +1,4 @@
-# app-containers/podman-compose
-# app-shells/starship
-# app-shells/zoxide
-# sys-apps/fd
-# sys-block/io-scheduler-udev-rules
-# sys-process/btop
-# sys-process/htop
+#!/bin/sh
 app-admin/doas
 app-admin/eclean-kernel
 app-containers/podman-compose
