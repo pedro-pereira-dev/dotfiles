@@ -3,15 +3,11 @@ _HOSTNAME='gentoo-server-oracle'
 _USER='chuck'
 
 configure() {
-  echo "começou"
   source_file 'shared-base.d/shared-base.sh'
-  echo "source_file 'shared-base.d/shared-base.sh'"
   source_file 'gentoo-base.d/gentoo-base.sh'
-  echo "source_file 'gentoo-base.d/gentoo-base.sh'"
   source_file 'gentoo-server.d/gentoo-server.sh'
-  echo "source_file 'gentoo-server.d/gentoo-server.sh'"
 
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-gentoo-server-oracle.d/gentoo-confs/" "/etc/portage/"
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-server-oracle.d/gentoo-confs/" "/etc/portage/"
   run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-gentoo-server-oracle.d/podman-confs/" "$_HOME/.podman/"
 }
 

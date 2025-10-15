@@ -1,1 +1,2 @@
+#!/bin/sh
 app-containers/podman-compose ~amd64

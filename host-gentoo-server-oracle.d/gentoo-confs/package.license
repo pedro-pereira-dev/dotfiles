@@ -1,1 +1,2 @@
+#!/bin/sh
 sys-kernel/linux-firmware @BINARY-REDISTRIBUTABLE

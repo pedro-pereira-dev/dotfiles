@@ -104,7 +104,6 @@ source_file() {
     curl -Lfs "$_DOTS_RAW_URL/$_FILE_TO_SOURCE" >"$_TMP_FILE"
     . "$_TMP_FILE" && rm "$_TMP_FILE" && return 0
   fi
-  echo "falhou aqui pelos vistos"
   return 1
 }
 
@@ -121,28 +120,24 @@ stow() {
       ln -fs "$_SOURCE_ENTRY" "$_TARGET$_SOURCE_PATH"
       echo "[I] linking entry to path: $_SOURCE_ENTRY $_TARGET$_SOURCE_PATH"
     done
-    return 0
-  )
+  ) && return 0
   is_source_a_dir && ! is_target_a_dir && (
     mkdir -p "$(dirname "$_TARGET")"
     rm -fr "$_TARGET"
     ln -fs "$_SOURCE" "$_TARGET"
     echo "[I] linking directory to directory: $_SOURCE $_TARGET"
-    return 0
-  )
+  ) && return 0
   ! is_source_a_dir && is_target_a_dir && (
     mkdir -p "$_TARGET"
     rm -fr "$_TARGET$(basename "$_SOURCE")"
     ln -fs "$_SOURCE" "$_TARGET$(basename "$_SOURCE")"
     echo "[I] linking file to directory: $_SOURCE $_TARGET$(basename "$_SOURCE")"
-    return 0
-  )
+  ) && return 0
   ! is_source_a_dir && ! is_target_a_dir && (
     mkdir -p "$(dirname "$_TARGET")"
     rm -fr "$_TARGET"
     ln -fs "$_SOURCE" "$_TARGET"
     echo "[I] linking file to file: $_SOURCE $_TARGET"
-    return 0
-  )
+  ) && return 0
   return 1
 }
