@@ -4,7 +4,7 @@ set -eou pipefail
 
 export _DOTS_DIR='workspace/personal/dotfiles'
 export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
-# export _GIT_CRYPT_KEY='.gitcryptkey'
+export _GIT_CRYPT_KEY='.gitcryptkey'
 
 _FILE_TO_SOURCE='dots.d/utils.sh'
 _IS_DOTS_UTILS_LOADED=''
@@ -66,57 +66,48 @@ _main() {
     return 0
     ;;
 
-  # # handles dotfiles secrets
-  # secrets)
-  #   _CMD='' && [ "$#" -ge 2 ] && _CMD="$2"
-  #   case $_CMD in
-  #
-  #   # generates different types of secrets
-  #   generate)
-  #     _CMD='' && [ "$#" -ge 3 ] && _CMD="$3"
-  #     case $_CMD in
-  #
-  #     # generates alphanumeric and special characters passwords
-  #     password)
-  #       _KEY_LENGTH="$(get_option '--length' "$@")" || _KEY_LENGTH=''
-  #       [ -z "$_KEY_LENGTH" ] && _KEY_LENGTH='64'
-  #       openssl rand -base64 "$((_KEY_LENGTH * 3 / 4))" | tr -d '\n'
-  #       ;;
-  #
-  #     *) usage && return 1 ;;
-  #     esac
-  #     ;;
-  #
-  #   # exports and encrypts git-crypt symmetric key file
-  #   export)
-  #     echo '[I] exporting git-crypt key...'
-  #     _LOCAL_DOTS_DIR="$(dirname "$(readlink -f "$0")")"
-  #     git-crypt export-key "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
-  #     echo '[I] encrypting git-crypt key...'
-  #     _PASSPHRASE="$(_main secrets generate password --length 128)"
-  #     echo "$_PASSPHRASE" | gpg --cipher-algo AES256 \
-  #       -o "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY.enc" \
-  #       --passphrase-fd 0 --pinentry-mode loopback --symmetric \
-  #       "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
-  #     echo '[W] git-crypt key passphrase:'
-  #     echo "$_PASSPHRASE"
-  #     ;;
-  #
-  #   # decrypts git-crypt key file and unlocks repository
-  #   unlock)
-  #     echo '[I] decrypting git-crypt key...'
-  #     _LOCAL_DOTS_DIR="$(dirname "$(readlink -f "$0")")"
-  #     gpg -o "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY" \
-  #       --pinentry-mode loopback \
-  #       -d "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY.enc"
-  #     echo '[I] unlocking git-crypt key...'
-  #     git-crypt unlock "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
-  #     ;;
-  #
-  #   *) usage && return 1 ;;
-  #   esac
-  #   ;;
-  # # ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+  # handles dotfiles secrets
+  secrets)
+    _CMD='' && [ "$#" -ge 2 ] && _CMD="$2"
+    case $_CMD in
+    # generates secrets
+    generate)
+      _CMD='' && [ "$#" -ge 3 ] && _CMD="$3"
+      case $_CMD in
+
+      # generates password of alphanumeric and special characters
+      password)
+        _KEY_LENGTH="$(get_option '--length' "$@")" || _KEY_LENGTH=''
+        [ -z "$_KEY_LENGTH" ] && _KEY_LENGTH='64'
+        openssl rand -base64 "$((_KEY_LENGTH * 3 / 4))" | tr -d '\n'
+        ;;
+      esac
+      ;;
+
+    # exports and encrypts git-crypt symmetric key file
+    export)
+      _LOCAL_DOTS_DIR="$(dirname "$(readlink -f "$0")")"
+      git-crypt export-key "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
+      _PASSPHRASE="$(_main secrets generate password --length 128)"
+      echo "$_PASSPHRASE" | gpg --cipher-algo AES256 \
+        -o "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY.enc" \
+        --passphrase-fd 0 --pinentry-mode loopback --symmetric \
+        "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
+      echo '[W] git-crypt key passphrase:'
+      echo "$_PASSPHRASE"
+      ;;
+
+    # decrypts git-crypt key file and unlocks repository
+    unlock)
+      _LOCAL_DOTS_DIR="$(dirname "$(readlink -f "$0")")"
+      gpg -o "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY" \
+        --pinentry-mode loopback \
+        -d "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY.enc"
+      git-crypt unlock "$_LOCAL_DOTS_DIR/$_GIT_CRYPT_KEY"
+      ;;
+
+    esac
+    ;;
 
   # configures dotfiles in the system
   sync)

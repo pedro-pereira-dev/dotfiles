@@ -6,8 +6,8 @@ services:
     depends_on:
       - webpage_test
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - ./remote-4620.duckdns.org.pem:/etc/haproxy/certs/remote-4620.duckdns.org.pem:ro
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy/remote-4620.duckdns.org.pem:/etc/haproxy/certs/remote-4620.duckdns.org.pem:ro
     cap_add:
       - NET_BIND_SERVICE
     ports:
@@ -15,6 +15,8 @@ services:
 
   webpage_test:
     container_name: webpage_test
-    image: docker.io/crccheck/hello-world:latest
+    image: docker.io/nginx:alpine
+    volumes:
+      - ./nginx:/usr/share/nginx/html:ro
     expose:
-      - "8000"
+      - "80"
