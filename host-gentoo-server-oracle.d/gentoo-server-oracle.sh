@@ -7,6 +7,7 @@ configure() {
   source_file 'gentoo-base.d/gentoo-base.sh'
 
   run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-server-oracle.d/gentoo-confs/" '/etc/portage/'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-server-oracle.d/system-confs/kernel-module-ip-tables.conf" '/etc/modules-load.d/ip-tables.conf'
   run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-gentoo-server-oracle.d/podman-confs/" "$_HOME/.podman/"
 
   get_option '--full' "$@" && (
