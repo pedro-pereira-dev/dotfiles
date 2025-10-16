@@ -13,5 +13,7 @@ configure() {
   run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/macos-confs/ukelele-20251009/" "$_HOME/.config/ukelele/20251009"
   run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-bra-m0064.d/macos-tools/" "$_HOME/.local/bin/"
 
-  get_option '--full' "$@" && run_as_user "$_USER" "$_HOME/.local/bin/brew-upgrade" || true
+  get_option '--full' "$@" && (
+    run_as_user "$_USER" "$_HOME/.local/bin/brew-upgrade"
+  ) || true
 }

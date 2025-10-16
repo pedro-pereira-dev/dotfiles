@@ -47,7 +47,7 @@ _main() {
       (echo "[E] dots#install : missing required parameter '--password'" && return 1)
     ! is_root &&
       echo '[E] dots#install : missing required permissions' && return 1
-    source_file "host-$_HOSTNAME.d/system.conf" ||
+    source_file "host-$_HOSTNAME.d/$_HOSTNAME.sh" ||
       (echo "[E] dots#install : failed to source '$_HOSTNAME' configuration" && return 1)
     source_file 'dots.d/install-gentoo.sh' ||
       (echo "[E] dots#install : failed to install gentoo to '$_HOSTNAME'" && return 1)

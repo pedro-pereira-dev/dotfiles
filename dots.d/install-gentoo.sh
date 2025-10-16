@@ -7,8 +7,8 @@ _USER=${_USER:-'user'}
 get_smallest_device() { lsblk -bdno NAME,SIZE | awk '/^(sd|nvme)/ {print "/dev/"$1" "$2}' | sort -nk2 | head -n1 | cut -d' ' -f1; }
 _DEV=${_DEV:-"$(get_smallest_device)"}
 
-_BOOT_SIZE=${_BOOT_SIZE:-'1025MiB'} # 1gb
-_SWAP_SIZE=${_SWAP_SIZE:-'5121MiB'} # 4gb
+_BOOT_SIZE=${_BOOT_SIZE:-'1001MiB'} # 1gb
+_SWAP_SIZE=${_SWAP_SIZE:-'5001MiB'} # 4gb
 _ROOT_SIZE=${_ROOT_SIZE:-'100%'}    # remaining space
 
 is_bios && _BOOT_FLAG='boot'
@@ -28,7 +28,7 @@ parted -a optimal -s "$_DEV" \
   name 3 _ROOT \
   print
 
-get_partuuid() { blkid "$(readlink -f "$1")" | awk '{print $3}' | cut -d'"' -f2; }
+get_partuuid() { blkid | grep "$(readlink -f "$1")" | grep -o 'PARTUUID="[^"]*"' | cut -d'"' -f2; }
 _BOOT_DEV="/dev/disk/by-partuuid/$(get_partuuid /dev/disk/by-partlabel/_BOOT)"
 _SWAP_DEV="/dev/disk/by-partuuid/$(get_partuuid /dev/disk/by-partlabel/_SWAP)"
 _ROOT_DEV="/dev/disk/by-partuuid/$(get_partuuid /dev/disk/by-partlabel/_ROOT)"
@@ -40,11 +40,14 @@ sh "$_TMP_FILE" \
   --password "$_PASSWORD" \
   --boot "$_BOOT_DEV" \
   --swap "$_SWAP_DEV" \
-  --root "$_ROOT_DEV"
+  --root "$_ROOT_DEV" \
+  --keymap 'pt-latin9' \
+  --timezone 'Europe/Lisbon'
 
 chroot /mnt /bin/sh <<EOF
 env-update && source /etc/profile
 useradd -m -G wheel -s /bin/bash "$_USER"
 echo "$_USER:$_PASSWORD" | chpasswd
+emerge -1n --ask=n net-misc/curl
 curl -Lfs "$_DOTS_RAW_URL/dots" | sh -s -- sync --full
 EOF

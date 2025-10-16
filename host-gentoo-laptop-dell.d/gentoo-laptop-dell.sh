@@ -1,6 +1,8 @@
 #!/bin/sh
+_DEV='/dev/nvme0n1'
 _HOST='gentoo-laptop-dell'
 _USER='chuck'
+_ROOT_SIZE='69001MiB' # 64gb
 
 configure() {
   source_file 'shared-base.d/shared-base.sh'
@@ -19,14 +21,14 @@ configure() {
     run_as_root '/usr/bin/regenerate-bootloader'
   ) || true
 
-  run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty5 default >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1 || true
+  run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1 || true
+  run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1 || true
+  run_as_root rc-update del agetty.tty5 default >/dev/null 2>&1 || true
+  run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1 || true
 
-  run_as_root rc-update add NetworkManager default >/dev/null 2>&1
-  run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1
+  run_as_root rc-update add NetworkManager default >/dev/null 2>&1 || true
+  run_as_root rc-update add power-profiles-daemon default >/dev/null 2>&1 || true
 
   run_as_root usermod --append --groups video "$_USER" # for backlight
   run_as_user "$_USER" "$_HOME/.local/bin/install-nerd-font" JetBrainsMono

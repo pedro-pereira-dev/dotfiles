@@ -113,7 +113,8 @@ stow() {
   is_source_a_dir() { test -d "$_SOURCE"; }
   is_target_a_dir() { expr "$_TARGET" : '.*/$' >/dev/null; }
   is_source_a_dir && is_target_a_dir && (
-    for _SOURCE_ENTRY in "$_SOURCE".[!.]*; do
+    for _SOURCE_ENTRY in "$_SOURCE"* "$_SOURCE".[!.]*; do
+      [ ! -e "$_SOURCE_ENTRY" ] && continue
       _SOURCE_PATH="${_SOURCE_ENTRY#"$_SOURCE"}"
       mkdir -p "$(dirname "$_TARGET$_SOURCE_PATH")"
       rm -fr "$_TARGET$_SOURCE_PATH"
