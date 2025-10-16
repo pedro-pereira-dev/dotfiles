@@ -6,7 +6,7 @@ _IS_DOTS_UTILS_LOADED='true'
 is_aarch64() { test "$(uname -m)" = 'aarch64'; }
 is_amd64() { test "$(uname -m)" = 'x86_64'; }
 
-is_bios() { ! test -d '/sys/firmware/efi'; }
+is_bios() { ! is_uefi; }
 is_uefi() { test -d '/sys/firmware/efi'; }
 
 is_linux() { test "$(uname)" = 'Linux'; }
@@ -113,7 +113,7 @@ stow() {
   is_source_a_dir() { test -d "$_SOURCE"; }
   is_target_a_dir() { expr "$_TARGET" : '.*/$' >/dev/null; }
   is_source_a_dir && is_target_a_dir && (
-    for _SOURCE_ENTRY in "$_SOURCE"*; do
+    for _SOURCE_ENTRY in "$_SOURCE".[!.]*; do
       _SOURCE_PATH="${_SOURCE_ENTRY#"$_SOURCE"}"
       mkdir -p "$(dirname "$_TARGET$_SOURCE_PATH")"
       rm -fr "$_TARGET$_SOURCE_PATH"

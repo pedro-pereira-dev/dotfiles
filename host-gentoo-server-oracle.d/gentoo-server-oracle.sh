@@ -23,4 +23,7 @@ configure() {
   run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1
 
   run_as_root rc-update add sshd default >/dev/null 2>&1
+
+  _NETBOOT='/efi/EFI/netboot/netboot.xyz-arm64.efi'
+  ! run_as_root test -f "$_NETBOOT" && run_as_root curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi >"$_NETBOOT" || true
 }

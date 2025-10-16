@@ -1,12 +1,22 @@
-#!/bin/bash
-set -eo pipefail
+#!/bin/sh
 
-if [[ ${EUID} -ne 0 ]]; then
+is_aarch64() { test "$(uname -m)" = 'aarch64'; }
+is_amd64() { test "$(uname -m)" = 'x86_64'; }
+
+is_bios() { ! is_uefi; }
+is_uefi() { test -d '/sys/firmware/efi'; }
+
+is_non_root() { ! is_root; }
+is_root() { test "$(id -u)" -eq 0; }
+
+if is_non_root; then
   doas "$0" "$@"
   exit $?
 fi
 
-GRUB_CONFIG=$([ -d /sys/firmware/efi ] && echo '/efi/EFI/Gentoo/grub.cfg' || echo '/boot/grub/grub.cfg')
+is_bios && _GRUB_CONFIG='/boot/grub/grub.cfg'
+is_uefi && is_aarch64 && _GRUB_CONFIG='/efi/EFI/gentoo/grubaa64.cfg'
+is_uefi && is_amd64 && _GRUB_CONFIG='/efi/EFI/gentoo/grub.cfg'
 
 dracut --force --hostonly --kver "$(eselect kernel list | grep --only-matching --perl-regexp 'linux-\K[^ ]+')" --quiet
-grub-mkconfig --output="${GRUB_CONFIG}"
+grub-mkconfig --output="$_GRUB_CONFIG"
