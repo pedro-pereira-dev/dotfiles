@@ -2,7 +2,7 @@
 _DEV='/dev/nvme0n1'
 _HOST='gentoo-laptop-dell'
 _USER='chuck'
-_ROOT_SIZE='69001MiB' # 64gb
+_ROOT_SIZE='144705533s' # 64gb * 1024 * 1024 * 1024 / 512 - 1 + _SWAP_SIZE
 
 configure() {
   source_file 'shared-base.d/shared-base.sh'
@@ -11,9 +11,13 @@ configure() {
   source_file 'gentoo-base.d/gentoo-base.sh'
   source_file 'gentoo-desktop.d/gentoo-desktop.sh'
 
-  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/gentoo-confs/" '/etc/portage/'
-  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/system-confs/dracut.conf" '/etc/dracut.conf.d/dracut.conf'
-  run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/system-confs/ssh-gentoo-laptop.conf" "$_HOME/.ssh/config.d/gentoo-laptop"
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/dracut.conf" '/etc/dracut.conf.d/dracut.conf'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/gentoo-laptop-dell-declare.conf" '/etc/portage/package.declare/gentoo-laptop-dell-declare.conf'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/gentoo-laptop-dell-keywords.conf" '/etc/portage/package.accept_keywords/gentoo-laptop-dell-keywords.conf'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/gentoo-laptop-dell-license.conf" '/etc/portage/package.license/gentoo-laptop-dell-license.conf'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/gentoo-laptop-dell-unmask.conf" '/etc/portage/package.unmask/gentoo-laptop-dell-unmask.conf'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/gentoo-laptop-dell-use.conf" '/etc/portage/package.use/gentoo-laptop-dell-use.conf'
+  run_as_root stow "$_HOME/$_DOTS_DIR/host-gentoo-laptop-dell.d/confs/ssh-gentoo-laptop-dell.conf" "$_HOME/.ssh/config.d/gentoo-laptop"
 
   get_option '--full' "$@" && (
     run_as_root '/usr/bin/eauto' --unsupervised
