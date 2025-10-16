@@ -21,7 +21,7 @@ wipefs -a "$_DEV"*
 parted -a optimal -s "$_DEV" \
   unit s \
   mklabel "$_PART_TABLE" \
-  mkpart primary 2047s "$_BOOT_SIZE" \
+  mkpart primary 2048s "$_BOOT_SIZE" \
   set 1 "$_BOOT_FLAG" on name 1 _BOOT \
   mkpart primary "$_BOOT_SIZE" "$_SWAP_SIZE" \
   name 2 _SWAP \
