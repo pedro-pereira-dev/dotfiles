@@ -8,7 +8,7 @@ get_smallest_device() { lsblk -bdno NAME,SIZE | awk '/^(sd|nvme)/ {print "/dev/"
 _DEV=${_DEV:-"$(get_smallest_device)"}
 
 _BOOT_SIZE=${_BOOT_SIZE:-'2099199s'}  # 1gb * 1024 * 1024 * 1024 / 512 - 1 + start sector ( 2048 )
-_SWAP_SIZE=${_SWAP_SIZE:-'10487806s'} # 4gb * 1024 * 1024 * 1024 / 512 - 1 + _BOOT_SIZE
+_SWAP_SIZE=${_SWAP_SIZE:-'10487807s'} # 4gb * 1024 * 1024 * 1024 / 512 - 1 + _BOOT_SIZE
 _ROOT_SIZE=${_ROOT_SIZE:-'100%'}      # remaining space
 
 is_bios && _BOOT_FLAG='boot'
@@ -23,9 +23,9 @@ parted -a optimal -s "$_DEV" \
   mklabel "$_PART_TABLE" \
   mkpart primary 2048s "$_BOOT_SIZE" \
   set 1 "$_BOOT_FLAG" on name 1 _BOOT \
-  mkpart primary "$_BOOT_SIZE" "$_SWAP_SIZE" \
+  mkpart primary 2099200s "$_SWAP_SIZE" \
   name 2 _SWAP \
-  mkpart primary "$_SWAP_SIZE" "$_ROOT_SIZE" \
+  mkpart primary 10487808 "$_ROOT_SIZE" \
   name 3 _ROOT \
   print
 
