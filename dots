@@ -1,6 +1,6 @@
 #!/bin/sh
 # shellcheck disable=SC2015 source=/dev/null
-set -eou pipefail
+set -eou
 
 export _DOTS_DIR='workspace/personal/dotfiles'
 export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'

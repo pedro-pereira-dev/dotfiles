@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eou pipefail
+set -eou
 
 is_bios && _BOOT_FLAG='boot'
 is_bios && _PART_TABLE='msdos'
