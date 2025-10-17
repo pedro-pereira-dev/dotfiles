@@ -2,7 +2,7 @@
 _DEV='/dev/nvme0n1'
 _HOST='gentoo-laptop-dell'
 _USER='chuck'
-_ROOT_SIZE='144705533s' # 64gb * 1024 * 1024 * 1024 / 512 - 1 + _SWAP_SIZE
+_ROOT_SIZE='64' # gb
 
 configure() {
   source_file 'shared-base.d/shared-base.sh'

@@ -17,6 +17,21 @@ is_root() { test "$(id -u)" -eq 0; }
 
 check_command() { which "$1" >/dev/null 2>&1; }
 
+calculate_next_aligned_sector() {
+  _PREVIOUS_SECTOR='' && [ "$#" -ge 1 ] && _PREVIOUS_SECTOR="$1" && shift
+  _B_SIZE=$((_PREVIOUS_SECTOR / 2048))
+  _NEXT_B=$((_B_SIZE + 1))
+  _NEXT_SECTOR=$((_NEXT_B * 2048))
+  echo "$_NEXT_SECTOR"
+}
+
+calculate_size_in_sectors() {
+  _GB_SIZE='' && [ "$#" -ge 1 ] && _GB_SIZE="$1" && shift
+  _B_SIZE=$((_GB_SIZE * 1024 * 1024 * 1024))
+  _N_SECTORS=$((_B_SIZE / 512))
+  echo "$_N_SECTORS"
+}
+
 install_homebrew() {
   _TMP_FILE=$(mktemp)
   curl -Lfs 'https://raw.githubusercontent.com/homebrew/install/refs/heads/main/install.sh' >"$_TMP_FILE"
