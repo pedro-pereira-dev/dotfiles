@@ -23,7 +23,7 @@ _SWAP_SECTOR_SIZE=$(calculate_size_in_sectors "$_SWAP_SIZE")
 _BOOT_END_SECTOR=$((2048 + _BOOT_SECTOR_SIZE - 1))
 _SWAP_START_SECTOR=$(calculate_next_aligned_sector "$_BOOT_END_SECTOR")
 _SWAP_END_SECTOR=$((_SWAP_START_SECTOR + _SWAP_SECTOR_SIZE - 1))
-! is_default_root_size && _ROOT_START_SECTOR=$(calculate_next_aligned_sector "$_SWAP_END_SECTOR") || true
+_ROOT_START_SECTOR=$(calculate_next_aligned_sector "$_SWAP_END_SECTOR") || true
 ! is_default_root_size && _ROOT_END_SECTOR=$((_ROOT_START_SECTOR + _ROOT_SECTOR_SIZE - 1)) || true
 
 ! is_default_root_size && _PARTED_ROOT_SIZE="$_ROOT_END_SECTOR"s || true
