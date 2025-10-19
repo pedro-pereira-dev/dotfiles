@@ -12,7 +12,7 @@ configure() {
     run_as_root '/usr/bin/regenerate-bootloader'
   ) || true
 
-  run_as_root ln -sf agetty agetty.tty1
+  run_as_root ln -sf /etc/init.d/agetty /etc/init.d/agetty.tty1
   run_as_root rc-update add agetty.tty1 default
 
   run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1 || true
@@ -20,4 +20,6 @@ configure() {
   run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1 || true
   run_as_root rc-update del agetty.tty5 default >/dev/null 2>&1 || true
   run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1 || true
+
+  run_as_root rc-update add sshd default >/dev/null 2>&1 || true
 }

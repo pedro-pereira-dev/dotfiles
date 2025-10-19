@@ -1,6 +1,6 @@
 #!/bin/sh
 # shellcheck disable=SC2015 source=/dev/null
-set -eou
+set -eou pipefail
 
 export _DOTS_DIR='workspace/personal/dotfiles'
 export _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
@@ -123,6 +123,15 @@ _main() {
     return 0
     ;;
 
+  # tests parts of the dots software
+  test)
+    _CMD='' && [ "$#" -ge 2 ] && _CMD="$2"
+    case $_CMD in
+    # tests install gentoo script
+    install-gentoo) source_file 'dots.d/install-gentoo.test.sh' "$@" ;;
+    *) echo '[E] dots#_main : undefined command' && return 1 ;;
+    esac
+    ;;
   *) echo '[E] dots#_main : undefined command' && return 1 ;;
   esac
 }
