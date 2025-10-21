@@ -68,7 +68,7 @@ passwd
 ```bash
 setup-apkrepos
 apk update
-apk add util-linux dosfstools e2fsprogs curl tar xz parted
+apk add curl dosfstools e2fsprogs tar util-linux xz
 ```
 
 ```bash
@@ -78,7 +78,7 @@ echo 'iface eth0 inet dhcp' >> /etc/network/interfaces
 ping -c 1 gentoo.org
 setup-apkrepos -1
 apk update
-apk add util-linux dosfstools e2fsprogs curl tar xz parted
+apk add curl dosfstools e2fsprogs tar util-linux xz
 curl -Lfs https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots | sh -s -- install --password root --hostname gentoo-test
 ```
 

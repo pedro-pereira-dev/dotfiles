@@ -123,15 +123,6 @@ _main() {
     return 0
     ;;
 
-  # tests parts of the dots software
-  test)
-    _CMD='' && [ "$#" -ge 2 ] && _CMD="$2"
-    case $_CMD in
-    # tests install gentoo script
-    install-gentoo) source_file 'dots.d/install-gentoo.test.sh' "$@" ;;
-    *) echo '[E] dots#_main : undefined command' && return 1 ;;
-    esac
-    ;;
   *) echo '[E] dots#_main : undefined command' && return 1 ;;
   esac
 }
