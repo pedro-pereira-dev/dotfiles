@@ -8,8 +8,8 @@ _BOOT_SIZE=${_BOOT_SIZE:-'+1G'}
 _SWAP_SIZE=${_SWAP_SIZE:-'+4G'}
 _ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
 
-get_smallest_device() { lsblk -bdno NAME,SIZE | awk '/^(nvme|sd)/ {print "/dev/"$1" "$2}' | sort -nk2 | head -n1 | cut -d' ' -f1; }
-_DEV=${_DEV:-"$(get_smallest_device)"}
+get_smallest_device() { lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1; }
+_DEV=${_DEV:-"/dev/$(get_smallest_device)"}
 
 wipefs -a "$_DEV"*
 if is_bios; then
@@ -68,10 +68,10 @@ else
 EOF
 fi
 
-get_partuuid() { blkid | grep "$1" | grep -o 'PARTUUID="[^"]*"' | cut -d'"' -f2; }
-_BOOT_DEV="/dev/disk/by-partuuid/$(get_partuuid vfat)" || exit 1
-_SWAP_DEV="/dev/disk/by-partuuid/$(get_partuuid swap)" || exit 1
-_ROOT_DEV="/dev/disk/by-partuuid/$(get_partuuid ext4)" || exit 1
+get_partuuid() { blkid | grep -E "$_DEV.*$1:" | grep -o 'PARTUUID="[^"]*"' | cut -d'"' -f2; }
+_BOOT_DEV="/dev/disk/by-partuuid/$(get_partuuid 1)" || exit 1
+_SWAP_DEV="/dev/disk/by-partuuid/$(get_partuuid 2)" || exit 1
+_ROOT_DEV="/dev/disk/by-partuuid/$(get_partuuid 3)" || exit 1
 
 _TMP_FILE=$(mktemp)
 curl -Lfs 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh' >"$_TMP_FILE"
