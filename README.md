@@ -39,6 +39,8 @@ DuckDNS_Token="token" acme.sh --dns dns_duckdns --domain '*.remote-4620.duckdns.
 cat \*.remote-4620.duckdns.org.key fullchain.cer > remote-4620.duckdns.org.pem
 ```
 
+https://tonsky.me/blog/syntax-highlighting/
+
 #### Setup Oracle VPS
 
 - Create virtual network with default parameters.
@@ -66,20 +68,10 @@ passwd
 ```
 - Login with ssh to root@<ip> and setup installation:
 ```bash
-setup-apkrepos
-apk update
+setup-apkrepos -1 && apk update
 apk add curl dosfstools e2fsprogs tar util-linux xz
-```
-
-```bash
-echo 'auto eth0' > /etc/network/interfaces
-echo 'iface eth0 inet dhcp' >> /etc/network/interfaces
-/etc/init.d/networking restart
-ping -c 1 gentoo.org
-setup-apkrepos -1
-apk update
-apk add curl dosfstools e2fsprogs tar util-linux xz
-curl -Lfs https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots | sh -s -- install --password root --hostname gentoo-test
+_TMP="$(mktemp)" && curl -Lfs -o "$_TMP" https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots
+sh "$_TMP" install --hostname gentoo-base-test --password root
 ```
 
 [Source](https://gist.github.com/amishmm/e2dc93e65cf79116f2ef2d542f05e61b)

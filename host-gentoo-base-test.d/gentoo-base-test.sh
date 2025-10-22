@@ -1,6 +1,6 @@
 #!/bin/sh
-_HOSTNAME='gentoo-test'
-_USER='chuck'
+_HOSTNAME='gentoo-base-test'
+_USER='user'
 
 configure() {
   source_file 'shared-base.d/shared-base.sh'
