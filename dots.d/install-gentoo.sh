@@ -74,7 +74,7 @@ _SWAP_DEV="/dev/disk/by-partuuid/$(get_partuuid 2)" || exit 1
 _ROOT_DEV="/dev/disk/by-partuuid/$(get_partuuid 3)" || exit 1
 
 _TMP_FILE=$(mktemp)
-curl -Lfs 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh' >"$_TMP_FILE"
+curl -Lfs -o "$_TMP_FILE" 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh'
 sh "$_TMP_FILE" \
   --hostname "$_HOSTNAME" \
   --password "$_PASSWORD" \
