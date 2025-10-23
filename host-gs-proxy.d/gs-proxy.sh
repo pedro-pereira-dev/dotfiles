@@ -31,7 +31,7 @@ configure() {
 
   run_as_root rc-update add sshd default >/dev/null 2>&1 || true
 
-  _NETBOOT='/boot/netboot.xyz-arm64.efi'
+  _NETBOOT='/boot/EFI/NETBOOT/NETBOOTAA64.EFI'
   run_as_root rm -f "$_NETBOOT"
   run_as_root mkdir -p "$(dirname $_NETBOOT)"
   run_as_root curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o "$_NETBOOT"

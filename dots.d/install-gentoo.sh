@@ -68,10 +68,10 @@ else
 EOF
 fi
 
-get_partuuid() { blkid | grep -E "$_DEV.*$1:" | grep -o 'PARTUUID="[^"]*"' | cut -d'"' -f2; }
-_BOOT_DEV="/dev/disk/by-partuuid/$(get_partuuid 1)" || exit 1
-_SWAP_DEV="/dev/disk/by-partuuid/$(get_partuuid 2)" || exit 1
-_ROOT_DEV="/dev/disk/by-partuuid/$(get_partuuid 3)" || exit 1
+get_device_partition() { blkid | grep -E "$_DEV.*$1:" | cut -d':' -f1; }
+_BOOT_DEV="$(get_device_partition 1)" || exit 1
+_SWAP_DEV="$(get_device_partition 2)" || exit 1
+_ROOT_DEV="$(get_device_partition 3)" || exit 1
 
 _TMP_FILE=$(mktemp)
 curl -Lfs -o "$_TMP_FILE" 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh'
