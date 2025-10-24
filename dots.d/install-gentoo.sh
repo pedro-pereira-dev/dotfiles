@@ -8,8 +8,8 @@ _BOOT_SIZE=${_BOOT_SIZE:-'+1G'}
 _SWAP_SIZE=${_SWAP_SIZE:-'+4G'}
 _ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
 
-get_smallest_device() { lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1; }
-_DEV=${_DEV:-"/dev/$(get_smallest_device)"}
+_SMALLEST_DEV_NAME=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
+_DEV=${_DEV:-"/dev/$_SMALLEST_DEV_NAME"}
 
 wipefs -a "$_DEV"*
 if is_bios; then
@@ -68,10 +68,10 @@ else
 EOF
 fi
 
-get_device_partition() { blkid | grep -E "$_DEV.*$1:" | cut -d':' -f1; }
-_BOOT_DEV="$(get_device_partition 1)" || exit 1
-_SWAP_DEV="$(get_device_partition 2)" || exit 1
-_ROOT_DEV="$(get_device_partition 3)" || exit 1
+get_device_partition() { lsblk -f "$_DEV" -nro NAME,TYPE | grep -E "$_SMALLEST_DEV_NAME.*$1 " | cut -d' ' -f1; }
+_BOOT_DEV="/dev/$(get_device_partition 1)"
+_SWAP_DEV="/dev/$(get_device_partition 2)"
+_ROOT_DEV="/dev/$(get_device_partition 3)"
 
 _TMP_FILE=$(mktemp)
 curl -Lfs -o "$_TMP_FILE" 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh'

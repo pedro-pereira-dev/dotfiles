@@ -71,7 +71,7 @@ passwd
 setup-apkrepos -1 && apk update
 apk add curl dosfstools e2fsprogs tar util-linux xz
 _TMP="$(mktemp)" && curl -Lfs -o "$_TMP" https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots
-sh "$_TMP" install --hostname gentoo-base-test --password root
+sh "$_TMP" install --hostname gv-test --password root
 ```
 
 [Source](https://gist.github.com/amishmm/e2dc93e65cf79116f2ef2d542f05e61b)
