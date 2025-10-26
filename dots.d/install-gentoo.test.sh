@@ -59,9 +59,9 @@ echo ''
 run_on_target() { ssh -o BatchMode=yes -p 2222 -q root@localhost "$@"; }
 run_on_target 'setup-apkrepos -1 && apk update'
 run_on_target 'apk add curl dosfstools e2fsprogs tar util-linux xz'
-run_on_target "\
-  curl -Lfs -o dots https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots && \
-  sh dots install --hostname gv-test --password root"
+# run_on_target "\
+#   curl -Lfs -o dots https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots && \
+#   sh dots install --hostname gv-test --password root"
 
 # run_on_target 'setup-apkrepos -1'
 # run_on_target 'apk update'

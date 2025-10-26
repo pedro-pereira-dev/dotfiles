@@ -6,7 +6,7 @@ _USER=${_USER:-'user'}
 
 _BOOT_SIZE=${_BOOT_SIZE:-'+1G'}
 _SWAP_SIZE=${_SWAP_SIZE:-'+4G'}
-_ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
+_ROOT_SIZE=${_ROOT_SIZE:-'+32G'}
 
 _SMALLEST_DEV_NAME=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
 _DEV=${_DEV:-"/dev/$_SMALLEST_DEV_NAME"}
