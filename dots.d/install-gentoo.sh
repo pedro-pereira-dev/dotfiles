@@ -34,6 +34,11 @@ if is_bios; then
        # default partition number
        # default first sector
     $_ROOT_SIZE
+    n  # new partition
+       # default partition type
+       # default partition number
+       # default first sector
+       # remaining space
     p  # print table
     w  # write
 EOF
@@ -63,6 +68,11 @@ else
     t  # set partition type
        # default partition number
     23 # type linux root
+    n  # new partition
+       # default partition number
+       # default first sector
+       # remaining space
+    Y  # delete partition signature
     p  # print table
     w  # write
 EOF
@@ -72,6 +82,9 @@ get_device_partition() { lsblk -f "$_DEV" -nro NAME,TYPE | grep -E "$_SMALLEST_D
 _BOOT_DEV="/dev/$(get_device_partition 1)"
 _SWAP_DEV="/dev/$(get_device_partition 2)"
 _ROOT_DEV="/dev/$(get_device_partition 3)"
+_XTRA_DEV="/dev/$(get_device_partition 4)"
+
+yes | mkfs.ext4 "$_XTRA_DEV"
 
 _TMP_FILE=$(mktemp)
 curl -Lfs -o "$_TMP_FILE" 'https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh'
@@ -83,6 +96,9 @@ sh "$_TMP_FILE" \
   --root "$_ROOT_DEV" \
   --keymap 'pt-latin9' \
   --timezone 'Europe/Lisbon'
+
+mkdir -p /mnt/extra
+echo "$_XTRA_DEV /extra ext4 defaults,noatime 0 1" >>/mnt/etc/fstab
 
 chroot /mnt /bin/sh <<EOF
 env-update && source /etc/profile
