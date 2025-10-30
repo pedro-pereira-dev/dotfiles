@@ -4,7 +4,7 @@ set -eou pipefail
 _HOSTNAME=${_HOSTNAME:-'gentoo-system-undefined'}
 _USER=${_USER:-'user'}
 
-_BOOT_SIZE=${_BOOT_SIZE:-'+1G'}
+_BOOT_SIZE=${_BOOT_SIZE:-'+512M'}
 _ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
 
 _SMALLEST_DEV_NAME=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
