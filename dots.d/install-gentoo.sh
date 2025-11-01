@@ -6,12 +6,13 @@ _USER=${_USER:-'user'}
 
 _BOOT_SIZE=${_BOOT_SIZE:-'+256M'}
 _ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
-_SWAP_SIZE=${_SWAP_SIZE:-'4G'}
+_SWAP_SIZE=${_SWAP_SIZE:-'2G'}
 
 _SMALLEST_DEV_NAME=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
 _DEV=${_DEV:-"/dev/$_SMALLEST_DEV_NAME"}
 
 wipefs -a "$_DEV"*
+find /dev/disk -type l -exec sh -c 'test ! -e "$1" && rm -f "$1" >/dev/null 2>&1' _ {} \;
 if is_bios; then
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk "$_DEV"
     o  # dos partition table
