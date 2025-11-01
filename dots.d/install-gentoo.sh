@@ -4,8 +4,9 @@ set -eou pipefail
 _HOSTNAME=${_HOSTNAME:-'gentoo-system-undefined'}
 _USER=${_USER:-'user'}
 
-_BOOT_SIZE=${_BOOT_SIZE:-'+512M'}
+_BOOT_SIZE=${_BOOT_SIZE:-'+256M'}
 _ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
+_SWAP_SIZE=${_SWAP_SIZE:-'4G'}
 
 _SMALLEST_DEV_NAME=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
 _DEV=${_DEV:-"/dev/$_SMALLEST_DEV_NAME"}
@@ -62,6 +63,7 @@ sh "$_TMP_FILE" \
   --password "$_PASSWORD" \
   --boot "$_BOOT_DEV" \
   --root "$_ROOT_DEV" \
+  --swap "$_SWAP_SIZE" \
   --keymap 'pt-latin9' \
   --timezone 'Europe/Lisbon'
 

@@ -9,7 +9,7 @@ if [[ ${EUID} -ne 0 ]]; then
 fi
 
 INSTALLED_DEPENDENCIES=$(cat /var/lib/portage/world)
-DECLARED_DEPENDENCIES=$(cat /etc/portage/package.declare/* | sed --regexp-extended '/^[[:blank:]]*(#|$)/d; s/#.*//; s/[[:space:]]*$//')
+DECLARED_DEPENDENCIES=$(cat /etc/portage/package.declare/* | sort -u | sed -E -e '/^[[:space:]]*#/d' -e 's/([[:space:]])+#.*$//')
 ALL_DEPENDENCIES=$(echo "${INSTALLED_DEPENDENCIES} ${DECLARED_DEPENDENCIES}" | tr ' ' '\n' | sort | uniq)
 
 function is_declared { grep --quiet "^$1$" <<<"${DECLARED_DEPENDENCIES}"; }
