@@ -39,21 +39,6 @@ _main() {
     return 0
     ;;
 
-  # prepares live iso system and installs gentoo using custom script
-  install)
-    _HOSTNAME="$(get_hostname "$@")" ||
-      (echo "[E] dots#install : missing required parameter '--hostname'" && return 1)
-    _PASSWORD="$(get_option '--password' "$@")" ||
-      (echo "[E] dots#install : missing required parameter '--password'" && return 1)
-    ! is_root &&
-      echo '[E] dots#install : missing required permissions' && return 1
-    source_file "host-$_HOSTNAME.d/$_HOSTNAME.sh" ||
-      (echo "[E] dots#install : failed to source '$_HOSTNAME' configuration" && return 1)
-    source_file 'dots.d/install-gentoo.sh' ||
-      (echo "[E] dots#install : failed to install gentoo to '$_HOSTNAME'" && return 1)
-    return 0
-    ;;
-
   # resets dotfiles git repository and updates its head
   update)
     _HOME="$(get_home "$@")" && _USER="$(get_user "$@")" ||
@@ -116,8 +101,9 @@ _main() {
     _HOSTNAME="$(get_hostname "$@")" ||
       (echo "[E] dots#sync : missing required parameter '--hostname'" && return 1)
     [ ! -d "$_HOME/$_DOTS_DIR/.git" ] && _main bootstrap "$@"
-    source_file "host-$_HOSTNAME.d/$_HOSTNAME.sh" ||
+    source_file "host-$_HOSTNAME/$_HOSTNAME.sh" ||
       (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
+    run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
     configure "$@"
     get_option '--full' "$@" && run_as_root remove_broken_links || true
     return 0

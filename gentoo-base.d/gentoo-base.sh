@@ -1,4 +1,6 @@
 #!/bin/sh
+set -eou pipefail
+
 run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/gentoo-tools/" '/usr/bin/'
 # run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/system-confs/grub.conf" '/etc/default/grub'
 run_as_root stow "$_HOME/$_DOTS_DIR/gentoo-base.d/system-confs/overlays.conf" '/etc/portage/repos.conf/overlays.conf'

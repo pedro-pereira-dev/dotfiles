@@ -1,8 +1,13 @@
 #!/bin/sh
+# shellcheck source=/dev/null
+set -eou pipefail
+
 _HOSTNAME='gs-proxy'
 _USER='chuck'
 
 configure() {
+  . "$_HOME/$_DOTS_DIR/overlays/gentoo-base/gentoo-base.sh"
+
   # source_file 'shared-base.d/shared-base.sh'
   # source_file 'gentoo-base.d/gentoo-base.sh'
 
@@ -14,11 +19,11 @@ configure() {
   # run_as_root stow "$_HOME/$_DOTS_DIR/host-gs-proxy.d/confs/kernel-module-ip-tables.conf" '/etc/modules-load.d/ip-tables.conf'
   # run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/host-gs-proxy.d/podman" "$_HOME/.podman"
 
-  # get_option '--full' "$@" && (
-  #   run_as_root '/usr/bin/eauto' --unsupervised
-  #   run_as_root eselect news read >/dev/null
-  #   run_as_root '/usr/bin/regenerate-bootloader'
-  # ) || true
+  get_option '--full' "$@" && (
+    run_as_root '/usr/bin/eauto' --unsupervised
+    run_as_root eselect news read >/dev/null
+    run_as_root '/usr/bin/regenerate-bootloader'
+  ) || true
 
   # run_as_root ln -sf /etc/init.d/agetty /etc/init.d/agetty.tty1
   # run_as_root rc-update add agetty.tty1 default
