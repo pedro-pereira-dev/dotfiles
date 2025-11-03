@@ -20,7 +20,7 @@ _PASSWORD="$(get_option '--password' "$@")" && [ -n "$_PASSWORD" ] ||
   (echo "[E] missing required argument '--password'" && exit 1)
 
 _DOTS_RAW_URL='https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main'
-_FILE="host-$_HOSTNAME/$_HOSTNAME.sh"
+_FILE="hosts/$_HOSTNAME/$_HOSTNAME.sh"
 
 source_local_file() { _PWD=$(dirname "$(readlink -f "$0")") && [ -f "$_PWD/$1" ] && . "$_PWD/$1"; }
 source_remote_file() {
@@ -40,9 +40,9 @@ find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1" >/dev/null 2>&1'
 is_bios() { ! is_uefi; }
 is_uefi() { test -d '/sys/firmware/efi'; }
 
-_BOOT_SIZE=${_BOOT_SIZE:-'+256M'}
+_BOOT_SIZE=${_BOOT_SIZE:-'+512M'}
 _ROOT_SIZE=${_ROOT_SIZE:-' '} # remaining space
-_SWAP_SIZE=${_SWAP_SIZE:-'2G'}
+_SWAP_SIZE=${_SWAP_SIZE:-'4G'}
 
 is_bios &&
   sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' <<EOF | fdisk "$_DEV"

@@ -12,6 +12,8 @@ is_uefi() { test -d '/sys/firmware/efi'; }
 is_linux() { test "$(uname)" = 'Linux'; }
 is_macos() { test "$(uname)" = 'Darwin'; }
 
+is_gentoo() { test "$(cat /etc/*-release | grep DISTRIB_ID | cut -d'"' -f2)" = 'Gentoo'; }
+
 is_non_root() { ! is_root; }
 is_root() { test "$(id -u)" -eq 0; }
 

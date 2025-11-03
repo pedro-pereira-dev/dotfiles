@@ -101,9 +101,8 @@ _main() {
     _HOSTNAME="$(get_hostname "$@")" ||
       (echo "[E] dots#sync : missing required parameter '--hostname'" && return 1)
     [ ! -d "$_HOME/$_DOTS_DIR/.git" ] && _main bootstrap "$@"
-    source_file "host-$_HOSTNAME/$_HOSTNAME.sh" ||
+    source_file "hosts/$_HOSTNAME/$_HOSTNAME.sh" ||
       (echo "[E] dots#sync : failed to source '$_HOSTNAME' configuration" && return 1)
-    run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
     configure "$@"
     get_option '--full' "$@" && run_as_root remove_broken_links || true
     return 0
