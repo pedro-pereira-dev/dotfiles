@@ -2,38 +2,53 @@
 # shellcheck source=/dev/null
 set -eou pipefail
 
-_HOSTNAME='gs-proxy'
-_USER='chuck'
+_HOSTNAME=gs-proxy
+_USER=chuck
 
 configure() {
+  link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
 
-  # run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/dots" "$_HOME/.local/bin/dots"
-  # run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/overlays/dots/files/system-bashrc.sh" "$_HOME/.bashrc"
-  #
-  # is_gentoo && {
-  #   run_as_root stow "$_HOME/$_DOTS_DIR/overlays/dots/files/dots-package-declare.conf" /etc/portage/package.declare/1-dots-declare.conf
-  # } || true
-  #
-  # . "$_HOME/$_DOTS_DIR/overlays/dots/dots.sh"
-  # . "$_HOME/$_DOTS_DIR/overlays/gentoo-base/gentoo-base.sh"
-  # . "$_HOME/$_DOTS_DIR/overlays/gentoo-server/gentoo-server.sh"
-  #
-  # run_as_root stow "$_HOME/$_DOTS_DIR/hosts/gs-proxy/files/gs-proxy-package-declare.conf" /etc/portage/package.declare/4-gs-proxy-declare.conf
-  # run_as_root stow "$_HOME/$_DOTS_DIR/hosts/gs-proxy/files/gs-proxy-package-keywords.conf" /etc/portage/package.accept_keywords/4-gs-proxy-keywords.conf
-  # run_as_root stow "$_HOME/$_DOTS_DIR/hosts/gs-proxy/files/gs-proxy-package-use.conf" /etc/portage/package.use/4-gs-proxy-use.conf
-  #
-  # # run_as_root stow "$_SCRIPT_DIR/layer-podman-unprivileged-port-start.conf" '/etc/sysctl.d/unprivileged-port-start.conf'
-  # # run_as_root stow "$_HOME/$_DOTS_DIR/hosts/gs-proxy/files/kernel-module-ip-tables.conf" /etc/modules-load.d/ip-tables.conf
-  #
-  # run_as_user "$_USER" stow "$_HOME/$_DOTS_DIR/hosts/gs-proxy/podman" "$_HOME/.podman"
-  #
-  # get_option '--full' "$@" && (
-  #   run_as_root /usr/bin/eauto --unsupervised
-  #   run_as_root eselect news read >/dev/null
-  #   # run_as_root /usr/bin/installkernel
-  # ) || true
+  ! command -v doas >/dev/null && run_as_root emerge --ask=n -n app-admin/doas
+  command -v doas >/dev/null &&
+    run_as_root cp -f "$_HOME/workspace/personal/dotfiles/files/system-doas.conf" /etc/doas.conf &&
+    run_as_root chown root:root /etc/doas.conf && run_as_root chmod 0600 /etc/doas.conf && run_as_root passwd -dl root >/dev/null
 
-  run_as_root rm -fr /efi/EFI/NETBOOT
-  run_as_root mkdir -p /efi/EFI/NETBOOT
-  run_as_root curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /efi/EFI/NETBOOT/netboot.xyz-arm64.efi
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-eauto.sh" /usr/bin/eauto
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-edeclare.sh" /usr/bin/edeclare
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-edelete.sh" /usr/bin/edelete
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-eupdate.sh" /usr/bin/eupdate
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-eupgrade.sh" /usr/bin/eupgrade
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-declare.conf" /etc/portage/package.declare
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-keywords.conf" /etc/portage/package.accept_keywords
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-license.conf" /etc/portage/package.license
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-unmask.conf" /etc/portage/package.unmask
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-use.conf" /etc/portage/package.use
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-system-nftables.conf" /var/lib/nftables/tables/filter.conf
+
+  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
+
+  get_parameter --full "$@" &&
+    run_as_root /usr/bin/eauto --unsupervised &&
+    run_as_root /usr/bin/installkernel &&
+    run_as_root eselect news read --quiet all
+
+  run_as_root rc-update add sshd default >/dev/null
+  run_as_root rc-update del agetty.tty1 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty5 default >/dev/null 2>&1
+  run_as_root rc-update del agetty.tty6 default >/dev/null 2>&1
+
+  [ ! -f /efi/EFI/NETBOOT/netboot.xyz-arm64.efi ] &&
+    run_as_root rm -fr /efi/EFI/NETBOOT &&
+    run_as_root mkdir -p /efi/EFI/NETBOOT &&
+    run_as_root curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /efi/EFI/NETBOOT/netboot.xyz-arm64.efi
+
+  return 0
 }

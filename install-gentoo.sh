@@ -60,6 +60,6 @@ chroot /mnt /bin/sh <<EOF
 env-update && source /etc/profile
 useradd -G wheel -m -s /bin/bash $_USER
 echo $_USER:$_PASSWORD | chpasswd
-emerge -1n --ask=n dev-vcs/git
-curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots.sh | sh -s -- sync --hostname $_HOSTNAME --user $_USER
+emerge --ask=n -1n dev-vcs/git
+curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots.sh | sh -s -- sync --full --hostname $_HOSTNAME --user $_USER
 EOF
