@@ -13,13 +13,7 @@ get_parameter() {
   return 1
 }
 
-is_root() { test "$(id -u)" -eq 0; }
-
-run_as_root() { if is_root; then "$@"; elif check_command doas; then doas sh -c "$*"; elif check_command sudo; then sudo sh -c "$*"; fi; }
-
 get_parameter --unattended "$@" >/dev/null && _UNATTENDED=--unattended || _UNATTENDED=''
-
-echo "TESTE: eauto $* unattended $_UNATTENDED"
 
 eupdate
 eupgrade "$_UNATTENDED"

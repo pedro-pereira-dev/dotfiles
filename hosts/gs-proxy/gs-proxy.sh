@@ -36,10 +36,11 @@ configure() {
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
-  get_parameter --full "$@" &&
-    run_as_root /usr/bin/eauto --unsupervised &&
-    run_as_root /usr/bin/installkernel &&
+  get_parameter --full "$@" && {
+    run_as_root /usr/bin/eauto --unattended
+    run_as_root /usr/bin/installkernel -a
     run_as_root eselect news read --quiet all
+  }
 
   run_as_root rc-update add nftables default >/dev/null
   run_as_root rc-update add sshd default >/dev/null
