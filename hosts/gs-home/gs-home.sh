@@ -2,7 +2,8 @@
 # shellcheck source=/dev/null
 set -eou pipefail
 
-_HOSTNAME=gs-proxy
+_DISK=/dev/sdb
+_HOSTNAME=gs-home
 _USER=chuck
 
 configure() {
@@ -21,27 +22,21 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-kernel-ip-forward.conf" /etc/sysctl.d/ip-forward.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-kernel-ip-tables.conf" /etc/sysctl.d/ip-tables.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-declare.conf" /etc/portage/package.declare
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-keywords.conf" /etc/portage/package.accept_keywords
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-license.conf" /etc/portage/package.license
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-unmask.conf" /etc/portage/package.unmask
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-use.conf" /etc/portage/package.use
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-system-nftables.conf" /var/lib/nftables/tables/filter.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-declare.conf" /etc/portage/package.declare
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-keywords.conf" /etc/portage/package.accept_keywords
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-license.conf" /etc/portage/package.license
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-unmask.conf" /etc/portage/package.unmask
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-use.conf" /etc/portage/package.use
 
-  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
-  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
+  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
   get_parameter --full "$@" &&
     run_as_root /usr/bin/eauto --unsupervised &&
     run_as_root /usr/bin/installkernel &&
     run_as_root eselect news read --quiet all
 
-  run_as_root rc-update add nftables default >/dev/null
   run_as_root rc-update add sshd default >/dev/null
 
   run_as_root rc-update del agetty.tty1 default >/dev/null 2>&1
