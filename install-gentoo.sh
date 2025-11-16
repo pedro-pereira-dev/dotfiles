@@ -37,8 +37,9 @@ wipefs -a "$_DISK"* && find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -
 
 is_bios() { ! is_uefi; }
 is_uefi() { test -d /sys/firmware/efi; }
+
 is_bios && _DISK_LAYOUT="0,n, , , ,$_BOOT_SIZE,a,n, , , ,$_ROOT_SIZE,p,w"
-is_uefi && _DISK_LAYOUT="g,n, , ,$_BOOT_SIZE,Y,t,1,n, , ,$_ROOT_SIZE,Y,t, ,23,p,w"
+is_uefi && _DISK_LAYOUT="g,n, , ,$_BOOT_SIZE,Y,t,1,n, , ,$_ROOT_SIZE,Y,p,w"
 printf '%s' "$_DISK_LAYOUT" | tr , '\n' | fdisk "$_DISK"
 
 get_device_partition() { lsblk -f "$_DISK" -nro NAME,TYPE | grep -E ".*$1 " | cut -d' ' -f1; }

@@ -51,6 +51,4 @@ configure() {
     run_as_root rm -fr /efi/EFI/NETBOOT &&
     run_as_root mkdir -p /efi/EFI/NETBOOT &&
     run_as_root curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /efi/EFI/NETBOOT/netboot.xyz-arm64.efi
-
-  return 0
 }
