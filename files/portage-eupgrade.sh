@@ -19,4 +19,5 @@ run_as_root() { if is_root; then "$@"; elif check_command doas; then doas sh -c 
 
 get_parameter --unattended "$@" >/dev/null && _ASK=--ask=n || _ASK=--ask=y
 
+echo "TESTE: run_as_root emerge -DNquv $_ASK --backtrack=30 --with-bdeps=y @world"
 run_as_root emerge -DNquv "$_ASK" --backtrack=30 --with-bdeps=y @world

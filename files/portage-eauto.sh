@@ -19,6 +19,8 @@ run_as_root() { if is_root; then "$@"; elif check_command doas; then doas sh -c 
 
 get_parameter --unattended "$@" >/dev/null && _UNATTENDED=--unattended || _UNATTENDED=''
 
+echo "TESTE: eauto $* unattended $_UNATTENDED"
+
 eupdate
 eupgrade "$_UNATTENDED"
 edeclare "$_UNATTENDED"
