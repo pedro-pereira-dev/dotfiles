@@ -22,6 +22,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-declare.conf" /etc/portage/package.declare
@@ -29,6 +30,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-license.conf" /etc/portage/package.license
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-use.conf" /etc/portage/package.use
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-system-nftables.conf" /var/lib/nftables/tables/filter.conf
 
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
@@ -38,6 +40,7 @@ configure() {
     run_as_root eselect news read --quiet all
   }
 
+  run_as_root rc-update add nftables default >/dev/null
   run_as_root rc-update add sshd default >/dev/null
 
   run_as_root rc-update del agetty.tty1 default >/dev/null 2>&1

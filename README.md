@@ -75,6 +75,7 @@ setup-apkrepos -1 && apk update
 apk add curl dosfstools e2fsprogs tar util-linux xz
 
 curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/install-gentoo.sh | sh -s -- --hostname gs-proxy --password root
+curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/install-gentoo.sh | sh -s -- --hostname gs-home --password root
 curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/install-gentoo.sh | sh -s -- --hostname gv-test --password root
 ```
 
