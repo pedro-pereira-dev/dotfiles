@@ -25,6 +25,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-kernel-module-ip-tables.conf" /etc/sysctl.d/ip-tables.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-license.conf" /etc/portage/package.license
@@ -32,6 +33,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-use.conf" /etc/portage/package.use
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-system-nftables.conf" /var/lib/nftables/tables/filter.conf
 
+  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
   get_parameter --full "$@" && {

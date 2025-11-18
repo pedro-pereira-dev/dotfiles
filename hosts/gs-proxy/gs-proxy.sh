@@ -24,8 +24,6 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
-  # link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-kernel-ip-forward.conf" /etc/sysctl.d/ip-forward.conf
-  # link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-kernel-ip-tables.conf" /etc/sysctl.d/ip-tables.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-license.conf" /etc/portage/package.license

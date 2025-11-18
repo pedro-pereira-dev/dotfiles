@@ -2,4 +2,5 @@ version: "3"
 services:
   frp-server:
     container_name: frp-server
-    image: docker.io/snowdreamtech/frps
+    image: docker.io/snowdreamtech/frps:alpine
+    network_mode: host

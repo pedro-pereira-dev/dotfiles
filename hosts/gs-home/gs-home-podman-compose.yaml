@@ -1,0 +1,5 @@
+version: "3"
+services:
+  frp-client:
+    container_name: frp-client
+    image: docker.io/snowdreamtech/frpc:alpine
