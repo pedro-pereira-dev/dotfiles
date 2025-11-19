@@ -48,10 +48,10 @@ configure() {
     run_as_root eselect news read --quiet all
   }
 
-  run_as_root rc-update add agetty.tty1 default >/dev/null
   run_as_root rc-update add nftables default >/dev/null
   run_as_root rc-update add sshd default >/dev/null
 
+  run_as_root rc-update del agetty.tty1 default >/dev/null 2>&1
   run_as_root rc-update del agetty.tty2 default >/dev/null 2>&1
   run_as_root rc-update del agetty.tty3 default >/dev/null 2>&1
   run_as_root rc-update del agetty.tty4 default >/dev/null 2>&1
