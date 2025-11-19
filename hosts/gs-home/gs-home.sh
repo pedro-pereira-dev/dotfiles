@@ -7,6 +7,13 @@ _HOSTNAME=gs-home
 _USER=chuck
 
 configure() {
+  { get_parameter --clean "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } &&
+    run_as_root find / -name '*' -type l 2>/dev/null | while IFS= read -r _LINK; do
+      case $_LINK in /dev/* | /proc/* | /run/* | /sys/* | /tmp/*) continue ;; esac
+      case $(find "$_LINK" -prune -printf '%l\n' 2>/dev/null)/ in
+      "$_HOME/workspace/personal/dotfiles"/*) rm -v "$_LINK" ;; esac
+    done
+
   link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
 
   ! command -v doas >/dev/null && run_as_root emerge --ask=n -n app-admin/doas
@@ -23,9 +30,9 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman-netavark-nftables.conf" /etc/containers/containers.conf.d/netavark-nftables.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-kernel-module-ip-tables.conf" /etc/sysctl.d/ip-tables.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-license.conf" /etc/portage/package.license
@@ -36,7 +43,7 @@ configure() {
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
-  get_parameter --full "$@" && {
+  { get_parameter --install "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/installkernel -a
     run_as_root eselect news read --quiet all
@@ -56,4 +63,6 @@ configure() {
     run_as_root rm -fr /efi/EFI/NETBOOT &&
     run_as_root mkdir -p /efi/EFI/NETBOOT &&
     run_as_root curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /efi/EFI/NETBOOT/netboot.xyz-arm64.efi
+
+  return 0
 }

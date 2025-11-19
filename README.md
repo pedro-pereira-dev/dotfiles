@@ -37,6 +37,44 @@ or
 
 ### Notes
 
+```sh
+# define port_https = 8080
+#
+# table inet default {
+#   set banned { flags dynamic, timeout; gc-interval 5m; size 65536; timeout 12h; type ipv4_addr; }
+#
+#   chain forward { type filter hook forward priority filter; policy drop; }
+#   chain output { type filter hook output priority filter; policy accept; }
+#
+#   chain prerouting {
+#     type nat hook prerouting priority dstnat
+#     policy accept
+#
+#     tcp dport 443 redirect to $port_https
+#   }
+#   chain input {
+#     type filter hook input priority filter
+#     policy drop
+#
+#     ct state { established,related } accept
+#     iif lo accept
+#
+#     ct state invalid drop
+#     iif != lo ip daddr 127.0.0.0/8 drop
+#     ip frag-off & 0x3fff != 0 drop
+#     ip saddr @banned drop
+#
+#     icmp type echo-request limit rate 2/second burst 4 packets accept
+#     icmp type { destination-unreachable,echo-reply,time-exceeded } accept
+#
+#     tcp dport 22 ct state new limit rate 2/minute burst 4 packets accept
+#     tcp dport 22 ct state new add @banned { ip saddr } drop
+#
+#     tcp dport $port_https ct status dnat limit rate 32/second burst 64 packets accept
+#   }
+# }
+```
+
 ```bash
 DuckDNS_Token="token" acme.sh --dns dns_duckdns --domain '*.remote-4620.duckdns.org' --issue
 cat \*.remote-4620.duckdns.org.key fullchain.cer > remote-4620.duckdns.org.pem

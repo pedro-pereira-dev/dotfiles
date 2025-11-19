@@ -26,8 +26,8 @@ is_root() { test "$(id -u)" -eq 0; }
 link_as_root() { run_as_root rm -fr "$2" && run_as_root mkdir -p "$(dirname "$2")" && run_as_root ln -fsv "$1" "$2"; }
 link_as_user() { run_as_user rm -fr "$2" && run_as_user mkdir -p "$(dirname "$2")" && run_as_user ln -fsv "$1" "$2"; }
 
-run_as_root() { if is_root; then "$@"; elif check_command doas; then doas sh -c "$*"; elif check_command sudo; then sudo sh -c "$*"; fi; }
-run_as_user() { if is_non_root; then "$@"; elif is_root; then su "$_USER" -c "$*"; fi; }
+run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
+run_as_user() { if is_non_root; then "$@"; elif is_root; then su "$_USER" -c "$(printf '%s ' "$@")"; fi; }
 
 _HOSTNAME=$(get_parameter --hostname "$@") && [ -n "$_HOSTNAME" ] ||
   { is_linux && _HOSTNAME=$(cat /etc/hostname); } ||
@@ -54,7 +54,7 @@ dots_update() {
 }
 dots_sync() {
   . "$_HOME/workspace/personal/dotfiles/hosts/$_HOSTNAME/$_HOSTNAME.sh"
-  ! configure "$(get_parameter --full "$@" >/dev/null && echo --full)" && return 1
+  ! configure "$@" && return 1
   return 0
 }
 

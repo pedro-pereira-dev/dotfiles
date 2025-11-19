@@ -1,5 +1,7 @@
-version: "3"
+version: "3.8"
 services:
   frp-client:
     container_name: frp-client
     image: docker.io/snowdreamtech/frpc:alpine
+    pull_policy: always
+    restart: unless-stopped
