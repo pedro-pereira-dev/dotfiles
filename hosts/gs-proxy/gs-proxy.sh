@@ -21,6 +21,7 @@ configure() {
     run_as_root cp -f "$_HOME/workspace/personal/dotfiles/files/system-doas.conf" /etc/doas.conf &&
     run_as_root chown root:root /etc/doas.conf && run_as_root chmod 0600 /etc/doas.conf && run_as_root passwd -dl root >/dev/null
 
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/openrc-rdeclare.sh" /usr/bin/rdeclare
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-eauto.sh" /usr/bin/eauto
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-edeclare.sh" /usr/bin/edeclare
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-edelete.sh" /usr/bin/edelete
@@ -34,6 +35,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman-service-restart.conf" /etc/conf.d/podman-restart
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-openrc-declare.conf" /etc/openrc/declare.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-license.conf" /etc/portage/package.license
@@ -44,10 +46,13 @@ configure() {
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
+  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0
+
   { get_parameter --install "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/installkernel -a
     run_as_root eselect news read --quiet all
+    run_as_root /usr/bin/rdeclare
   }
 
   { get_parameter --bootstrap "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } && {
@@ -55,21 +60,6 @@ configure() {
     run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" up -d --force-recreate --remove-orphans
     run_as_user podman ps -a
   }
-
-  [ ! -f /etc/init.d/agetty.ttyAMA0 ] &&
-    link_as_root agetty /etc/init.d/agetty.ttyAMA0
-
-  run_as_root rc-update add agetty.ttyAMA0 default >/dev/null
-  run_as_root rc-update add nftables default >/dev/null
-  run_as_root rc-update add podman-restart default >/dev/null
-  run_as_root rc-update add sshd default >/dev/null
-
-  run_as_root rc-update del agetty.tty1 >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty2 >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty3 >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty4 >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty5 >/dev/null 2>&1
-  run_as_root rc-update del agetty.tty6 >/dev/null 2>&1
 
   [ ! -f /efi/EFI/NETBOOT/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/NETBOOT &&
