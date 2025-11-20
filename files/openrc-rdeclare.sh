@@ -2,7 +2,6 @@
 set -eou pipefail
 
 is_root() { test "$(id -u)" -eq 0; }
-
 run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
 
 _DECLARED=$(mktemp) && sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/openrc/declare.conf | sort -u >"$_DECLARED"
@@ -15,3 +14,4 @@ _DEL=$(mktemp) && comm -23 "$_ENABLED" "$_DECLARED" >"$_DEL"
 [ -s "$_DEL" ] && cat "$_DEL" | run_as_root xargs -I {} rc-update del {}
 
 rm -f "$_DECLARED" "$_ENABLED"
+exit 0

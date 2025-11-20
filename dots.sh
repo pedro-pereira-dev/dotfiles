@@ -1,5 +1,5 @@
 #!/bin/sh
-# shellcheck disable=SC2015 source=/dev/null
+# shellcheck disable=SC2329 source=/dev/null
 set -eou pipefail
 
 [ $# -ge 2 ] && [ "$1" = install ] && [ "$2" = gentoo ] &&
@@ -64,3 +64,5 @@ update) dots_bootstrap && dots_update ;;
 sync) dots_bootstrap && dots_sync "$@" ;;
 *) exit 1 ;;
 esac
+
+exit 0

@@ -15,7 +15,6 @@ get_parameter() {
 }
 
 is_root() { test "$(id -u)" -eq 0; }
-
 run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
 
 _DECLARED=$(mktemp) && sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/portage/package.declare | sort -u >"$_DECLARED"
@@ -30,3 +29,4 @@ get_parameter --unattended "$@" >/dev/null && _ASK=--ask=n || _ASK=--ask=y
 [ -s "$_REMOVE" ] && run_as_root emerge -Wqv "$_ASK" $(paste -sd ' ' "$_REMOVE")
 
 rm -f "$_DECLARED" "$_INSTALL" "$_INSTALLED" "$_REMOVE"
+exit 0
