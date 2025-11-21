@@ -5,10 +5,11 @@ shopt -s checkwinsize histappend # resizes window and appends commands to histor
 is_linux() { test "$(uname)" = Linux; }
 is_macos() { test "$(uname)" = Darwin; }
 
-is_linux && [ -n "$SSH_CONNECTION" ] && doas /usr/bin/trust-ip
-
 [[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$HOME/.local/bin:$PATH"
 is_macos && [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"
+
+is_linux && command -v nft-trust-ip >/dev/null && [ -n "$SSH_CONNECTION" ] &&
+  doas nft-trust-ip "$(echo "$SSH_CONNECTION" | cut -d' ' -f1)"
 
 is_macos &&
   export BASH_SILENCE_DEPRECATION_WARNING=1 &&

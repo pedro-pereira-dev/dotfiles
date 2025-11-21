@@ -6,7 +6,7 @@ _HOSTNAME=gs-home
 _USER=chuck
 
 configure() {
-  { get_parameter --installer "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } &&
+  get_parameter --full "$@" >/dev/null &&
     run_as_root find / -name '*' -type l 2>/dev/null | while IFS= read -r _LINK; do
       case $_LINK in /dev/* | /proc/* | /run/* | /sys/* | /tmp/*) continue ;; esac
       case $(find "$_LINK" -prune -printf '%l\n' 2>/dev/null)/ in
@@ -21,7 +21,7 @@ configure() {
     run_as_root cp -f "$_HOME/workspace/personal/dotfiles/files/system-doas.conf" /etc/doas.conf &&
     run_as_root chown root:root /etc/doas.conf && run_as_root chmod 0600 /etc/doas.conf && run_as_root passwd -dl root >/dev/null
 
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/nftables-trust-ip.sh" /usr/bin/trust-ip
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/nftables-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_HOME/workspace/personal/dotfiles/files/openrc-rdeclare.sh" /usr/bin/rdeclare
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-eauto.sh" /usr/bin/eauto
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-edeclare.sh" /usr/bin/edeclare
@@ -49,18 +49,18 @@ configure() {
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-user-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
-  { get_parameter --installer "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } && {
+  get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/installkernel -a
     run_as_root eselect news read --quiet all
     run_as_root /usr/bin/rdeclare
   }
 
-  { get_parameter --full "$@" >/dev/null; } && {
-    run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" pull
-    run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" up -d --force-recreate --remove-orphans
-    run_as_user podman ps -a
-  }
+  # { get_parameter --full "$@" >/dev/null; } && {
+  #   run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" pull
+  #   run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" up -d --force-recreate --remove-orphans
+  #   run_as_user podman ps -a
+  # }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/netboot &&

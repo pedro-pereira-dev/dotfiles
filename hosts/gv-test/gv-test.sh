@@ -4,7 +4,7 @@ set -eou pipefail
 _HOSTNAME=gv-test
 
 configure() {
-  { get_parameter --installer "$@" >/dev/null || get_parameter --full "$@" >/dev/null; } &&
+  get_parameter --full "$@" >/dev/null &&
     run_as_root find / -name '*' -type l 2>/dev/null | while IFS= read -r _LINK; do
       case $_LINK in /dev/* | /proc/* | /run/* | /sys/* | /tmp/*) continue ;; esac
       case $(find "$_LINK" -prune -printf '%l\n' 2>/dev/null)/ in
