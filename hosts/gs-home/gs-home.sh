@@ -6,20 +6,9 @@ _HOSTNAME=gs-home
 _USER=chuck
 
 configure() {
-  get_parameter --full "$@" >/dev/null &&
-    run_as_root find / -name '*' -type l 2>/dev/null | while IFS= read -r _LINK; do
-      case $_LINK in /dev/* | /proc/* | /run/* | /sys/* | /tmp/*) continue ;; esac
-      case $(find "$_LINK" -prune -printf '%l\n' 2>/dev/null)/ in
-      "$_HOME/workspace/personal/dotfiles"/*) rm -v "$_LINK" &&
-      find "$(dirname "$_LINK")" -depth -type d -empty -delete ;; esac
-    done
-
+  setup_doas
+  get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
-
-  ! command -v doas >/dev/null && run_as_root emerge --ask=n -n app-admin/doas
-  command -v doas >/dev/null &&
-    run_as_root cp -f "$_HOME/workspace/personal/dotfiles/files/system-doas.conf" /etc/doas.conf &&
-    run_as_root chown root:root /etc/doas.conf && run_as_root chmod 0600 /etc/doas.conf && run_as_root passwd -dl root >/dev/null
 
   link_as_root "$_HOME/workspace/personal/dotfiles/files/nftables-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_HOME/workspace/personal/dotfiles/files/openrc-rdeclare.sh" /usr/bin/rdeclare

@@ -16,8 +16,6 @@ is_public_ip() {
     [ "$(echo "$_IP" | cut -d' ' -f4)" -lt 256 ]
 }
 
-{ [ $# -lt 1 ] || ! is_public_ip "$1"; } && exit 1
-run_as_root nft add element inet default trusted "{ $1 }"
-
-run_as_root nft list ruleset
+[ $# -lt 1 ] && exit 1
+is_public_ip "$1" && run_as_root nft add element inet default trusted "{ $1 }"
 exit 0

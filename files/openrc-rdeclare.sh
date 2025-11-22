@@ -13,5 +13,5 @@ _DEL=$(mktemp) && comm -23 "$_ENABLED" "$_DECLARED" >"$_DEL"
 [ -s "$_ADD" ] && cat "$_ADD" | run_as_root xargs -I {} rc-update add {} default
 [ -s "$_DEL" ] && cat "$_DEL" | run_as_root xargs -I {} rc-update del {}
 
-rm -f "$_DECLARED" "$_ENABLED"
+rm -f "$_ADD" "$_DECLARED" "$_DEL" "$_ENABLED"
 exit 0
