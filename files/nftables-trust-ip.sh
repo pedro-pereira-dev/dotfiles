@@ -13,7 +13,10 @@ is_public_ip() {
     [ "$(echo "$_IP" | cut -d' ' -f1)" -lt 256 ] &&
     [ "$(echo "$_IP" | cut -d' ' -f2)" -lt 256 ] &&
     [ "$(echo "$_IP" | cut -d' ' -f3)" -lt 256 ] &&
-    [ "$(echo "$_IP" | cut -d' ' -f4)" -lt 256 ]
+    [ "$(echo "$_IP" | cut -d' ' -f4)" -lt 256 ] &&
+    return 0
+
+  return 1
 }
 
 [ $# -lt 1 ] && exit 1

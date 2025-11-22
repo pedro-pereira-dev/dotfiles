@@ -48,7 +48,6 @@ _DISK=${_DISK:-"/dev/$_SMALLEST_DISK"}
 # removes all partitions and mapped devices
 wipefs -a "$_DISK"* && find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1" >/dev/null 2>&1' _ {} \;
 
-# partitions disk
 is_bios && _DISK_LAYOUT="0,n, , , ,$_BOOT_SIZE,a,n, , , ,$_ROOT_SIZE,p,w"
 is_uefi && _DISK_LAYOUT="g,n, , ,$_BOOT_SIZE,Y,t,1,n, , ,$_ROOT_SIZE,Y,p,w"
 printf '%s' "$_DISK_LAYOUT" | tr , '\n' | fdisk "$_DISK"
@@ -56,7 +55,6 @@ printf '%s' "$_DISK_LAYOUT" | tr , '\n' | fdisk "$_DISK"
 _BOOT_DEV=/dev/$(get_device_partition 1)
 _ROOT_DEV=/dev/$(get_device_partition 2)
 
-# installs gentoo
 curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh |
   sh -s -- \
     --hostname "$_HOSTNAME" \
@@ -70,11 +68,9 @@ curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installe
 chroot /mnt /bin/sh <<EOF
 env-update && source /etc/profile
 
-# creates user
 useradd -G wheel -m -s /bin/bash $_USER
 echo $_USER:$_PASSWORD | chpasswd
 
-# bootstraps dotfiles
 emerge --ask=n -1n dev-vcs/git
 curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots.sh |
   sh -s -- sync --full --hostname $_HOSTNAME --user $_USER

@@ -7,7 +7,7 @@ delete_links() {
     case $_LINK in /dev/* | /proc/* | /run/* | /sys/* | /tmp/*) continue ;; esac
     case $(find "$_LINK" -prune -printf '%l\n' 2>/dev/null)/ in
     "$_HOME/workspace/personal/dotfiles"/*) rm -v "$_LINK" &&
-      # deletes empty parent directories of _LINK
+      # deletes _LINK empty parent directories
       find "$(dirname "$_LINK")" -depth -type d -empty -delete ;; esac
   done
 }
