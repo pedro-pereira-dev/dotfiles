@@ -12,8 +12,9 @@ _INSTALL=$(mktemp) && comm -23 "$_DECLARED" "$_INSTALLED" >"$_INSTALL"
 _REMOVE=$(mktemp) && comm -23 "$_INSTALLED" "$_DECLARED" >"$_REMOVE"
 
 _ASK=--ask=y && [ $# -eq 1 ] && [ "$1" = --unattended ] && _ASK=--ask=n
-[ -s "$_INSTALL" ] && run_as_root emerge -qv "$_ASK" $(paste -sd ' ' "$_INSTALL")
-[ -s "$_REMOVE" ] && run_as_root emerge -Wqv "$_ASK" $(paste -sd ' ' "$_REMOVE")
+[ -s "$_INSTALL" ] && run_as_root emerge -qv $_ASK $(paste -sd ' ' "$_INSTALL") || true
+[ -s "$_REMOVE" ] && run_as_root emerge -Wqv $_ASK $(paste -sd ' ' "$_REMOVE") || true
 
 rm -f "$_DECLARED" "$_INSTALL" "$_INSTALLED" "$_REMOVE"
+
 exit 0

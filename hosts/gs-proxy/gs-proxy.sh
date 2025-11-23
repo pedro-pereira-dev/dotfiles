@@ -41,9 +41,10 @@ configure() {
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
-    run_as_root /usr/bin/installkernel -a
-    run_as_root eselect news read --quiet all
+    run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/rdeclare
+    run_as_root /usr/bin/installkernel -a
+    run_as_root /usr/bin/edelete --unattended
   }
 
   # { get_parameter --full "$@" >/dev/null; } && {

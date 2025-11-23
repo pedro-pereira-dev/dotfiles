@@ -21,4 +21,5 @@ is_public_ip() {
 
 [ $# -lt 1 ] && exit 1
 is_public_ip "$1" && run_as_root nft add element inet default trusted "{ $1 }"
+
 exit 0
