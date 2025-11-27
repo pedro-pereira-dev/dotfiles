@@ -13,8 +13,9 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-podman-compose.sh" /etc/init.d/podman-compose
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-setup-openrc.sh" /usr/bin/setup-openrc
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman-netavark-nftables.conf" /etc/containers/containers.conf.d/netavark-nftables.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman.conf" /etc/containers/containers.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-eauto.sh" /usr/bin/eauto
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-edeclare.sh" /usr/bin/edeclare
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-edelete.sh" /usr/bin/edelete
@@ -36,6 +37,8 @@ configure() {
 
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
+
+  [ ! -f /etc/init.d/podman-compose.chuck ] && link_as_root podman-compose /etc/init.d/podman-compose.chuck
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended

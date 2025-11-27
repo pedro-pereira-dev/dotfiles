@@ -74,4 +74,7 @@ echo $_USER:$_PASSWORD | chpasswd
 emerge --ask=n -1n dev-vcs/git
 curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots.sh |
   sh -s -- sync --full --hostname $_HOSTNAME --user $_USER
+
+/usr/bin/installkernel -a
+/usr/bin/edelete --unattended
 EOF

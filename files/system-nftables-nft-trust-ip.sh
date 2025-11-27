@@ -17,4 +17,7 @@ is_public_ip() {
 }
 
 [ $# -lt 1 ] && exit 1
-is_public_ip "$1" && run_as_root nft add element inet default trusted "{ $1 }" || true
+! is_public_ip "$1" && exit 1
+! rc-service nftables status 2>/dev/null | grep -q started && exit 1
+
+run_as_root nft add element inet default trusted "{ $1 }" || true
