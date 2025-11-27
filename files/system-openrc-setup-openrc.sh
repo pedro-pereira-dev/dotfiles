@@ -10,9 +10,7 @@ _ENABLED=$(mktemp) && rc-update show default | awk '{print $1}' | sort -u >"$_EN
 _ADD=$(mktemp) && comm -23 "$_DECLARED" "$_ENABLED" >"$_ADD"
 _DEL=$(mktemp) && comm -23 "$_ENABLED" "$_DECLARED" >"$_DEL"
 
-[ -s "$_ADD" ] && cat "$_ADD" | run_as_root xargs -I {} rc-update add {} default
+[ -s "$_ADD" ] && cat "$_ADD" | run_as_root xargs -I {} rc-update add {}
 [ -s "$_DEL" ] && cat "$_DEL" | run_as_root xargs -I {} rc-update del {}
 
 rm -f "$_ADD" "$_DECLARED" "$_DEL" "$_ENABLED"
-
-exit 0

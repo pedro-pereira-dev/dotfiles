@@ -13,8 +13,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-podman-restart.conf" /etc/conf.d/podman-restart
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-rdeclare.sh" /usr/bin/rdeclare
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-setup-openrc.sh" /usr/bin/setup-openrc
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman-netavark-nftables.conf" /etc/containers/containers.conf.d/netavark-nftables.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-eauto.sh" /usr/bin/eauto
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-edeclare.sh" /usr/bin/edeclare
@@ -33,7 +32,7 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-portage-package-use.conf" /etc/portage/package.use
 
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/user-bashrc.sh" "$_HOME/.bashrc"
+  link_as_user "$_HOME/workspace/personal/dotfiles/files/user-bashrc.sh" "$_HOME/.bashrc"
 
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-home/gs-home-ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
@@ -41,16 +40,8 @@ configure() {
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/rdeclare
-    run_as_root /usr/bin/installkernel -a
-    run_as_root /usr/bin/edelete --unattended
+    run_as_root /usr/bin/setup-openrc
   }
-
-  # { get_parameter --full "$@" >/dev/null; } && {
-  #   run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" pull
-  #   run_as_user podman-compose -f "$_HOME/.podman/compose.yaml" up -d --force-recreate --remove-orphans
-  #   run_as_user podman ps -a
-  # }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/netboot &&

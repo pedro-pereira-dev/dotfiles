@@ -5,9 +5,7 @@ is_root() { test "$(id -u)" -eq 0; }
 run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
 
 _ASK=--ask=y && [ $# -eq 1 ] && [ "$1" = --unattended ] && _ASK=--ask=n
-run_as_root emerge -cqv $_ASK || true
+run_as_root emerge -cqv $_ASK
 
 _ASK=-A && [ $# -eq 1 ] && [ "$1" = --unattended ] && _ASK=''
-command -v eclean-kernel >/dev/null && eclean-kernel -a $_ASK || true
-
-exit 0
+command -v eclean-kernel >/dev/null && run_as_root eclean-kernel -a $_ASK || true
