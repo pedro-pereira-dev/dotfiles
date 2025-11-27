@@ -1,8 +1,12 @@
-version: "3.8"
+version: "3.9"
 services:
-  frp-server:
-    container_name: frp-server
-    image: docker.io/snowdreamtech/frps:alpine
-    ports: ["7000:7000"]
-    pull_policy: always
-    restart: unless-stopped
+  test:
+    container_name: test
+    image: docker.io/hello-world
+
+  # frp-server:
+  #   container_name: frp-server
+  #   image: docker.io/snowdreamtech/frps:alpine
+  #   ports: ["7000:7000"]
+  #   pull_policy: always
+  #   restart: unless-stopped
