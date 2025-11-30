@@ -1,9 +1,13 @@
 #!/sbin/openrc-run
 
-command_user="${RC_SVCNAME#*.}"
-command="/usr/bin/podman-compose"
-command_args="-f /home/${RC_SVCNAME#*.}/.podman/compose.yaml up -d --force-recreate --remove-orphans"
-
 depend() {
-  need net
+  need net-online "user-runtime.${RC_SVCNAME#*.}"
+  after sshd
+}
+
+start() {
+  sleep 20
+  su "${RC_SVCNAME#*.}" -c "podman-compose -f /home/${RC_SVCNAME#*.}/.podman/compose.yaml pull"
+  su "${RC_SVCNAME#*.}" -c "podman-compose -f /home/${RC_SVCNAME#*.}/.podman/compose.yaml up -d --force-recreate --remove-orphans"
+  eend $?
 }
