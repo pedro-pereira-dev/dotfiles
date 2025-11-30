@@ -41,7 +41,7 @@ configure() {
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0
   [ ! -f /etc/init.d/podman-compose.chuck ] && link_as_root podman-compose /etc/init.d/podman-compose.chuck
-  [ ! -f /etc/init.d/user-runtime.chuck ] && link_as_root user-runtime /etc/init.d/user-runtime.chuck
+  [ ! -f /etc/init.d/user.chuck ] && link_as_root user-runtime /etc/init.d/user.chuck
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended

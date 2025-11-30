@@ -1,7 +1,7 @@
 #!/sbin/openrc-run
 
 depend() {
-  need net-online "user-runtime.${RC_SVCNAME#*.}"
+  need net-online "user.${RC_SVCNAME#*.}"
 }
 
 start() {

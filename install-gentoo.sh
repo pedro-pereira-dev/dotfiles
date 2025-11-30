@@ -55,25 +55,26 @@ printf '%s' "$_DISK_LAYOUT" | tr , '\n' | fdisk "$_DISK"
 _BOOT_DEV=/dev/$(get_device_partition 1)
 _ROOT_DEV=/dev/$(get_device_partition 2)
 
-curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh |
-  sh -s -- \
-    --hostname "$_HOSTNAME" \
-    --password "$_PASSWORD" \
-    --boot "$_BOOT_DEV" \
-    --root "$_ROOT_DEV" \
-    --swap "$_SWAP_SIZE" \
-    --keymap pt-latin9 \
-    --timezone Europe/Lisbon
+curl -Lfs -o /tmp/install.sh \
+  https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh
+sh /tmp/install.sh \
+  --hostname "$_HOSTNAME" \
+  --password "$_PASSWORD" \
+  --boot "$_BOOT_DEV" \
+  --root "$_ROOT_DEV" \
+  --swap "$_SWAP_SIZE" \
+  --keymap pt-latin9 \
+  --timezone Europe/Lisbon || true
 
-chroot /mnt /bin/sh <<EOF
+chroot /mnt /bin/bash <<EOF
 env-update && source /etc/profile
 
 useradd -G wheel -m -s /bin/bash $_USER
 echo $_USER:$_PASSWORD | chpasswd
 
 emerge --ask=n -1n dev-vcs/git
-curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots.sh |
-  sh -s -- sync --full --hostname $_HOSTNAME --user $_USER
+curl -Lfs -o /tmp/dots.sh https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/dots.sh
+sh /tmp/dots.sh sync --full --hostname $_HOSTNAME --user $_USER
 
 /usr/bin/installkernel -a
 /usr/bin/edelete --unattended
