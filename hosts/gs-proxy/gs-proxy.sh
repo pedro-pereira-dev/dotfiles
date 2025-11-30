@@ -9,31 +9,32 @@ configure() {
   get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
 
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/openrc-net-online.conf" /etc/conf.d/net-online
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-eauto.sh" /usr/bin/eauto
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-edeclare.sh" /usr/bin/edeclare
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-edelete.sh" /usr/bin/edelete
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-eupdate.sh" /usr/bin/eupdate
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-eupgrade.sh" /usr/bin/eupgrade
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-setup-services.sh" /usr/bin/setup-services
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/service-podman-compose.sh" /etc/init.d/podman-compose
+  link_as_root "$_HOME/workspace/personal/dotfiles/files/service-user-runtime.sh" /etc/init.d/user-runtime
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-podman-compose.sh" /etc/init.d/podman-compose
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-setup-openrc.sh" /usr/bin/setup-openrc
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-openrc-user-runtime.sh" /etc/init.d/user-runtime
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman.conf" /etc/containers/containers.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-eauto.sh" /usr/bin/eauto
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-edeclare.sh" /usr/bin/edeclare
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-edelete.sh" /usr/bin/edelete
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-eupdate.sh" /usr/bin/eupdate
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-eupgrade.sh" /usr/bin/eupgrade
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-nftables.conf" /var/lib/nftables/tables/filter.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-openrc-declare.conf" /etc/openrc/declare.conf
+  link_as_user "$_HOME/workspace/personal/dotfiles/files/script-bashrc.sh" "$_HOME/.bashrc"
+
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-nftables-table.conf" /var/lib/nftables/tables/table.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-openrc-services.conf" /etc/openrc/services.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-license.conf" /etc/portage/package.license
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-use.conf" /etc/portage/package.use
-
-  link_as_user "$_HOME/workspace/personal/dotfiles/files/user-bashrc.sh" "$_HOME/.bashrc"
 
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
@@ -45,7 +46,7 @@ configure() {
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-openrc
+    run_as_root /usr/bin/setup-services
   }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&

@@ -12,19 +12,18 @@ notify=fd:3
 respawn_max=3
 respawn_period=5
 
-depend() {
-  before "user.${RC_SVCNAME#*.}"
-}
-
 start_pre() {
-  [ "${_USER}" = "${RC_SVCNAME}" ] && return 1
+  ebegin "Starting user ${RC_SVCNAME#*.} runtime direcory"
+
+  [ "${_USER}" = "${RC_SVCNAME}" ] &&
+    eend 1 && return 1
 
   [ -z "${XDG_RUNTIME_DIR}" ] &&
     export XDG_RUNTIME_DIR=${_USER_DIR}
   [ ! -d "${XDG_RUNTIME_DIR}" ] &&
     mkdir -p "${XDG_RUNTIME_DIR}" &&
     chmod 0700 "${XDG_RUNTIME_DIR}" &&
-    chown "${RC_SVCNAME#*.}:${RC_SVCNAME#*.}" "${XDG_RUNTIME_DIR}" || true
+    chown "${RC_SVCNAME#*.}:${RC_SVCNAME#*.}" "${XDG_RUNTIME_DIR}"
 
-  eend $?
+  eend 0 && return 0
 }

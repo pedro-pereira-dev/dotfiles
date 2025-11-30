@@ -4,7 +4,7 @@ set -eou pipefail
 is_root() { test "$(id -u)" -eq 0; }
 run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
 
-_DECLARED=$(mktemp) && sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/openrc/declare.conf | sort -u >"$_DECLARED"
+_DECLARED=$(mktemp) && sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/openrc/services.conf | sort -u >"$_DECLARED"
 _ENABLED=$(mktemp) && rc-update show default | awk '{print $1}' | sort -u >"$_ENABLED"
 
 _ADD=$(mktemp) && comm -23 "$_DECLARED" "$_ENABLED" >"$_ADD"
