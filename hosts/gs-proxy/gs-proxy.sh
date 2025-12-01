@@ -9,6 +9,7 @@ configure() {
   get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
 
+  # shared root links
   link_as_root "$_HOME/workspace/personal/dotfiles/files/openrc-net-online.conf" /etc/conf.d/net-online
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
@@ -26,8 +27,10 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman.conf" /etc/containers/containers.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
+  # shared user links
   link_as_user "$_HOME/workspace/personal/dotfiles/files/script-bashrc.sh" "$_HOME/.bashrc"
 
+  # host root links
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-declare.conf" /etc/portage/package.declare
@@ -36,12 +39,13 @@ configure() {
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
 
+  # host user links
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
-  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0
-  [ ! -f /etc/init.d/podman-compose.chuck ] && link_as_root podman-compose /etc/init.d/podman-compose.chuck
-  [ ! -f /etc/init.d/user.chuck ] && link_as_root user-runtime /etc/init.d/user.chuck
+  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
+  [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime dir on boot
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
