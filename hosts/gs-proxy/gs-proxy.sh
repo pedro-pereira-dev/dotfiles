@@ -4,8 +4,11 @@ set -eou pipefail
 _HOSTNAME=gs-proxy
 _USER=chuck
 
+_PODMAN_USER=podman
+_PODMAN_HOME=$(get_home $_PODMAN_USER)
+
 configure() {
-  setup_doas
+  setup_doas && create_service_user $_PODMAN_USER
   get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
 
@@ -43,9 +46,13 @@ configure() {
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
+  # host podman links
+  link_as_user_forced $_PODMAN_USER "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/podman-compose.yaml" "$_PODMAN_HOME/.podman/compose.yaml"
+
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
-  [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
+  [ ! -f /etc/init.d/podman-compose.podman ] && link_as_root podman-compose /etc/init.d/podman-compose.podman # compose up on boot
   [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime dir on boot
+  [ ! -f /etc/init.d/user.podman ] && link_as_root user-runtime /etc/init.d/user.podman                       # runtime dir on boot
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended

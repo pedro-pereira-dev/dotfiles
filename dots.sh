@@ -1,6 +1,8 @@
 #!/bin/sh
-# shellcheck disable=SC2329 source=/dev/null
+# shellcheck disable=SC2015,SC2329 source=/dev/null
 set -eou pipefail
+
+create_service_user() { ! id "$1" >/dev/null 2>&1 && run_as_root useradd -ms /usr/bin/bash "$1"; }
 
 delete_links() {
   $1 find "$2" -name '*' -type l 2>/dev/null | while IFS= read -r _LINK; do
@@ -33,6 +35,8 @@ dots_sync() {
   return 0
 }
 
+get_home() { is_linux && echo "/home/$1" || { is_macos && echo "/Users/$1"; }; }
+
 get_parameter() {
   _FLAG='' && [ $# -ge 1 ] && _FLAG=$1 && shift
   while [ $# -ge 1 ]; do
@@ -55,9 +59,11 @@ is_root() { test "$(id -u)" -eq 0; }
 
 link_as_root() { run_as_root rm -fr "$2" && run_as_root mkdir -p "$(dirname "$2")" && run_as_root ln -fsv "$1" "$2"; }
 link_as_user() { run_as_user rm -fr "$2" && run_as_user mkdir -p "$(dirname "$2")" && run_as_user ln -fsv "$1" "$2"; }
+link_as_user_forced() { run_as_user_forced "$1" rm -fr "$3" && run_as_user_forced "$1" mkdir -p "$(dirname "$3")" && run_as_user_forced "$1" ln -fsv "$2" "$3"; }
 
 run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
-run_as_user() { if is_non_root; then "$@"; elif is_root; then su "$_USER" -c "$(printf '%s ' "$@")"; fi; }
+run_as_user() { if is_non_root; then "$@"; elif is_root; then su "$_USER" -c "$(printf '%s ' "$@")"; fi; } # important printf white space
+run_as_user_forced() { _RUN_AS=$1 && shift && su "$_RUN_AS" -c "$(printf '%s ' "$@")"; }
 
 setup_doas() {
   { ! command -v doas >/dev/null && run_as_root emerge --ask=n -n app-admin/doas || true; } &&
@@ -71,9 +77,7 @@ _HOSTNAME=$(get_parameter --hostname "$@") && [ -n "$_HOSTNAME" ] ||
 _USER=$(get_parameter --user "$@") && [ -n "$_USER" ] ||
   { is_non_root && _USER=$(whoami) || is_root && _USER=$(grep ^wheel: /etc/group | cut -d, -f2 | grep -v root); } ||
   { echo '[E] missing required argument --user' && exit 1; }
-
-is_linux && _HOME=/home/$_USER
-is_macos && _HOME=/Users/$_USER
+_HOME=$(get_home "$_USER")
 
 _CMD='' && [ "$#" -ge 1 ] && _CMD="$1" && shift
 case $_CMD in

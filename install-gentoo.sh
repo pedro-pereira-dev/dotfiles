@@ -69,7 +69,7 @@ yes | sh /tmp/install.sh \
 chroot /mnt /bin/bash <<EOF
 env-update && source /etc/profile
 
-useradd -G wheel -m -s /bin/bash $_USER
+useradd -G wheel -m -s /usr/bin/bash $_USER
 echo $_USER:$_PASSWORD | chpasswd
 
 emerge --ask=n -1n dev-vcs/git
