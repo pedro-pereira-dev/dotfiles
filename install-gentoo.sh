@@ -57,7 +57,7 @@ _ROOT_DEV=/dev/$(get_device_partition 2)
 
 curl -Lfs -o /tmp/install.sh \
   https://raw.githubusercontent.com/pedro-pereira-dev/gentoo-installer/refs/heads/main/install.sh
-sh /tmp/install.sh \
+yes | sh /tmp/install.sh \
   --hostname "$_HOSTNAME" \
   --password "$_PASSWORD" \
   --boot "$_BOOT_DEV" \
