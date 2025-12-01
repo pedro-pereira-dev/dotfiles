@@ -28,16 +28,16 @@ configure() {
 
   link_as_user "$_HOME/workspace/personal/dotfiles/files/script-bashrc.sh" "$_HOME/.bashrc"
 
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-nftables-table.conf" /var/lib/nftables/tables/table.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-openrc-services.conf" /etc/openrc/services.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-declare.conf" /etc/portage/package.declare
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-keywords.conf" /etc/portage/package.accept_keywords
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-license.conf" /etc/portage/package.license
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-unmask.conf" /etc/portage/package.unmask
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-portage-package-use.conf" /etc/portage/package.use
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-declare.conf" /etc/portage/package.declare
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-keywords.conf" /etc/portage/package.accept_keywords
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-license.conf" /etc/portage/package.license
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-unmask.conf" /etc/portage/package.unmask
+  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
 
-  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-podman-compose.yaml" "$_HOME/.podman/compose.yaml"
-  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/gs-proxy-ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
+  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/podman-compose.yaml" "$_HOME/.podman/compose.yaml"
+  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0
   [ ! -f /etc/init.d/podman-compose.chuck ] && link_as_root podman-compose /etc/init.d/podman-compose.chuck
