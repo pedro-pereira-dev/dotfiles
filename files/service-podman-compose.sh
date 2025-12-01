@@ -6,7 +6,10 @@ depend() {
 
 start() {
   ebegin "Starting user ${RC_SVCNAME#*.} podman-compose"
-  su "${RC_SVCNAME#*.}" -c "podman-compose -f /home/${RC_SVCNAME#*.}/.podman/compose.yaml pull"
-  su "${RC_SVCNAME#*.}" -c "podman-compose -f /home/${RC_SVCNAME#*.}/.podman/compose.yaml up -d --force-recreate --remove-orphans"
+
+  su "${RC_SVCNAME#*.}" -c "\
+    podman-compose -f /home/${RC_SVCNAME#*.}/.podman/compose.yaml \
+    up -d --force-recreate --pull-always --remove-orphans"
+
   eend $?
 }
