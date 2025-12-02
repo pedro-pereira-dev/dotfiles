@@ -1,58 +1,58 @@
 #!/bin/sh
 set -eou pipefail
 
-_HOSTNAME=gs-proxy
 _USER=chuck
 
-_PODMAN_USER=podman
-_PODMAN_HOME=$(get_home $_PODMAN_USER)
-
 configure() {
-  setup_doas && create_service_user $_PODMAN_USER
+  _HOME=$(get_home $_USER) && _DOTS="$_HOME/workspace/personal/dotfiles"
+  setup_doas "$_DOTS/files/system-doas.conf"
+
+  _PODMAN_USER=podman && _PODMAN_HOME=$(get_home $_PODMAN_USER)
+  create_user $_PODMAN_USER
+
   get_parameter --full "$@" >/dev/null && delete_links_as_root
-  link_as_root "$_HOME/workspace/personal/dotfiles/dots.sh" /usr/bin/dots
+  link_as_root "$_DOTS/dots.sh" /usr/bin/dots
 
   # shared root links
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/openrc-net-online.conf" /etc/conf.d/net-online
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/portage-package-mask.conf" /etc/portage/package.mask
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-eauto.sh" /usr/bin/eauto
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-edeclare.sh" /usr/bin/edeclare
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-edelete.sh" /usr/bin/edelete
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-eupdate.sh" /usr/bin/eupdate
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-eupgrade.sh" /usr/bin/eupgrade
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/script-setup-services.sh" /usr/bin/setup-services
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/service-podman-compose.sh" /etc/init.d/podman-compose
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/service-user-runtime.sh" /etc/init.d/user-runtime
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-grub.conf" /etc/default/grub
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-nftables.conf" /var/lib/nftables/rules-save
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-podman.conf" /etc/containers/containers.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
+  link_as_root "$_DOTS/files/openrc-net-online.conf" /etc/conf.d/net-online
+  link_as_root "$_DOTS/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
+  link_as_root "$_DOTS/files/portage-package-mask.conf" /etc/portage/package.mask
+  link_as_root "$_DOTS/files/script-eauto.sh" /usr/bin/eauto
+  link_as_root "$_DOTS/files/script-edeclare.sh" /usr/bin/edeclare
+  link_as_root "$_DOTS/files/script-edelete.sh" /usr/bin/edelete
+  link_as_root "$_DOTS/files/script-eupdate.sh" /usr/bin/eupdate
+  link_as_root "$_DOTS/files/script-eupgrade.sh" /usr/bin/eupgrade
+  link_as_root "$_DOTS/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
+  link_as_root "$_DOTS/files/script-setup-services.sh" /usr/bin/setup-services
+  link_as_root "$_DOTS/files/service-podman-compose.sh" /etc/init.d/podman-compose
+  link_as_root "$_DOTS/files/service-user-runtime.sh" /etc/init.d/user-runtime
+  link_as_root "$_DOTS/files/system-grub.conf" /etc/default/grub
+  link_as_root "$_DOTS/files/system-nftables.conf" /var/lib/nftables/rules-save
+  link_as_root "$_DOTS/files/system-podman.conf" /etc/containers/containers.conf
+  link_as_root "$_DOTS/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
   # shared user links
-  link_as_user "$_HOME/workspace/personal/dotfiles/files/script-bashrc.sh" "$_HOME/.bashrc"
+  link_as_user $_USER "$_DOTS/files/script-bashrc.sh" "$_HOME/.bashrc"
 
   # host root links
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-declare.conf" /etc/portage/package.declare
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-keywords.conf" /etc/portage/package.accept_keywords
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-license.conf" /etc/portage/package.license
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-unmask.conf" /etc/portage/package.unmask
-  link_as_root "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
+  link_as_root "$_DOTS/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
+  link_as_root "$_DOTS/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
+  link_as_root "$_DOTS/hosts/gs-proxy/portage-package-declare.conf" /etc/portage/package.declare
+  link_as_root "$_DOTS/hosts/gs-proxy/portage-package-keywords.conf" /etc/portage/package.accept_keywords
+  link_as_root "$_DOTS/hosts/gs-proxy/portage-package-license.conf" /etc/portage/package.license
+  link_as_root "$_DOTS/hosts/gs-proxy/portage-package-unmask.conf" /etc/portage/package.unmask
+  link_as_root "$_DOTS/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
 
   # host user links
-  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/podman-compose.yaml" "$_HOME/.podman/compose.yaml"
-  link_as_user "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
+  link_as_user $_USER "$_DOTS/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
   # host podman links
-  link_as_user_forced $_PODMAN_USER "$_HOME/workspace/personal/dotfiles/hosts/gs-proxy/podman-compose.yaml" "$_PODMAN_HOME/.podman/compose.yaml"
+  link_as_user $_PODMAN_USER "$_DOTS/hosts/gs-proxy/podman-compose.yaml" "$_PODMAN_HOME/.podman/compose.yaml"
 
-  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
-  [ ! -f /etc/init.d/podman-compose.podman ] && link_as_root podman-compose /etc/init.d/podman-compose.podman # compose up on boot
-  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime dir on boot
-  [ ! -f /etc/init.d/user.podman ] && link_as_root user-runtime /etc/init.d/user.podman                       # runtime dir on boot
+  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                                     # console
+  [ ! -f /etc/init.d/podman-compose.$_PODMAN_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_PODMAN_USER # compose up on boot
+  [ ! -f /etc/init.d/user.$_PODMAN_USER ] && link_as_root user-runtime /etc/init.d/user.$_PODMAN_USER                       # runtime dir on boot
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                                     # runtime dir on boot
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
