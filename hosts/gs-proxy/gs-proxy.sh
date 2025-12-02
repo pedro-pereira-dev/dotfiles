@@ -9,6 +9,7 @@ configure() {
 
   _PODMAN_USER=podman && _PODMAN_HOME=$(get_home $_PODMAN_USER)
   create_user $_PODMAN_USER
+  run_as_root usermod -aG $_PODMAN_USER $_USER
 
   get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_DOTS/dots.sh" /usr/bin/dots
@@ -54,10 +55,12 @@ configure() {
   [ ! -f /etc/init.d/user.$_PODMAN_USER ] && link_as_root user-runtime /etc/init.d/user.$_PODMAN_USER                       # runtime dir on boot
   [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                                     # runtime dir on boot
 
+  echo "RUN_AS_USER=\"$_PODMAN_USER:$_PODMAN_USER\"" >/etc/conf.d/podman
+
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-services
+    run_as_root /usr/bin/setup-services podman-compose.$_PODMAN_USER
   }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
