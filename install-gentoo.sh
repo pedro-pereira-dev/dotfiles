@@ -2,14 +2,14 @@
 # shellcheck disable=SC2015 source=/dev/null
 set -eou pipefail
 
-is_bios() { ! is_uefi; }
 is_uefi() { test -d /sys/firmware/efi; }
+is_bios() { ! is_uefi; }
 
 get_parameter() {
-  _FLAG=$1 && shift && while [ $# -ge 1 ]; do
-    _PARAM=$1 && shift && [ "$_FLAG" = "$_PARAM" ] && {
-      _VAL='' && [ $# -ge 1 ] && _VAL=$1
-      [ -n "$_VAL" ] && expr "x$_VAL" : 'x[^-]' >/dev/null && echo "$_VAL" || true # prints out if not starting by -
+  _flag=$1 && shift && while [ $# -ge 1 ]; do
+    _param=$1 && shift && [ "$_flag" = "$_param" ] && {
+      _val='' && [ $# -ge 1 ] && _val=$1
+      [ -n "$_val" ] && expr "x$_val" : 'x[^-]' >/dev/null && echo "$_val" || true # prints out if not starting by -
     } && return 0
   done && return 1
 }
