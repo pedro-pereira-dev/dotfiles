@@ -20,8 +20,12 @@ link_as_user() { _user=$1 && _source=$2 && _target=$3 &&
 
 delete_links() {
   _dir=$1 && shift && "$@" find "$_dir" -type l 2>/dev/null | while IFS= read -r _entry; do # lists links
-    case $_entry in */lost+found/* | /boot/* | /dev/* | /efi/* | /media/* | /mnt/*) continue ;; esac
+    case $_entry in /boot/* | /dev/* | /efi/* | /media/* | /mnt/*) continue ;; esac
     case $_entry in /opt/* | /proc/* | /run/* | /sys/* | /tmp/* | /var/*) continue ;; esac
+    case $_entry in /etc/pam.d/* | /etc/runlevels/* | /etc/ssl/*) continue ;; esac
+    case $_entry in /usr/*-linux-*/* | /usr/include/* | /usr/lib/* | /usr/lib64/*) continue ;; esac
+    case $_entry in /usr/libexec/* | /usr/local/* | /usr/share/* | /usr/src/*) continue ;; esac
+    case $_entry in */lost+found/* | */.local/share/containers/*) continue ;; esac
     "$@" find "$_entry" -printf '%l\n' 2>/dev/null | while IFS= read -r _path; do # resolves link
       case $_path in */dotfiles/*) "$@" rm "$_entry" && echo "'$_entry' X" && "$@" rmdir -p "$(dirname "$_entry")" 2>/dev/null ;; esac
     done
