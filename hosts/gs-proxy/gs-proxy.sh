@@ -26,6 +26,7 @@ configure() {
   link_as_root "$_DOTS/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_DOTS/files/script-setup-services.sh" /usr/bin/setup-services
   link_as_root "$_DOTS/files/service-podman-compose.sh" /etc/init.d/podman-compose
+  link_as_root "$_DOTS/files/service-podman-socket.sh" /etc/init.d/podman-socket
   link_as_root "$_DOTS/files/service-user-runtime.sh" /etc/init.d/user-runtime
   link_as_root "$_DOTS/files/system-grub.conf" /etc/default/grub
   link_as_root "$_DOTS/files/system-nftables.conf" /var/lib/nftables/rules-save
@@ -51,16 +52,15 @@ configure() {
   link_as_user $_PODMAN_USER "$_DOTS/hosts/gs-proxy/podman-compose.yaml" "$_PODMAN_HOME/.podman/compose.yaml"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                                     # console
-  [ ! -f /etc/init.d/podman-compose.$_PODMAN_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_PODMAN_USER # compose up on boot
-  [ ! -f /etc/init.d/user.$_PODMAN_USER ] && link_as_root user-runtime /etc/init.d/user.$_PODMAN_USER                       # runtime dir on boot
-  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                                     # runtime dir on boot
-
-  echo "RUN_AS_USER=\"$_PODMAN_USER:$_PODMAN_USER\"" >/etc/conf.d/podman
+  [ ! -f /etc/init.d/podman-compose.$_PODMAN_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_PODMAN_USER # user podman socket
+  [ ! -f /etc/init.d/podman-socket.$_PODMAN_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_PODMAN_USER    # user compose on boot
+  [ ! -f /etc/init.d/user.$_PODMAN_USER ] && link_as_root user-runtime /etc/init.d/user.$_PODMAN_USER                       # podman user runtime directory
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                                     # host user runtime directory
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-services podman-compose.$_PODMAN_USER
+    run_as_root /usr/bin/setup-services podman-compose.$_PODMAN_USER podman-socket.$_PODMAN_USER
   }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
