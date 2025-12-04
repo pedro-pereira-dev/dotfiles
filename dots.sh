@@ -2,6 +2,8 @@
 # shellcheck disable=SC2015,SC2329 source=/dev/null
 set -eou pipefail
 
+set -x
+
 is_linux() { test "$(uname)" = Linux; }
 is_macos() { test "$(uname)" = Darwin; }
 
