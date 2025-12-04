@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  test:
+    container_name: test
+    image: docker.io/hello-world
+  test2:
+    container_name: test2
+    image: docker.io/nginx
+    ports: ["8080:80"]
+
+  # ssh-tunnel:
+  #   container_name: ssh-tunnel
+  #   environment:
+  #     - SSH_REMOTE_USER=chuck
+  #     - SSH_REMOTE_HOST=158.179.217.85
+  #     - SSH_TUNNEL_PORT=7000
+  #     - SSH_TARGET_HOST=127.0.0.1
+  #     - SSH_TARGET_PORT=7000
+  #   expose:
+  #     - 7000
+  #   image: docker.io/jnovack/autossh:latest
+  #   pull_policy: always
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ~/.ssh/temp/ssh-github-pedro-pereira-dev/private.key:/id_rsa:ro
+  #
+  # frp-client:
+  #   container_name: frp-client
+  #   depends_on:
+  #     - ssh-tunnel
+  #   image: docker.io/snowdreamtech/frpc:alpine
+  #   pull_policy: always
+  #   restart: unless-stopped

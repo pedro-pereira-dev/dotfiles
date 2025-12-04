@@ -45,8 +45,8 @@ configure() {
   link_as_user $_USER "$_DOTS/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
-  [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # podman socket
-  [ ! -f /etc/init.d/podman-socket.$_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_USER    # compose up on boot
+  [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
+  [ ! -f /etc/init.d/podman-socket.$_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_USER    # podman socket
   [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime directory
 
   get_parameter --full "$@" >/dev/null && {
