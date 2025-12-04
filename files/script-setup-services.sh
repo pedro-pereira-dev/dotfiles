@@ -1,20 +1,31 @@
 #!/bin/sh
 set -eou pipefail
 
-is_root() { test "$(id -u)" -eq "$(id -u root)"; }
-run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
+is_user() { _is_user_user=$1 && test "$(id -u)" -eq "$(id -u "$_is_user_user")"; }
+is_root() { is_user root; }
 
-_DECLARATIONS=$(mktemp)
-[ $# -ge 1 ] && printf '%s\n' "$@" >>"$_DECLARATIONS"
-sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/openrc/services.conf >>"$_DECLARATIONS"
+run_as_root() {
+  if is_root; then
+    "$@"
+  elif command -v doas >/dev/null; then
+    doas "$@"
+  elif command -v sudo >/dev/null; then
+    sudo "$@"
+  fi
+}
 
-_DECLARED=$(mktemp) && sort -u "$_DECLARATIONS" >>"$_DECLARED"
-_ENABLED=$(mktemp) && rc-update show default | awk '{print $1}' | sort -u >"$_ENABLED"
+_declarations=$(mktemp)
+[ $# -ge 1 ] && printf '%s\n' "$@" >>"$_declarations"
+sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' \
+  /etc/openrc/services.conf >>"$_declarations"
 
-_ADD=$(mktemp) && comm -23 "$_DECLARED" "$_ENABLED" >"$_ADD"
-_DEL=$(mktemp) && comm -23 "$_ENABLED" "$_DECLARED" >"$_DEL"
+_declared=$(mktemp) && sort -u "$_declarations" >>"$_declared"
+_enabled=$(mktemp) && rc-update show default | awk '{print $1}' | sort -u >"$_enabled"
 
-[ -s "$_ADD" ] && cat "$_ADD" | run_as_root xargs -I {} rc-update add {}
-[ -s "$_DEL" ] && cat "$_DEL" | run_as_root xargs -I {} rc-update del {}
+_add=$(mktemp) && comm -23 "$_declared" "$_enabled" >"$_add"
+_del=$(mktemp) && comm -23 "$_enabled" "$_declared" >"$_del"
 
-rm -f "$_ADD" "$_DECLARATIONS" "$_DECLARED" "$_DEL" "$_ENABLED"
+[ -s "$_add" ] && cat "$_add" | run_as_root xargs -I {} rc-update add {}
+[ -s "$_del" ] && cat "$_del" | run_as_root xargs -I {} rc-update del {}
+
+rm -f "$_add" "$_declarations" "$_declared" "$_del" "$_enabled"

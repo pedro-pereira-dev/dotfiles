@@ -2,17 +2,30 @@
 # shellcheck disable=SC2046
 set -eou pipefail
 
-is_root() { test "$(id -u)" -eq "$(id -u root)"; }
-run_as_root() { if is_root; then "$@"; elif command -v doas >/dev/null; then doas "$@"; elif command -v sudo >/dev/null; then sudo "$@"; fi; }
+is_user() { _is_user_user=$1 && test "$(id -u)" -eq "$(id -u "$_is_user_user")"; }
+is_root() { is_user root; }
 
-_DECLARED=$(mktemp) && sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/portage/package.declare | sort -u >"$_DECLARED"
-_INSTALLED=$(mktemp) && sort -u /var/lib/portage/world >"$_INSTALLED"
+run_as_root() {
+  if is_root; then
+    "$@"
+  elif command -v doas >/dev/null; then
+    doas "$@"
+  elif command -v sudo >/dev/null; then
+    sudo "$@"
+  fi
+}
 
-_INSTALL=$(mktemp) && comm -23 "$_DECLARED" "$_INSTALLED" >"$_INSTALL"
-_REMOVE=$(mktemp) && comm -23 "$_INSTALLED" "$_DECLARED" >"$_REMOVE"
+_declared=$(mktemp) && sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' \
+  /etc/portage/package.declare | sort -u >"$_declared"
+_installed=$(mktemp) && sort -u /var/lib/portage/world >"$_installed"
 
-_ASK=--ask=y && [ $# -eq 1 ] && [ "$1" = --unattended ] && _ASK=--ask=n
-[ -s "$_INSTALL" ] && run_as_root emerge -qv $_ASK $(paste -sd ' ' "$_INSTALL")
-[ -s "$_REMOVE" ] && run_as_root emerge -Wqv $_ASK $(paste -sd ' ' "$_REMOVE")
+_install=$(mktemp) && comm -23 "$_declared" "$_installed" >"$_install"
+_remove=$(mktemp) && comm -23 "$_installed" "$_declared" >"$_remove"
 
-rm -f "$_DECLARED" "$_INSTALL" "$_INSTALLED" "$_REMOVE"
+_ask=--ask=y
+[ $# -eq 1 ] && [ "$1" = --unattended ] && _ask=--ask=n
+
+[ -s "$_install" ] && run_as_root emerge -qv $_ask $(paste -sd ' ' "$_install")
+[ -s "$_remove" ] && run_as_root emerge -Wqv $_ask $(paste -sd ' ' "$_remove")
+
+rm -f "$_declared" "$_install" "$_installed" "$_remove"
