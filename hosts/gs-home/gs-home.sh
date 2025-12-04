@@ -13,6 +13,7 @@ configure() {
   # shared root links
   link_as_root "$_configure_dots/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_configure_dots/files/portage-package-mask.conf" /etc/portage/package.mask
+  link_as_root "$_configure_dots/files/portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_configure_dots/files/script-eauto.sh" /usr/bin/eauto
   link_as_root "$_configure_dots/files/script-edeclare.sh" /usr/bin/edeclare
   link_as_root "$_configure_dots/files/script-edelete.sh" /usr/bin/edelete
@@ -34,7 +35,6 @@ configure() {
   link_as_root "$_configure_dots/hosts/gs-home/portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_configure_dots/hosts/gs-home/portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_configure_dots/hosts/gs-home/portage-package-license.conf" /etc/portage/package.license
-  link_as_root "$_configure_dots/hosts/gs-home/portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_configure_dots/hosts/gs-home/portage-package-use.conf" /etc/portage/package.use
 
   # shared user links

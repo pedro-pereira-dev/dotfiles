@@ -28,6 +28,7 @@ is_public_ip() {
 }
 
 [ $# -ne 1 ] && exit 1
-_ip=$1 && ! is_public_ip "$_ip" && exit 1
+_ip=$1
+# && ! is_public_ip "$_ip" && exit 1
 ! rc-service nftables status 2>/dev/null | grep -q started && exit 1
 run_as_root nft add element inet default trusted "{ $_ip }" || true
