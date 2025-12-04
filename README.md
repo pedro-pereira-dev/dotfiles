@@ -111,10 +111,10 @@ passwd
 ```bash
 setup-apkrepos -1 && apk update
 apk add curl dosfstools e2fsprogs tar util-linux xz
-curl -Lfs -o /tmp/install-gentoo.sh  https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/install-gentoo.sh
+curl -Lfs -- https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/install-gentoo.sh |
 
-sh /tmp/install-gentoo.sh --hostname gs-proxy --password root
-sh /tmp/install-gentoo.sh --hostname gs-home --password root
+sh -s -- --hostname gs-proxy --password root
+sh -s -- --hostname gs-home --password root
 ```
 
 [Source](https://gist.github.com/amishmm/e2dc93e65cf79116f2ef2d542f05e61b)

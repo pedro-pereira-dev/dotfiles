@@ -3,6 +3,10 @@ services:
   test:
     container_name: test
     image: docker.io/hello-world
+  test2:
+    container_name: test2
+    image: docker.io/nginx
+    ports: ["8080:80"]
 
   # frp-server:
   #   container_name: frp-server

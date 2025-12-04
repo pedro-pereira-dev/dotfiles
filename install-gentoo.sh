@@ -34,7 +34,7 @@ _SMALLEST_DISK=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 |
 _DISK=${_DISK:-/dev/$_SMALLEST_DISK}
 
 # removes all partitions and mapped devices
-wipefs -a "$_DISK*" && find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1"' _ {} \;
+wipefs -a "$_DISK"* && find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1"' _ {} \;
 
 is_bios && _DISK_LAYOUT="0,n, , , ,$_BOOT_SIZE,a,n, , , ,$_ROOT_SIZE,p,w"
 is_uefi && _DISK_LAYOUT="g,n, , ,$_BOOT_SIZE,Y,t,1,n, , ,$_ROOT_SIZE,Y,p,w"
