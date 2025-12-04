@@ -20,13 +20,15 @@ link_as_user() { _user=$1 && _source=$2 && _target=$3 &&
 
 delete_links() {
   _dir=$1 && shift && "$@" find "$_dir" -type l 2>/dev/null | while IFS= read -r _entry; do # lists links
+    # matches entries to ignore, usually system directories
     case $_entry in /boot/* | /dev/* | /efi/* | /media/* | /mnt/*) continue ;; esac
     case $_entry in /opt/* | /proc/* | /run/* | /sys/* | /tmp/* | /var/*) continue ;; esac
     case $_entry in /etc/pam.d/* | /etc/runlevels/* | /etc/ssl/*) continue ;; esac
     case $_entry in /usr/*-linux-*/* | /usr/include/* | /usr/lib/* | /usr/lib64/*) continue ;; esac
     case $_entry in /usr/libexec/* | /usr/local/* | /usr/share/* | /usr/src/*) continue ;; esac
     case $_entry in */lost+found/* | */.local/share/containers/*) continue ;; esac
-    "$@" find "$_entry" -printf '%l\n' 2>/dev/null | while IFS= read -r _path; do # resolves link
+    # resolves link, deletes it and deletes all parent directories if empty
+    "$@" find "$_entry" -printf '%l\n' 2>/dev/null | while IFS= read -r _path; do
       case $_path in */dotfiles/*) "$@" rm "$_entry" && echo "'$_entry' X" && "$@" rmdir -p "$(dirname "$_entry")" 2>/dev/null ;; esac
     done
   done
@@ -34,9 +36,8 @@ delete_links() {
 delete_links_as_root() { delete_links / run_as_root; }
 delete_links_as_user() { _user=$1 && _dir=$2 && delete_links "$_dir" run_as_user "$_user"; }
 
-create_user() { _user=$1 && ! id "$_user" >/dev/null 2>&1 && run_as_root useradd -ms /usr/bin/bash "$_user"; }
 setup_doas() { _conf=$1 && { ! command -v doas >/dev/null && run_as_root emerge --ask=n -n app-admin/doas || true; } &&
-  run_as_root cp -f "$_conf" /etc/doas.conf && run_as_root chown root:root /etc/doas.conf && run_as_root chmod 0600 /etc/doas.conf &&
+  run_as_root cp -f "$_conf" /etc/doas.conf && run_as_root chown root:root /etc/doas.conf && run_as_root chmod u=rw /etc/doas.conf &&
   run_as_root passwd -dl root >/dev/null; }
 
 get_home() { _user=$1 && { is_linux && echo "/home/$_user"; } || { is_macos && echo "/Users/$_user"; }; }
@@ -77,4 +78,5 @@ _USER=$(get_parameter --user "$@") && [ -n "$_USER" ] || _USER=$(get_wheel_user)
 
 update) dots_bootstrap "$_USER" && dots_update "$_USER" || exit 1 ;;
 sync) dots_bootstrap "$_USER" && dots_sync "$_HOSTNAME" "$_USER" "$@" || exit 1 ;;
+
 *) exit 1 ;; esac && exit 0

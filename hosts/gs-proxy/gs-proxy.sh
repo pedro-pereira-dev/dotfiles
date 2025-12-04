@@ -6,11 +6,6 @@ _USER=chuck
 configure() {
   _HOME=$(get_home $_USER) && _DOTS="$_HOME/workspace/personal/dotfiles"
   setup_doas "$_DOTS/files/system-doas.conf"
-
-  _PODMAN_USER=podman && _PODMAN_HOME=$(get_home $_PODMAN_USER)
-  create_user $_PODMAN_USER
-  run_as_root usermod -aG $_PODMAN_USER $_USER
-
   get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_DOTS/dots.sh" /usr/bin/dots
 
@@ -33,9 +28,6 @@ configure() {
   link_as_root "$_DOTS/files/system-podman.conf" /etc/containers/containers.conf
   link_as_root "$_DOTS/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
-  # shared user links
-  link_as_user $_USER "$_DOTS/files/script-bashrc.sh" "$_HOME/.bashrc"
-
   # host root links
   link_as_root "$_DOTS/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
   link_as_root "$_DOTS/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
@@ -45,22 +37,22 @@ configure() {
   link_as_root "$_DOTS/hosts/gs-proxy/portage-package-unmask.conf" /etc/portage/package.unmask
   link_as_root "$_DOTS/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
 
+  # shared user links
+  link_as_user $_USER "$_DOTS/files/script-bashrc.sh" "$_HOME/.bashrc"
+
   # host user links
+  link_as_user $_USER "$_DOTS/hosts/gs-proxy/podman-compose.yaml" "$_HOME/.podman/compose.yaml"
   link_as_user $_USER "$_DOTS/hosts/gs-proxy/ssh-authorized-keys.conf" "$_HOME/.ssh/authorized_keys"
 
-  # host podman links
-  link_as_user $_PODMAN_USER "$_DOTS/hosts/gs-proxy/podman-compose.yaml" "$_PODMAN_HOME/.podman/compose.yaml"
-
-  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                                     # console
-  [ ! -f /etc/init.d/podman-compose.$_PODMAN_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_PODMAN_USER # user podman socket
-  [ ! -f /etc/init.d/podman-socket.$_PODMAN_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_PODMAN_USER    # user compose on boot
-  [ ! -f /etc/init.d/user.$_PODMAN_USER ] && link_as_root user-runtime /etc/init.d/user.$_PODMAN_USER                       # podman user runtime directory
-  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                                     # host user runtime directory
+  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
+  [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # podman socket
+  [ ! -f /etc/init.d/podman-socket.$_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_USER    # compose up on boot
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime directory
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-services podman-compose.$_PODMAN_USER podman-socket.$_PODMAN_USER
+    run_as_root /usr/bin/setup-services podman-compose.$_USER podman-socket.$_USER
   }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&

@@ -28,19 +28,19 @@ _USER=${_USER:-user}
 
 _BOOT_SIZE=${_BOOT_SIZE:-+512M}
 _ROOT_SIZE=${_ROOT_SIZE:-' '}
-_SWAP_SIZE=${_SWAP_SIZE:-1G}
+_SWAP_SIZE=${_SWAP_SIZE:-2G}
 
 _SMALLEST_DISK=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
-_DISK=${_DISK:-"/dev/$_SMALLEST_DISK"}
+_DISK=${_DISK:-/dev/$_SMALLEST_DISK}
 
 # removes all partitions and mapped devices
-wipefs -a "$_DISK"* && find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1" >/dev/null 2>&1' _ {} \;
+wipefs -a "$_DISK*" && find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1"' _ {} \;
 
 is_bios && _DISK_LAYOUT="0,n, , , ,$_BOOT_SIZE,a,n, , , ,$_ROOT_SIZE,p,w"
 is_uefi && _DISK_LAYOUT="g,n, , ,$_BOOT_SIZE,Y,t,1,n, , ,$_ROOT_SIZE,Y,p,w"
 printf '%s' "$_DISK_LAYOUT" | tr , '\n' | fdisk "$_DISK"
 
-get_device_partition() { _DEV=$1 && _PART=$2 && lsblk -f "$_DEV" -nro NAME,TYPE | grep -E ".*$_PART " | cut -d' ' -f1; }
+get_device_partition() { _dev=$1 && _part=$2 && lsblk -f "$_dev" -nro NAME,TYPE | grep -E ".*$_part " | cut -d' ' -f1; }
 
 _BOOT_DEV=/dev/$(get_device_partition "$_DISK" 1)
 _ROOT_DEV=/dev/$(get_device_partition "$_DISK" 2)

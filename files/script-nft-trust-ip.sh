@@ -16,7 +16,7 @@ is_public_ip() {
     [ "$(echo "$_ip" | cut -d' ' -f4)" -lt 256 ]
 }
 
-[ $# -lt 1 ] && exit 1
+[ $# -ne 1 ] && exit 1
 _IP=$1 && ! is_public_ip "$_IP" && exit 1
 ! rc-service nftables status 2>/dev/null | grep -q started && exit 1
 run_as_root nft add element inet default trusted "{ $_IP }" || true
