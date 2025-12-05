@@ -43,6 +43,7 @@ configure() {
 
   # host user links
   link_as_user $_USER "$_configure_dots/hosts/gs-proxy/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
+  link_as_user $_USER "$_configure_dots/hosts/gs-proxy/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
   link_as_user $_USER "$_configure_dots/hosts/gs-proxy/ssh-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
