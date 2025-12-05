@@ -1,12 +1,34 @@
-version: "3.9"
+version: "3"
 services:
-  test:
-    container_name: test
-    image: docker.io/hello-world
-  test2:
-    container_name: test2
+  reverse_proxy:
+    container_name: reverse_proxy
+    image: docker.io/haproxy:alpine
+    expose: ["443"]
+    pull_policy: always
+    restart: unless-stopped
+    depends_on: ["teste"]
+    volumes: ["./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro"]
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+
+  reverse_proxy_tunnel:
+    container_name: reverse_proxy_tunnel
+    image: docker.io/jnovack/autossh:latest
+    pull_policy: always
+    restart: unless-stopped
+    depends_on: ["reverse_proxy"]
+    volumes: ["../.ssh/key:/id_rsa"]
+    environment:
+      - SSH_REMOTE_HOST=79.72.49.218
+      - SSH_REMOTE_USER=chuck
+      - SSH_TARGET_HOST=reverse_proxy
+      - SSH_TARGET_PORT=443
+      - SSH_TUNNEL_PORT=10443
+
+  teste:
+    container_name: teste
     image: docker.io/nginx
-    ports: ["8080:80"]
+    expose: ["80"]
 
   # ssh-tunnel:
   #   container_name: ssh-tunnel

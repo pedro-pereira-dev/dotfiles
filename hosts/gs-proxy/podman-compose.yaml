@@ -1,26 +1,26 @@
 version: "3.9"
 services:
-  reverse_proxy:
-    container_name: reverse_proxy
-    image: docker.io/haproxy:alpine
-    ports: ["10443:10443"]
-    pull_policy: always
-    restart: unless-stopped
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-
-  openssh_server:
-    container_name: openssh_server
-    image: lscr.io/linuxserver/openssh-server:latest
-    ports: ["10022:2222"]
-    pull_policy: always
-    restart: unless-stopped
-    depends_on: ["reverse_proxy"]
-    environment:
-      - LOG_STDOUT=true
-      - PASSWORD_ACCESS=true
-      - USER_NAME=user
-      - USER_PASSWORD=teste
+  # reverse_proxy:
+  #   container_name: reverse_proxy
+  #   image: docker.io/haproxy:alpine
+  #   ports: ["10443:10443"]
+  #   pull_policy: always
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+  #
+  # openssh_server:
+  #   container_name: openssh_server
+  #   image: lscr.io/linuxserver/openssh-server:latest
+  #   ports: ["10022:2222"]
+  #   pull_policy: always
+  #   restart: unless-stopped
+  #   depends_on: ["reverse_proxy"]
+  #   environment:
+  #     - LOG_STDOUT=true
+  #     - PASSWORD_ACCESS=true
+  #     - USER_NAME=user
+  #     - USER_PASSWORD=teste
 
   test2:
     container_name: test2

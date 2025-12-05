@@ -42,6 +42,7 @@ configure() {
 
   # host user links
   link_as_user $_USER "$_configure_dots/hosts/gs-home/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
+  link_as_user $_USER "$_configure_dots/hosts/gs-home/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
   link_as_user $_USER "$_configure_dots/hosts/gs-home/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
