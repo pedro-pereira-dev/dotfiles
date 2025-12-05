@@ -24,10 +24,10 @@ configure() {
   link_as_root "$_configure_dots/files/service-podman-compose.sh" /etc/init.d/podman-compose
   link_as_root "$_configure_dots/files/service-podman-socket.sh" /etc/init.d/podman-socket
   link_as_root "$_configure_dots/files/service-user-runtime.sh" /etc/init.d/user-runtime
+  link_as_root "$_configure_dots/files/sshd-key-authentication.conf" /etc/ssh/sshd_config.d/key-authentication.conf
   link_as_root "$_configure_dots/files/system-grub.conf" /etc/default/grub
   link_as_root "$_configure_dots/files/system-nftables.conf" /var/lib/nftables/rules-save
   link_as_root "$_configure_dots/files/system-podman.conf" /etc/containers/containers.conf
-  link_as_root "$_configure_dots/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
   # host root links
   link_as_root "$_configure_dots/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
@@ -37,6 +37,7 @@ configure() {
   link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-license.conf" /etc/portage/package.license
   link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
+  link_as_root "$_configure_dots/hosts/gs-proxy/sshd-gateway-ports.conf" /etc/ssh/sshd_config.d/gateway-ports.conf
 
   # shared user links
   link_as_user $_USER "$_configure_dots/files/script-bashrc.sh" "$_configure_home/.bashrc"
@@ -44,7 +45,7 @@ configure() {
   # host user links
   link_as_user $_USER "$_configure_dots/hosts/gs-proxy/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
   link_as_user $_USER "$_configure_dots/hosts/gs-proxy/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
-  link_as_user $_USER "$_configure_dots/hosts/gs-proxy/ssh-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
+  link_as_user $_USER "$_configure_dots/hosts/gs-proxy/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
   [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot

@@ -9,12 +9,23 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
 
+  openssh_server:
+    container_name: openssh_server
+    image: lscr.io/linuxserver/openssh-server:latest
+    ports: ["10022:2222"]
+    pull_policy: always
+    restart: unless-stopped
+    depends_on: ["reverse_proxy"]
+    environment:
+      - LOG_STDOUT=true
+      - PASSWORD_ACCESS=true
+      - USER_NAME=user
+      - USER_PASSWORD=teste
+
   test2:
     container_name: test2
     image: docker.io/nginx
     expose: ["80"]
-    pull_policy: always
-    restart: unless-stopped
 
   # ssh-tunnel:
   #   container_name: ssh-tunnel

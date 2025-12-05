@@ -23,10 +23,10 @@ configure() {
   link_as_root "$_configure_dots/files/script-setup-services.sh" /usr/bin/setup-services
   link_as_root "$_configure_dots/files/service-podman-compose.sh" /etc/init.d/podman-compose
   link_as_root "$_configure_dots/files/service-user-runtime.sh" /etc/init.d/user-runtime
+  link_as_root "$_configure_dots/files/sshd-key-authentication.conf" /etc/ssh/sshd_config.d/key-authentication.conf
   link_as_root "$_configure_dots/files/system-grub.conf" /etc/default/grub
   link_as_root "$_configure_dots/files/system-nftables.conf" /var/lib/nftables/rules-save
   link_as_root "$_configure_dots/files/system-podman.conf" /etc/containers/containers.conf
-  link_as_root "$_configure_dots/files/system-sshd.conf" /etc/ssh/sshd_config.d/sshd.conf
 
   # host root links
   link_as_root "$_configure_dots/hosts/gs-home/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
@@ -42,7 +42,7 @@ configure() {
 
   # host user links
   link_as_user $_USER "$_configure_dots/hosts/gs-home/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
-  link_as_user $_USER "$_configure_dots/hosts/gs-home/ssh-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
+  link_as_user $_USER "$_configure_dots/hosts/gs-home/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
   [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime directory
