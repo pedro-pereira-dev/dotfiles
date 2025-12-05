@@ -10,7 +10,7 @@ configure() {
   link_as_root "$_configure_dots/dots.sh" /usr/bin/dots
 
   # shared root links
-  link_as_root "$_configure_dots/files/openrc-net-online.conf" /etc/conf.d/net-online
+  link_as_root "$_configure_dots/files/openrc-nftables.conf" /etc/conf.d/nftables
   link_as_root "$_configure_dots/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_configure_dots/files/portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_configure_dots/files/portage-package-unmask.conf" /etc/portage/package.unmask
@@ -31,6 +31,7 @@ configure() {
 
   # host root links
   link_as_root "$_configure_dots/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
+  link_as_root "$_configure_dots/hosts/gs-proxy/openrc-net-online.conf" /etc/conf.d/net-online
   link_as_root "$_configure_dots/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
   link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-keywords.conf" /etc/portage/package.accept_keywords

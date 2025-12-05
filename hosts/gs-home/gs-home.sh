@@ -11,6 +11,7 @@ configure() {
   link_as_root "$_configure_dots/dots.sh" /usr/bin/dots
 
   # shared root links
+  link_as_root "$_configure_dots/files/openrc-nftables.conf" /etc/conf.d/nftables
   link_as_root "$_configure_dots/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_configure_dots/files/portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_configure_dots/files/portage-package-unmask.conf" /etc/portage/package.unmask
@@ -19,7 +20,6 @@ configure() {
   link_as_root "$_configure_dots/files/script-edelete.sh" /usr/bin/edelete
   link_as_root "$_configure_dots/files/script-eupdate.sh" /usr/bin/eupdate
   link_as_root "$_configure_dots/files/script-eupgrade.sh" /usr/bin/eupgrade
-  link_as_root "$_configure_dots/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_configure_dots/files/script-setup-services.sh" /usr/bin/setup-services
   link_as_root "$_configure_dots/files/service-podman-compose.sh" /etc/init.d/podman-compose
   link_as_root "$_configure_dots/files/service-user-runtime.sh" /etc/init.d/user-runtime
