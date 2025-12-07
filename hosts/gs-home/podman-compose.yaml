@@ -3,11 +3,12 @@ services:
   reverse_proxy:
     container_name: reverse_proxy
     image: docker.io/haproxy:alpine
-    expose: ["9443"]
+    expose: ["443"]
     pull_policy: always
     restart: unless-stopped
     depends_on: ["teste"]
     volumes: ["./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro"]
+    sysctls: ["net.ipv4.ip_unprivileged_port_start=0"]
 
   reverse_proxy_tunnel:
     container_name: reverse_proxy_tunnel
@@ -20,8 +21,8 @@ services:
       - SSH_REMOTE_HOST=79.72.49.218
       - SSH_REMOTE_USER=chuck
       - SSH_TARGET_HOST=reverse_proxy
-      - SSH_TARGET_PORT=9443
-      - SSH_TUNNEL_PORT=9443
+      - SSH_TARGET_PORT=443
+      - SSH_TUNNEL_PORT=443
 
   teste:
     container_name: teste

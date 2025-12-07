@@ -1,16 +1,25 @@
 #!/bin/sh
 set -eou pipefail
 
+_HOSTNAME=gs-proxy
 _USER=chuck
 
 configure() {
   _configure_home=$(get_home $_USER) && _configure_dots="$_configure_home/workspace/personal/dotfiles"
-  setup_doas "$_configure_dots/files/system-doas.conf"
+  setup_doas "$_configure_dots/files/doas-system.conf"
   get_parameter --full "$@" >/dev/null && delete_links_as_root
   link_as_root "$_configure_dots/dots.sh" /usr/bin/dots
 
   # shared root links
-  link_as_root "$_configure_dots/files/openrc-nftables.conf" /etc/conf.d/nftables
+  link_as_root "$_configure_dots/files/grub-system.conf" /etc/default/grub
+  link_as_root "$_configure_dots/files/kernel-unprivileged-port-start.conf" /etc/sysctl.d/unprivileged-port-start.conf
+  link_as_root "$_configure_dots/files/net-online-service.conf" /etc/conf.d/net-online
+  link_as_root "$_configure_dots/files/nftables-ruleset.conf" /var/lib/nftables/rules-save
+  link_as_root "$_configure_dots/files/nftables-service.conf" /etc/conf.d/nftables
+  link_as_root "$_configure_dots/files/openrc-podman-compose.sh" /etc/init.d/podman-compose
+  link_as_root "$_configure_dots/files/openrc-podman-socket.sh" /etc/init.d/podman-socket
+  link_as_root "$_configure_dots/files/openrc-user-runtime.sh" /etc/init.d/user-runtime
+  link_as_root "$_configure_dots/files/podman-containers.conf" /etc/containers/containers.conf
   link_as_root "$_configure_dots/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
   link_as_root "$_configure_dots/files/portage-package-mask.conf" /etc/portage/package.mask
   link_as_root "$_configure_dots/files/portage-package-unmask.conf" /etc/portage/package.unmask
@@ -21,31 +30,24 @@ configure() {
   link_as_root "$_configure_dots/files/script-eupgrade.sh" /usr/bin/eupgrade
   link_as_root "$_configure_dots/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_configure_dots/files/script-setup-services.sh" /usr/bin/setup-services
-  link_as_root "$_configure_dots/files/service-podman-compose.sh" /etc/init.d/podman-compose
-  link_as_root "$_configure_dots/files/service-podman-socket.sh" /etc/init.d/podman-socket
-  link_as_root "$_configure_dots/files/service-user-runtime.sh" /etc/init.d/user-runtime
+  link_as_root "$_configure_dots/files/sshd-gateway-ports.conf" /etc/ssh/sshd_config.d/gateway-ports.conf
   link_as_root "$_configure_dots/files/sshd-key-authentication.conf" /etc/ssh/sshd_config.d/key-authentication.conf
-  link_as_root "$_configure_dots/files/system-grub.conf" /etc/default/grub
-  link_as_root "$_configure_dots/files/system-nftables.conf" /var/lib/nftables/rules-save
-  link_as_root "$_configure_dots/files/system-podman.conf" /etc/containers/containers.conf
 
   # host root links
-  link_as_root "$_configure_dots/hosts/gs-proxy/nftables-default-table.conf" /var/lib/nftables/tables/table.conf
-  link_as_root "$_configure_dots/hosts/gs-proxy/openrc-net-online.conf" /etc/conf.d/net-online
-  link_as_root "$_configure_dots/hosts/gs-proxy/openrc-services.conf" /etc/openrc/services.conf
-  link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-declare.conf" /etc/portage/package.declare
-  link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-keywords.conf" /etc/portage/package.accept_keywords
-  link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-license.conf" /etc/portage/package.license
-  link_as_root "$_configure_dots/hosts/gs-proxy/portage-package-use.conf" /etc/portage/package.use
-  link_as_root "$_configure_dots/hosts/gs-proxy/sshd-gateway-ports.conf" /etc/ssh/sshd_config.d/gateway-ports.conf
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/nftables-table.conf" /var/lib/nftables/tables/table.conf
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/openrc-services.conf" /etc/openrc/services.conf
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-declare.conf" /etc/portage/package.declare
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-keywords.conf" /etc/portage/package.accept_keywords
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-license.conf" /etc/portage/package.license
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-use.conf" /etc/portage/package.use
 
   # shared user links
   link_as_user $_USER "$_configure_dots/files/script-bashrc.sh" "$_configure_home/.bashrc"
 
   # host user links
-  link_as_user $_USER "$_configure_dots/hosts/gs-proxy/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
-  link_as_user $_USER "$_configure_dots/hosts/gs-proxy/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
-  link_as_user $_USER "$_configure_dots/hosts/gs-proxy/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
+  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
+  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
+  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
   [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
