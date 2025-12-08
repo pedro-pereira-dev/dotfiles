@@ -1,14 +1,14 @@
 version: "3"
 services:
-  reverse_proxy_cert:
-    container_name: reverse_proxy_cert
-    image: docker.io/alpine:latest
-    pull_policy: always
-    restart: unless-stopped
-    entrypoint: /entrypoint.sh
-    volumes:
-      - ./reverse-proxy-cert-entrypoint.sh:/entrypoint.sh:ro
-      - reverse_proxy_cert_data:/data:rw
+  # reverse_proxy_cert:
+  #   container_name: reverse_proxy_cert
+  #   image: docker.io/alpine:latest
+  #   pull_policy: always
+  #   restart: unless-stopped
+  #   entrypoint: /entrypoint.sh
+  #   volumes:
+  #     - ./reverse-proxy-cert-entrypoint.sh:/entrypoint.sh:ro
+  #     - reverse_proxy_cert_data:/data:rw
 
   reverse_proxy:
     container_name: reverse_proxy
