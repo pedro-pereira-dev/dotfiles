@@ -3,20 +3,32 @@ services:
   reverse_proxy_cert:
     container_name: reverse_proxy_cert
     image: docker.io/alpine:latest
-    pull_policy: always
-    restart: unless-stopped
+    expose: ["80"]
+    # pull_policy: always
+    # restart: unless-stopped
+    secrets:
+      - SPACESHIP_API_KEY_FILE
+      - SPACESHIP_API_SECRET_FILE
     entrypoint: /entrypoint.sh
+    environment:
+      - DEBUG=true
+      - DOMAIN=boarede.com
+      - SPACESHIP_API_KEY_FILE=/run/secrets/SPACESHIP_API_KEY_FILE
+      - SPACESHIP_API_SECRET_FILE=/run/secrets/SPACESHIP_API_SECRET_FILE
+      - WORKSPACE=/mnt
     volumes:
-      - reverse_proxy_cert_data:/data:rw
+      - ./acme:/acme:rw,U
+      - ./certs:/certs:rw,U
+      - ./reverse-proxy-cert-entrypoint.sh:/entrypoint.sh:ro
 
   reverse_proxy:
     container_name: reverse_proxy
     image: docker.io/haproxy:alpine
     expose: ["80", "443"]
-    pull_policy: always
-    restart: unless-stopped
+    # pull_policy: always
+    # restart: unless-stopped
     depends_on:
-      # - reverse_proxy_cert
+      - reverse_proxy_cert
       - teste
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
@@ -26,8 +38,8 @@ services:
   reverse_proxy_tunnel_http:
     container_name: reverse_proxy_tunnel_http
     image: docker.io/jnovack/autossh:latest
-    pull_policy: always
-    restart: unless-stopped
+    # pull_policy: always
+    # restart: unless-stopped
     depends_on:
       - reverse_proxy
     volumes:
@@ -42,8 +54,8 @@ services:
   reverse_proxy_tunnel_https:
     container_name: reverse_proxy_tunnel_https
     image: docker.io/jnovack/autossh:latest
-    pull_policy: always
-    restart: unless-stopped
+    # pull_policy: always
+    # restart: unless-stopped
     depends_on:
       - reverse_proxy
     volumes:
@@ -60,5 +72,8 @@ services:
     image: docker.io/nginx
     expose: ["80"]
 
-volumes:
-  reverse_proxy_cert_data:
+secrets:
+  SPACESHIP_API_KEY_FILE:
+    file: ../SPACESHIP_API_KEY
+  SPACESHIP_API_SECRET_FILE:
+    file: ../SPACESHIP_API_SECRET
