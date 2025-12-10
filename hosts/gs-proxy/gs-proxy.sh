@@ -13,7 +13,6 @@ configure() {
   # shared root links
   link_as_root "$_configure_dots/files/grub-system.conf" /etc/default/grub
   link_as_root "$_configure_dots/files/kernel-unprivileged-port-start.conf" /etc/sysctl.d/unprivileged-port-start.conf
-  link_as_root "$_configure_dots/files/net-online-service.conf" /etc/conf.d/net-online
   link_as_root "$_configure_dots/files/nftables-ruleset.conf" /var/lib/nftables/rules-save
   link_as_root "$_configure_dots/files/nftables-service.conf" /etc/conf.d/nftables
   link_as_root "$_configure_dots/files/openrc-podman-compose.sh" /etc/init.d/podman-compose
@@ -30,23 +29,23 @@ configure() {
   link_as_root "$_configure_dots/files/script-eupgrade.sh" /usr/bin/eupgrade
   link_as_root "$_configure_dots/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
   link_as_root "$_configure_dots/files/script-setup-services.sh" /usr/bin/setup-services
-  link_as_root "$_configure_dots/files/sshd-gateway-ports.conf" /etc/ssh/sshd_config.d/gateway-ports.conf
   link_as_root "$_configure_dots/files/sshd-key-authentication.conf" /etc/ssh/sshd_config.d/key-authentication.conf
 
   # host root links
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/net-online-service.conf" /etc/conf.d/net-online
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/nftables-table.conf" /var/lib/nftables/tables/table.conf
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/openrc-services.conf" /etc/openrc/services.conf
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-declare.conf" /etc/portage/package.declare
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-keywords.conf" /etc/portage/package.accept_keywords
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-license.conf" /etc/portage/package.license
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-use.conf" /etc/portage/package.use
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/sshd-gateway-ports.conf" /etc/ssh/sshd_config.d/gateway-ports.conf
 
   # shared user links
   link_as_user $_USER "$_configure_dots/files/script-bashrc.sh" "$_configure_home/.bashrc"
 
   # host user links
   link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
-  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
   link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console

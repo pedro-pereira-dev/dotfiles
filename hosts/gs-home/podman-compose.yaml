@@ -1,79 +1,69 @@
 version: "3"
 services:
-  reverse_proxy_cert:
-    container_name: reverse_proxy_cert
-    image: docker.io/alpine:latest
-    expose: ["80"]
-    # pull_policy: always
-    # restart: unless-stopped
-    secrets:
-      - SPACESHIP_API_KEY_FILE
-      - SPACESHIP_API_SECRET_FILE
-    entrypoint: /entrypoint.sh
-    environment:
-      - DEBUG=true
-      - DOMAIN=boarede.com
-      - SPACESHIP_API_KEY_FILE=/run/secrets/SPACESHIP_API_KEY_FILE
-      - SPACESHIP_API_SECRET_FILE=/run/secrets/SPACESHIP_API_SECRET_FILE
-      - WORKSPACE=/mnt
-    volumes:
-      - ./acme:/acme:rw,U
-      - ./certs:/certs:rw,U
-      - ./reverse-proxy-cert-entrypoint.sh:/entrypoint.sh:ro
-
   reverse_proxy:
     container_name: reverse_proxy
-    image: docker.io/haproxy:alpine
+    image: docker.io/nginxproxy/nginx-proxy:1.9-alpine
     expose: ["80", "443"]
-    # pull_policy: always
-    # restart: unless-stopped
     depends_on:
-      - reverse_proxy_cert
       - teste
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     sysctls:
       - net.ipv4.ip_unprivileged_port_start=0
+    volumes:
+      - /tmp/podman.sock:/tmp/docker.sock:ro,U
+      - reverse_proxy_certs:/etc/nginx/certs:rw
+      - reverse_proxy_html:/usr/share/nginx/html:rw
+
+  reverse_proxy_cert:
+    container_name: reverse_proxy_cert
+    image: docker.io/nginxproxy/acme-companion:2.6.2
+    depends_on:
+      - reverse_proxy_tunnel_http
+      - reverse_proxy_tunnel_https
+    environment:
+      - NGINX_PROXY_CONTAINER=reverse_proxy
+    volumes:
+      - /tmp/podman.sock:/var/run/docker.sock:ro,U
+      - reverse_proxy_cert_acme:/etc/acme.sh:rw
+      - reverse_proxy_certs:/etc/nginx/certs:rw
+      - reverse_proxy_html:/usr/share/nginx/html:rw
 
   reverse_proxy_tunnel_http:
     container_name: reverse_proxy_tunnel_http
     image: docker.io/jnovack/autossh:latest
-    # pull_policy: always
-    # restart: unless-stopped
     depends_on:
       - reverse_proxy
-    volumes:
-      - ../.ssh/key:/id_rsa:ro
     environment:
-      - SSH_REMOTE_HOST=79.72.49.218
+      - SSH_REMOTE_HOST=143.47.44.89
       - SSH_REMOTE_USER=chuck
       - SSH_TARGET_HOST=reverse_proxy
       - SSH_TARGET_PORT=80
       - SSH_TUNNEL_PORT=80
+    volumes:
+      - ../.ssh/key:/id_rsa:ro
 
   reverse_proxy_tunnel_https:
     container_name: reverse_proxy_tunnel_https
     image: docker.io/jnovack/autossh:latest
-    # pull_policy: always
-    # restart: unless-stopped
     depends_on:
       - reverse_proxy
-    volumes:
-      - ../.ssh/key:/id_rsa:ro
     environment:
-      - SSH_REMOTE_HOST=79.72.49.218
+      - SSH_REMOTE_HOST=143.47.44.89
       - SSH_REMOTE_USER=chuck
       - SSH_TARGET_HOST=reverse_proxy
       - SSH_TARGET_PORT=443
       - SSH_TUNNEL_PORT=443
+    volumes:
+      - ../.ssh/key:/id_rsa:ro
 
   teste:
     container_name: teste
     image: docker.io/nginx
     expose: ["80"]
+    environment:
+      - LETSENCRYPT_HOST=boarede.com,teste.boarede.com
+      - VIRTUAL_HOST=boarede.com,teste.boarede.com
 
-secrets:
-  SPACESHIP_API_KEY_FILE:
-    file: ../SPACESHIP_API_KEY
-  SPACESHIP_API_SECRET_FILE:
-    file: ../SPACESHIP_API_SECRET
+volumes:
+  reverse_proxy_cert_acme:
+  reverse_proxy_certs:
+  reverse_proxy_html:

@@ -4,7 +4,10 @@ socket=${socket:-'unix:///tmp/podman.sock'}
 timeout=${timeout:-30}
 user=${RC_SVCNAME#*.}
 
-depend() { need "user.$user"; }
+depend() {
+  need "user.$user"
+  after *
+}
 
 start() {
   ebegin "Starting podman socket for $user"

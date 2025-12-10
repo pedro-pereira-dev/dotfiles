@@ -45,17 +45,16 @@ configure() {
 
   # host user links
   link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
-  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-haproxy.cfg" "$_configure_home/.podman/haproxy.cfg"
-  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-reverse-proxy-cert-entrypoint.sh" "$_configure_home/.podman/reverse-proxy-cert-entrypoint.sh"
   link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
   [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
+  [ ! -f /etc/init.d/podman-socket.$_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_USER    # podman socket
   [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime directory
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-services podman-compose.$_USER
+    run_as_root /usr/bin/setup-services podman-compose.$_USER podman-socket.$_USER
   }
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
