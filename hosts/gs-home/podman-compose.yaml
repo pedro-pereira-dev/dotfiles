@@ -2,10 +2,8 @@ version: "3"
 services:
   reverse_proxy:
     container_name: reverse_proxy
-    image: docker.io/nginxproxy/nginx-proxy:1.9-alpine
+    image: docker.io/nginxproxy/nginx-proxy:alpine
     expose: ["80", "443"]
-    depends_on:
-      - teste
     sysctls:
       - net.ipv4.ip_unprivileged_port_start=0
     volumes:
@@ -15,10 +13,7 @@ services:
 
   reverse_proxy_cert:
     container_name: reverse_proxy_cert
-    image: docker.io/nginxproxy/acme-companion:2.6.2
-    depends_on:
-      - reverse_proxy_tunnel_http
-      - reverse_proxy_tunnel_https
+    image: docker.io/nginxproxy/acme-companion:latest
     environment:
       - NGINX_PROXY_CONTAINER=reverse_proxy
     volumes:
@@ -30,8 +25,6 @@ services:
   reverse_proxy_tunnel_http:
     container_name: reverse_proxy_tunnel_http
     image: docker.io/jnovack/autossh:latest
-    depends_on:
-      - reverse_proxy
     environment:
       - SSH_REMOTE_HOST=143.47.44.89
       - SSH_REMOTE_USER=chuck
@@ -44,8 +37,6 @@ services:
   reverse_proxy_tunnel_https:
     container_name: reverse_proxy_tunnel_https
     image: docker.io/jnovack/autossh:latest
-    depends_on:
-      - reverse_proxy
     environment:
       - SSH_REMOTE_HOST=143.47.44.89
       - SSH_REMOTE_USER=chuck
