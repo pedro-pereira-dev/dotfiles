@@ -11,8 +11,8 @@ run_as_root() {
   fi
 }
 
-_ask=--ask=y
-[ $# -eq 1 ] && [ "$1" = --unattended ] && _ask=--ask=n
+_crontab=$(mktemp)
+sed "s/__USER__/$1/g" /etc/fcron/crontab.sh >"$_crontab"
 
-run_as_root emerge -DNquv $_ask --backtrack=30 --with-bdeps=y @world
-exit 0
+run_as_root fcrontab "$_crontab"
+rm -f "$_crontab"

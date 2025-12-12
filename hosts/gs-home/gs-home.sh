@@ -28,10 +28,12 @@ configure() {
   link_as_root "$_configure_dots/files/script-edelete.sh" /usr/bin/edelete
   link_as_root "$_configure_dots/files/script-eupdate.sh" /usr/bin/eupdate
   link_as_root "$_configure_dots/files/script-eupgrade.sh" /usr/bin/eupgrade
-  link_as_root "$_configure_dots/files/script-setup-services.sh" /usr/bin/setup-services
+  link_as_root "$_configure_dots/files/script-setup-fcron.sh" /usr/bin/setup-fcron
+  link_as_root "$_configure_dots/files/script-setup-openrc.sh" /usr/bin/setup-openrc
   link_as_root "$_configure_dots/files/sshd-key-authentication.conf" /etc/ssh/sshd_config.d/key-authentication.conf
 
   # host root links
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/fcron-crontab.sh" /etc/fcron/crontab.sh
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/net-online-service.conf" /etc/conf.d/net-online
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/nftables-table.conf" /var/lib/nftables/tables/table.conf
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/openrc-services.conf" /etc/openrc/services.conf
@@ -54,8 +56,10 @@ configure() {
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-services podman-compose.$_USER podman-socket.$_USER
   }
+
+  run_as_root /usr/bin/setup-fcron $_USER
+  run_as_root /usr/bin/setup-openrc podman-compose.$_USER podman-socket.$_USER
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/netboot &&

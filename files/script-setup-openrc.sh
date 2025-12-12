@@ -1,0 +1,35 @@
+#!/bin/sh
+set -eou pipefail
+
+run_as_root() {
+  if [ "$(id -u)" -eq "$(id -u root)" ]; then
+    "$@"
+  elif command -v doas >/dev/null; then
+    doas "$@"
+  elif command -v sudo >/dev/null; then
+    sudo "$@"
+  fi
+}
+
+_declarations=$(mktemp)
+sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' \
+  /etc/openrc/services.conf >>"$_declarations"
+[ $# -ge 1 ] &&
+  printf '%s\n' "$@" >>"$_declarations"
+
+_declared=$(mktemp)
+sort -u "$_declarations" >>"$_declared"
+_enabled=$(mktemp)
+rc-update show default | awk '{print $1}' | sort -u >"$_enabled"
+
+_add=$(mktemp)
+comm -23 "$_declared" "$_enabled" >"$_add"
+_del=$(mktemp)
+comm -23 "$_enabled" "$_declared" >"$_del"
+
+[ -s "$_add" ] &&
+  cat "$_add" | run_as_root xargs -I {} rc-update add {}
+[ -s "$_del" ] &&
+  cat "$_del" | run_as_root xargs -I {} rc-update del {}
+
+rm -f "$_add" "$_declarations" "$_declared" "$_del" "$_enabled"

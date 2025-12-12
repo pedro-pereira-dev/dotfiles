@@ -15,8 +15,6 @@ configure() {
   link_as_root "$_configure_dots/files/kernel-unprivileged-port-start.conf" /etc/sysctl.d/unprivileged-port-start.conf
   link_as_root "$_configure_dots/files/nftables-ruleset.conf" /var/lib/nftables/rules-save
   link_as_root "$_configure_dots/files/nftables-service.conf" /etc/conf.d/nftables
-  link_as_root "$_configure_dots/files/openrc-podman-compose.sh" /etc/init.d/podman-compose
-  link_as_root "$_configure_dots/files/openrc-podman-socket.sh" /etc/init.d/podman-socket
   link_as_root "$_configure_dots/files/openrc-user-runtime.sh" /etc/init.d/user-runtime
   link_as_root "$_configure_dots/files/podman-containers.conf" /etc/containers/containers.conf
   link_as_root "$_configure_dots/files/portage-overlays.conf" /etc/portage/repos.conf/overlays.conf
@@ -28,11 +26,12 @@ configure() {
   link_as_root "$_configure_dots/files/script-eupdate.sh" /usr/bin/eupdate
   link_as_root "$_configure_dots/files/script-eupgrade.sh" /usr/bin/eupgrade
   link_as_root "$_configure_dots/files/script-nft-trust-ip.sh" /usr/bin/nft-trust-ip
-  link_as_root "$_configure_dots/files/script-setup-services.sh" /usr/bin/setup-services
+  link_as_root "$_configure_dots/files/script-setup-fcron.sh" /usr/bin/setup-fcron
+  link_as_root "$_configure_dots/files/script-setup-openrc.sh" /usr/bin/setup-openrc
   link_as_root "$_configure_dots/files/sshd-key-authentication.conf" /etc/ssh/sshd_config.d/key-authentication.conf
 
   # host root links
-  link_as_root "$_configure_dots/hosts/$_HOSTNAME/net-online-service.conf" /etc/conf.d/net-online
+  link_as_root "$_configure_dots/hosts/$_HOSTNAME/fcron-crontab.sh" /etc/fcron/crontab.sh
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/nftables-table.conf" /var/lib/nftables/tables/table.conf
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/openrc-services.conf" /etc/openrc/services.conf
   link_as_root "$_configure_dots/hosts/$_HOSTNAME/portage-package-declare.conf" /etc/portage/package.declare
@@ -45,19 +44,19 @@ configure() {
   link_as_user $_USER "$_configure_dots/files/script-bashrc.sh" "$_configure_home/.bashrc"
 
   # host user links
-  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-compose.yaml" "$_configure_home/.podman/compose.yaml"
+  link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/podman-compose.yaml" "$_configure_home/.config/podman/compose.yaml"
   link_as_user $_USER "$_configure_dots/hosts/$_HOSTNAME/sshd-authorized-keys.conf" "$_configure_home/.ssh/authorized_keys"
 
-  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0                       # console
-  [ ! -f /etc/init.d/podman-compose.$_USER ] && link_as_root podman-compose /etc/init.d/podman-compose.$_USER # compose up on boot
-  [ ! -f /etc/init.d/podman-socket.$_USER ] && link_as_root podman-socket /etc/init.d/podman-socket.$_USER    # podman socket
-  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER                       # runtime directory
+  [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0 # console
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER # runtime directory
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
-    run_as_root /usr/bin/setup-services podman-compose.$_USER podman-socket.$_USER
   }
+
+  run_as_root /usr/bin/setup-fcron $_USER
+  run_as_root /usr/bin/setup-openrc
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/netboot &&

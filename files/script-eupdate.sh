@@ -1,11 +1,8 @@
 #!/bin/sh
 set -eou pipefail
 
-is_user() { _is_user_user=$1 && test "$(id -u)" -eq "$(id -u "$_is_user_user")"; }
-is_root() { is_user root; }
-
 run_as_root() {
-  if is_root; then
+  if [ "$(id -u)" -eq "$(id -u root)" ]; then
     "$@"
   elif command -v doas >/dev/null; then
     doas "$@"
@@ -14,5 +11,8 @@ run_as_root() {
   fi
 }
 
-[ ! -d /var/db/repos/gentoo/.git ] && run_as_root rm -fr /var/db/repos/gentoo
-run_as_root emaint sync -A || true
+[ ! -d /var/db/repos/gentoo/.git ] &&
+  run_as_root rm -fr /var/db/repos/gentoo
+
+run_as_root emaint sync -A
+exit 0
