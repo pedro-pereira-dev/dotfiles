@@ -1,0 +1,149 @@
+version: "3"
+x-podman:
+  in_pod: false
+
+secrets:
+  acme_spaceship_api_key:
+    file: ./storage/acme/secrets/spaceship_api_key.sec
+  acme_spaceship_api_secret:
+    file: ./storage/acme/secrets/spaceship_api_secret.sec
+  authelia_authentication_backend_ldap_password:
+    file: ./storage/authelia/secrets/authentication_backend_ldap_password.sec
+  authelia_identity_providers_oidc_clients_vaultwarden_secret:
+    file: ./storage/authelia/secrets/identity_providers_oidc_clients_vaultwarden_secret.sec
+  authelia_identity_providers_oidc_hmac_secret:
+    file: ./storage/authelia/secrets/identity_providers_oidc_hmac_secret.sec
+  authelia_identity_providers_oidc_jwks_key:
+    file: ./storage/authelia/secrets/identity_providers_oidc_jwks_key.sec
+  authelia_jwt_secret:
+    file: ./storage/authelia/secrets/jwt_secret.sec
+  authelia_session_secret:
+    file: ./storage/authelia/secrets/session_secret.sec
+  authelia_storage_encryption_key:
+    file: ./storage/authelia/secrets/storage_encryption_key.sec
+  lldap_key_seed_file:
+    file: ./storage/lldap/secrets/key_seed_file.sec
+  lldap_ldap_jwt_secret:
+    file: ./storage/lldap/secrets/ldap_jwt_secret.sec
+  lldap_ldap_user_pass:
+    file: ./storage/lldap/secrets/ldap_user_pass.sec
+  valkey_user_authelia_password:
+    file: ./storage/valkey/secrets/user_authelia_password.sec
+  vaultwarden_admin_token:
+    file: ./storage/vaultwarden/secrets/admin_token.sec
+
+services:
+  acme:
+    container_name: acme
+    image: docker.io/neilpang/acme.sh:latest
+    command: /entrypoint.sh
+    volumes:
+      - ./acme-entrypoint.sh:/entrypoint.sh
+      - ./storage/acme/data:/acme.sh
+      - ./storage/acme/secrets/certs:/etc/haproxy
+    secrets:
+      - acme_spaceship_api_key
+      - acme_spaceship_api_secret
+    environment:
+      - ACME_SPACESHIP_API_KEY_FILE=/run/secrets/acme_spaceship_api_key
+      - ACME_SPACESHIP_API_SECRET_FILE=/run/secrets/acme_spaceship_api_secret
+      - DOMAINS=boarede.com,*.boarede.com
+
+  ldap:
+    container_name: ldap
+    image: docker.io/lldap/lldap:latest-alpine-rootless
+    user: 200:9999
+    userns_mode: keep-id
+    ports:
+      - 3890:3890
+      - 17170:17170
+    volumes:
+      - ./lldap.toml:/data/lldap_config.toml
+      - ./storage/lldap/data:/storage
+    secrets:
+      - lldap_key_seed_file
+      - lldap_ldap_jwt_secret
+      - lldap_ldap_user_pass
+    environment:
+      - LLDAP_JWT_SECRET_FILE=/run/secrets/lldap_ldap_jwt_secret
+      - LLDAP_KEY_SEED_FILE=/run/secrets/lldap_key_seed_file
+      - LLDAP_LDAP_USER_PASS_FILE=/run/secrets/lldap_ldap_user_pass
+
+  cache:
+    container_name: cache
+    image: docker.io/valkey/valkey:alpine
+    command: >
+      sh -c 'apk add --no-cache gettext &&
+             export USER_AUTHELIA_PASSWORD=$(cat $USER_AUTHELIA_PASSWORD_FILE | tr -d "\n") &&
+             envsubst < /valkey.conf > /configuration.conf &&
+             exec valkey-server /configuration.conf'
+    ports:
+      - 6379:6379
+    volumes:
+      - ./storage/valkey/data:/data
+      - ./valkey.conf:/valkey.conf
+    secrets:
+      - valkey_user_authelia_password
+    environment:
+      - USER_AUTHELIA_PASSWORD_FILE=/run/secrets/valkey_user_authelia_password
+
+  auth:
+    container_name: auth
+    image: docker.io/authelia/authelia:latest
+    command: /entrypoint.sh
+    ports:
+      - 9091:9091
+    volumes:
+      - ./authelia-entrypoint.sh:/entrypoint.sh
+      - ./authelia.yml:/authelia.yml
+      - ./storage/authelia/data:/config
+    secrets:
+      - authelia_authentication_backend_ldap_password
+      - authelia_identity_providers_oidc_clients_vaultwarden_secret
+      - authelia_identity_providers_oidc_hmac_secret
+      - authelia_identity_providers_oidc_jwks_key
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_encryption_key
+      - valkey_user_authelia_password
+    environment:
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/run/secrets/authelia_authentication_backend_ldap_password
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_CLIENTS_VAULTWARDEN_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_clients_vaultwarden_secret
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_hmac_secret
+      - AUTHELIA_IDENTITY_PROVIDERS_OIDC_JWKS_KEY_FILE=/run/secrets/authelia_identity_providers_oidc_jwks_key
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_SESSION_REDIS_PASSWORD_FILE=/run/secrets/valkey_user_authelia_password
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - X_AUTHELIA_CONFIG=/configuration.yml
+
+  proxy:
+    container_name: proxy
+    image: docker.io/haproxy:alpine
+    network_mode: host
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./storage/acme/secrets/certs:/certs
+      - ./storage/haproxy/data:/data
+
+  pwmg:
+    container_name: pwmg
+    image: docker.io/vaultwarden/server:alpine
+    ports:
+      - 8081:80
+    volumes:
+      - ./storage/vaultwarden/data:/data
+      - ./vaultwarden.env:/vaultwarden.env
+    secrets:
+      - authelia_identity_providers_oidc_clients_vaultwarden_secret
+      - vaultwarden_admin_token
+    environment:
+      - ADMIN_TOKEN_FILE=/run/secrets/vaultwarden_admin_token
+      - ENV_FILE=/vaultwarden.env
+      - SSO_CLIENT_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_clients_vaultwarden_secret
+
+  root:
+    container_name: root
+    image: docker.io/traefik/whoami:latest
+    ports:
+      - 8080:80

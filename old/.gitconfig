@@ -1,0 +1,18 @@
+# enforce ssh
+[url "ssh://git@github.com/"]
+  pushInsteadOf = https://github.com/
+
+
+
+[commit]
+        gpgsign = true
+[push]
+        autoSetupRemote = true
+        default = current
+
+[user]
+        name = "Pedro Pereira"
+[include]
+        path = ~/.gitconfig.default
+[includeIf "gitdir:~/workspace/work/"]
+        path = ~/.gitconfig.mercedes

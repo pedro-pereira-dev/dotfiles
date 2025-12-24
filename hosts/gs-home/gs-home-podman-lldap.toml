@@ -1,0 +1,14 @@
+http_url = "https://www.ldap.boarede.com"
+ldap_base_dn = "dc=boarede,dc=com"
+
+force_ldap_user_pass_reset = "always"
+ldap_user_email = "admin@boarede.com"
+
+database_url = "sqlite:///storage/users.db?mode=rwc"
+key_file = ""
+
+[ldaps_options]
+enabled = false
+
+[smtp_options]
+enable_password_reset = false

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+STEP=5
+
+CURRENT_BACKLIGHT=$(xbacklight -get)
+
+NEW_BACKLIGHT=$((CURRENT_BACKLIGHT + STEP))
+NEW_BACKLIGHT=$((NEW_BACKLIGHT > 100 ? 100 : NEW_BACKLIGHT))
+
+xbacklight -set ${NEW_BACKLIGHT}

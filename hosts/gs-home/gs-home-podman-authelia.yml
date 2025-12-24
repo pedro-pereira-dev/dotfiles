@@ -1,0 +1,66 @@
+access_control:
+  default_policy: deny
+  rules:
+    - policy: two_factor
+      domain: auth.boarede.com
+    - policy: two_factor
+      domain: ldap.boarede.com
+      subject: group:ldap
+    - policy: two_factor
+      domain: pwmg.boarede.com
+      subject: group:pwmg
+    - policy: bypass
+      domain:
+        - boarede.com
+
+authentication_backend:
+  password_reset:
+    disable: true
+  ldap:
+    address: ldap://host.containers.internal:3890
+    base_dn: dc=boarede,dc=com
+    implementation: lldap
+    user: uid=authelia,ou=people,dc=boarede,dc=com
+    users_filter: (&(|({username_attribute}={input})({mail_attribute}={input}))(objectClass=person))
+
+server:
+  endpoints:
+    authz:
+      forward-auth:
+        implementation: ForwardAuth
+
+notifier:
+  filesystem:
+    filename: /config/notification.txt
+storage:
+  local:
+    path: /config/db.sqlite3
+
+default_2fa_method: totp
+theme: auto
+session:
+  cookies:
+    - authelia_url: https://auth.boarede.com
+      default_redirection_url: https://boarede.com
+      domain: boarede.com
+  redis:
+    host: host.containers.internal
+    max_retries: 3
+    username: authelia
+identity_validation:
+  elevated_session:
+    require_second_factor: true
+    skip_second_factor: true
+
+identity_providers:
+  oidc:
+    jwks:
+      - key: |
+          $AUTHELIA_IDENTITY_PROVIDERS_OIDC_JWKS_KEY
+    clients:
+      - client_id: vaultwarden
+        client_secret: $AUTHELIA_IDENTITY_PROVIDERS_OIDC_CLIENTS_VAULTWARDEN_SECRET
+        pkce_challenge_method: S256
+        pre_configured_consent_duration: 1M
+        redirect_uris:
+          - https://pwmg.boarede.com/identity/connect/oidc-signin
