@@ -1,0 +1,24 @@
+version: "3"
+services:
+  reverse_proxy:
+    container_name: reverse_proxy
+    image: docker.io/haproxy:alpine
+    ports: ["80:80", "443:443"]
+    sysctls: ["net.ipv4.ip_unprivileged_port_start=0"]
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - /etc/ssl/certs/:/etc/ssl/certs:ro
+
+  teste1:
+    container_name: teste1
+    image: docker.io/traefik/whoami:latest
+    expose: ["80"]
+    environment:
+      - WHOAMI_NAME=gs_home_teste1
+
+  teste2:
+    container_name: teste2
+    image: docker.io/traefik/whoami:latest
+    expose: ["80"]
+    environment:
+      - WHOAMI_NAME=gs_home_teste2
