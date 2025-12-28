@@ -9,6 +9,9 @@ _BOOT_SIZE=+1G
 _SWAP_SIZE=4G
 
 _interface=enp3s0
+_cache=sdb
+_storage=sdc
+_parity=sdd
 
 configure() {
   _configure_home=$(get_home $_USER)
@@ -37,6 +40,7 @@ configure() {
   _root_shared script-setup-openrc.sh /usr/bin/setup-openrc
   _root_shared service-nftables.conf /etc/conf.d/nftables
   _root_shared service-user-runtime.sh /etc/init.d/user-runtime
+  _root_shared system-fuse.conf /etc/fuse.conf
   _root_shared system-grub.conf /etc/default/grub
   _root_shared system-nftables.conf /var/lib/nftables/rules-save
   _root_shared system-podman.conf /etc/containers/containers.conf
@@ -67,6 +71,35 @@ configure() {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/installkernel -a
+
+    run_as_root sed -i "/# device pool/,\$d" /etc/fstab
+    echo '# device pool' | run_as_root tee -a /etc/fstab >/dev/null
+    _i=1 && echo "$_cache" | tr , '\n' | while read -r _entry; do
+      _index=$(printf "%02d" "$_i")
+      run_as_root mkdir -p "/mnt/pool/fast-storage-$_index"
+      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" /mnt/pool/fast-storage-$_index ext4 defaults,allow_other 0 0" |
+        run_as_root tee -a /etc/fstab >/dev/null
+      _i=$((_i + 1))
+    done
+    _i=1 && echo "$_storage" | tr , '\n' | while read -r _entry; do
+      _index=$(printf "%02d" "$_i")
+      run_as_root mkdir -p "/mnt/pool/slow-storage-$_index"
+      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" /mnt/pool/slow-storage-$_index ext4 defaults,allow_other 0 0" |
+        run_as_root tee -a /etc/fstab >/dev/null
+      _i=$((_i + 1))
+    done
+    run_as_root mkdir -p /mnt/parity
+    echo "UUID=\"$(get_uuid "/dev/${_parity}1")\" /mnt/parity ext4 defaults,allow_other 0 0" |
+      run_as_root tee -a /etc/fstab >/dev/null
+
+    run_as_root sed -i "/# mergerfs storage/,\$d" /etc/fstab
+    echo '# mergerfs storage' | run_as_root tee -a /etc/fstab >/dev/null
+    run_as_root mkdir -p /mnt/storage
+    {
+      printf '/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* '
+      printf '/mnt/storage mergerfs '
+      printf 'defaults,allow_other,category.create=ff\n'
+    } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
   _crontab=$(mktemp) && sed "s/__USER__/$_USER/g" /etc/fcron/crontab.conf >"$_crontab"

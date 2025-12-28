@@ -64,6 +64,8 @@ setup_doas() { _setup_doas_conf=$1 &&
   run_as_root chmod u=rw /etc/doas.conf &&
   run_as_root passwd -dl root >/dev/null; }
 
+get_uuid() { blkid -o export "$1" | grep ^UUID | cut -d= -f2; }
+
 get_first_wheel_user() { is_root && grep ^wheel: /etc/group | cut -d, -f2 | grep -v root || whoami; }
 get_home() { _get_home_user=$1 &&
   { is_linux && echo "/home/$_get_home_user"; } ||
