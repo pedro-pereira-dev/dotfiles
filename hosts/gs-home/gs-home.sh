@@ -74,39 +74,51 @@ configure() {
     echo '# pool' | run_as_root tee -a /etc/fstab >/dev/null
 
     _i=0 && echo "$_cache" | tr , '\n' | while read -r _entry; do
-      _i=$((_i + 1)) && _device="/mnt/pool/fast-storage-$(printf "%02d" "$_i")"
+      _i=$((_i + 1)) && _device="/mnt/pool/fast-disk-$(printf "%02d" "$_i")"
       run_as_root mkdir -p "$_device"
-      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" $_device ext4 defaults 0 0" |
-        run_as_root tee -a /etc/fstab >/dev/null
+      {
+        printf 'UUID="%s" ' "$(get_uuid "/dev/${_entry}1")"
+        printf '%s ext4 ' "$_device"
+        printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
+      } | run_as_root tee -a /etc/fstab >/dev/null
     done
 
     _i=0 && echo "$_storage" | tr , '\n' | while read -r _entry; do
-      _i=$((_i + 1)) && _device="/mnt/pool/slow-storage-$(printf "%02d" "$_i")"
+      _i=$((_i + 1)) && _device="/mnt/pool/slow-disk-$(printf "%02d" "$_i")"
       run_as_root mkdir -p "$_device"
-      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" $_device ext4 defaults 0 0" |
-        run_as_root tee -a /etc/fstab >/dev/null
+      {
+        printf 'UUID="%s" ' "$(get_uuid "/dev/${_entry}1")"
+        printf '%s ext4 ' "$_device"
+        printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
+      } | run_as_root tee -a /etc/fstab >/dev/null
     done
 
     _device=/mnt/parity
     run_as_root mkdir -p "$_device"
-    echo "UUID=\"$(get_uuid "/dev/${_parity}1")\" $_device ext4 defaults 0 0" |
-      run_as_root tee -a /etc/fstab >/dev/null
+    {
+      printf 'UUID="%s" ' "$(get_uuid "/dev/${_parity}1")"
+      printf '%s ext4 ' "$_device"
+      printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
+    } | run_as_root tee -a /etc/fstab >/dev/null
 
-    # https://docs.bankai-tech.com/Networking/Storage/mergerfs/
     run_as_root sed -i "/# mergerfs/,\$d" /etc/fstab
     echo '# mergerfs' | run_as_root tee -a /etc/fstab >/dev/null
 
     _device=/mnt/storage
     run_as_root mkdir -p "$_device"
-    echo "/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* \
-      $_device mergerfs \
-      defaults,category.create=ff \
-      " | run_as_root tee -a /etc/fstab >/dev/null
-    # {
-    #   printf '/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* '
-    #   printf '%s mergerfs ' $_device
-    #   printf 'defaults,category.create=ff\n'
-    # } | run_as_root tee -a /etc/fstab >/dev/null
+    {
+      printf '/mnt/pool/fast-disk-*:/mnt/pool/slow-disk-* '
+      printf '%s mergerfs ' $_device
+      printf 'defaults,category.create=ff\n'
+    } | run_as_root tee -a /etc/fstab >/dev/null
+
+    _device=/mnt/storage-uncached
+    run_as_root mkdir -p "$_device"
+    {
+      printf '/mnt/pool/slow-disk-* '
+      printf '%s mergerfs ' $_device
+      printf 'defaults\n'
+    } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
   _crontab=$(mktemp) && sed "s/__USER__/$_USER/g" /etc/fcron/crontab.conf >"$_crontab"
