@@ -30,9 +30,9 @@ curl -ILfs "$_url" >/dev/null && _tmp=$(mktemp) && curl -Lfs "$_url" -o "$_tmp" 
 
 _USER=${_USER:-user}
 
-_BOOT_SIZE=${_BOOT_SIZE:-+512M}
+_BOOT_SIZE=${_BOOT_SIZE:-+1G}
 _ROOT_SIZE=${_ROOT_SIZE:-' '}
-_SWAP_SIZE=${_SWAP_SIZE:-1G}
+_SWAP_SIZE=${_SWAP_SIZE:-4G}
 
 _smallest_disk=$(lsblk -bdno NAME,SIZE,TYPE | grep disk | sort -nk2 | head -n1 | cut -d' ' -f1)
 _DISK=${_DISK:-/dev/$_smallest_disk}

@@ -5,10 +5,8 @@ _DISK=/dev/sda
 _HOSTNAME=gs-home
 _USER=chuck
 
-_BOOT_SIZE=+1G
-_SWAP_SIZE=4G
-
 _interface=enp3s0
+
 _cache=sdb
 _storage=sdc
 _parity=sdd
@@ -22,8 +20,8 @@ configure() {
   _user_host() { link_as_user "$_USER" "$_configure_dots/hosts/$_HOSTNAME/$1" "$_configure_home/$2"; }
   _user_shared() { link_as_user "$_USER" "$_configure_dots/files/$1" "$_configure_home/$2"; }
 
-  setup_doas "$_configure_dots/files/system-doas.conf"
   delete_links_as_root
+  setup_doas "$_configure_dots/files/system-doas.conf"
   link_as_root "$_configure_dots/dots.sh" /usr/bin/dots
 
   # root shared links
@@ -36,11 +34,11 @@ configure() {
   _root_shared script-eupgrade.sh /usr/bin/eupgrade
   _root_shared script-nft-trust-ip.sh /usr/bin/nft-trust-ip
   _root_shared script-ptest.sh /usr/bin/ptest
+  _root_shared script-set-mounts-permissions.sh /usr/bin/set-mounts-permissions
   _root_shared script-setup-fcron.sh /usr/bin/setup-fcron
   _root_shared script-setup-openrc.sh /usr/bin/setup-openrc
   _root_shared service-nftables.conf /etc/conf.d/nftables
   _root_shared service-user-runtime.sh /etc/init.d/user-runtime
-  _root_shared system-fuse.conf /etc/fuse.conf
   _root_shared system-grub.conf /etc/default/grub
   _root_shared system-nftables.conf /var/lib/nftables/rules-save
   _root_shared system-podman.conf /etc/containers/containers.conf
@@ -72,33 +70,37 @@ configure() {
     run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/installkernel -a
 
-    run_as_root sed -i "/# device pool/,\$d" /etc/fstab
-    echo '# device pool' | run_as_root tee -a /etc/fstab >/dev/null
-    _i=1 && echo "$_cache" | tr , '\n' | while read -r _entry; do
-      _index=$(printf "%02d" "$_i")
-      run_as_root mkdir -p "/mnt/pool/fast-storage-$_index"
-      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" /mnt/pool/fast-storage-$_index ext4 defaults,allow_other 0 0" |
+    run_as_root sed -i "/# pool/,\$d" /etc/fstab
+    echo '# pool' | run_as_root tee -a /etc/fstab >/dev/null
+
+    _i=0 && echo "$_cache" | tr , '\n' | while read -r _entry; do
+      _i=$((_i + 1)) && _device="/mnt/pool/fast-storage-$(printf "%02d" "$_i")"
+      run_as_root mkdir -p "$_device"
+      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" $_device ext4 defaults 0 0" |
         run_as_root tee -a /etc/fstab >/dev/null
-      _i=$((_i + 1))
     done
-    _i=1 && echo "$_storage" | tr , '\n' | while read -r _entry; do
-      _index=$(printf "%02d" "$_i")
-      run_as_root mkdir -p "/mnt/pool/slow-storage-$_index"
-      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" /mnt/pool/slow-storage-$_index ext4 defaults,allow_other 0 0" |
+
+    _i=0 && echo "$_storage" | tr , '\n' | while read -r _entry; do
+      _i=$((_i + 1)) && _device="/mnt/pool/slow-storage-$(printf "%02d" "$_i")"
+      run_as_root mkdir -p "$_device"
+      echo "UUID=\"$(get_uuid "/dev/${_entry}1")\" $_device ext4 defaults 0 0" |
         run_as_root tee -a /etc/fstab >/dev/null
-      _i=$((_i + 1))
     done
-    run_as_root mkdir -p /mnt/parity
-    echo "UUID=\"$(get_uuid "/dev/${_parity}1")\" /mnt/parity ext4 defaults,allow_other 0 0" |
+
+    _device=/mnt/parity
+    run_as_root mkdir -p "$_device"
+    echo "UUID=\"$(get_uuid "/dev/${_parity}1")\" $_device ext4 defaults 0 0" |
       run_as_root tee -a /etc/fstab >/dev/null
 
-    run_as_root sed -i "/# mergerfs storage/,\$d" /etc/fstab
-    echo '# mergerfs storage' | run_as_root tee -a /etc/fstab >/dev/null
-    run_as_root mkdir -p /mnt/storage
+    run_as_root sed -i "/# mergerfs/,\$d" /etc/fstab
+    echo '# mergerfs' | run_as_root tee -a /etc/fstab >/dev/null
+
+    _device=/mnt/storage
+    run_as_root mkdir -p "$_device"
     {
       printf '/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* '
-      printf '/mnt/storage mergerfs '
-      printf 'defaults,allow_other,category.create=ff\n'
+      printf '%s mergerfs ' $_device
+      printf 'defaults,category.create=ff\n'
     } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
