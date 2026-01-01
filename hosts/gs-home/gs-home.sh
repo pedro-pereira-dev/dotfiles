@@ -92,16 +92,21 @@ configure() {
     echo "UUID=\"$(get_uuid "/dev/${_parity}1")\" $_device ext4 defaults 0 0" |
       run_as_root tee -a /etc/fstab >/dev/null
 
+    # https://docs.bankai-tech.com/Networking/Storage/mergerfs/
     run_as_root sed -i "/# mergerfs/,\$d" /etc/fstab
     echo '# mergerfs' | run_as_root tee -a /etc/fstab >/dev/null
 
     _device=/mnt/storage
     run_as_root mkdir -p "$_device"
-    {
-      printf '/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* '
-      printf '%s mergerfs ' $_device
-      printf 'defaults,category.create=ff\n'
-    } | run_as_root tee -a /etc/fstab >/dev/null
+    echo "/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* \
+      $_device mergerfs \
+      defaults,category.create=ff \
+      " | run_as_root tee -a /etc/fstab >/dev/null
+    # {
+    #   printf '/mnt/pool/fast-storage-*:/mnt/pool/slow-storage-* '
+    #   printf '%s mergerfs ' $_device
+    #   printf 'defaults,category.create=ff\n'
+    # } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
   _crontab=$(mktemp) && sed "s/__USER__/$_USER/g" /etc/fcron/crontab.conf >"$_crontab"
