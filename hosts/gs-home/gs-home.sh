@@ -5,8 +5,6 @@ _DISK=/dev/sda
 _HOSTNAME=gs-home
 _USER=chuck
 
-_interface=enp3s0
-
 _cache=sdb
 _storage=sdc
 _parity=sdd
@@ -62,8 +60,8 @@ configure() {
   _user_host $_HOSTNAME-podman-compose.yaml .config/podman/compose.yaml
   _user_host $_HOSTNAME-podman-haproxy.cfg .config/podman/haproxy.cfg
 
-  [ ! -f /etc/init.d/net.$_interface ] && link_as_root net.lo /etc/init.d/net.$_interface # interface
-  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER   # runtime directory
+  [ ! -f /etc/init.d/net.enp3s0 ] && link_as_root net.lo /etc/init.d/net.enp3s0         # interface
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER # runtime directory
 
   get_parameter --install "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
@@ -121,9 +119,7 @@ configure() {
     } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
-  _crontab=$(mktemp) && sed "s/__USER__/$_USER/g" /etc/fcron/crontab.conf >"$_crontab"
-  run_as_root /usr/bin/fcrontab "$_crontab" && rm -f "$_crontab"
-
+  run_as_root /usr/bin/fcrontab /etc/fcron/crontab.conf
   run_as_root /usr/bin/setup-openrc
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
