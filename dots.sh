@@ -63,6 +63,10 @@ setup_doas() { _setup_doas_conf=$1 &&
   run_as_root chown root:root /etc/doas.conf &&
   run_as_root chmod u=rw /etc/doas.conf &&
   run_as_root passwd -dl root >/dev/null; }
+setup_fcron() { _setup_fcron_conf=$1 &&
+  command -v fcrontab >/dev/null &&
+  link_as_root "$_setup_fcron_conf" /etc/fcron/crontab.conf &&
+  run_as_root /usr/bin/fcrontab /etc/fcron/crontab.conf; }
 
 get_uuid() { blkid -o export "$1" | grep ^UUID | cut -d= -f2; }
 

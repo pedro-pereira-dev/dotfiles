@@ -5,8 +5,10 @@ _DISK=/dev/sda
 _HOSTNAME=gs-home
 _USER=chuck
 
-_cache=sdb
-_storage=sdc
+_interface=enp3s0
+
+_fast=sdb
+_slow=sdc
 _parity=sdd
 
 configure() {
@@ -30,10 +32,7 @@ configure() {
   _root_shared script-edelete.sh /usr/bin/edelete
   _root_shared script-eupdate.sh /usr/bin/eupdate
   _root_shared script-eupgrade.sh /usr/bin/eupgrade
-  _root_shared script-nft-trust-ip.sh /usr/bin/nft-trust-ip
-  _root_shared script-ptest.sh /usr/bin/ptest
   _root_shared script-set-mounts-permissions.sh /usr/bin/set-mounts-permissions
-  _root_shared script-setup-fcron.sh /usr/bin/setup-fcron
   _root_shared script-setup-openrc.sh /usr/bin/setup-openrc
   _root_shared service-nftables.conf /etc/conf.d/nftables
   _root_shared service-user-runtime.sh /etc/init.d/user-runtime
@@ -43,7 +42,6 @@ configure() {
   _root_shared system-sshd.conf /etc/ssh/sshd_config.d/key-authentication.conf
 
   # root host links
-  _root_host $_HOSTNAME-crontab.conf /etc/fcron/crontab.conf
   _root_host $_HOSTNAME-firewall.conf /var/lib/nftables/tables/table.conf
   _root_host $_HOSTNAME-interface.conf /etc/conf.d/net
   _root_host $_HOSTNAME-package-declare.conf /etc/portage/package.declare
@@ -51,6 +49,7 @@ configure() {
   _root_host $_HOSTNAME-package-license.conf /etc/portage/package.license
   _root_host $_HOSTNAME-package-use.conf /etc/portage/package.use
   _root_host $_HOSTNAME-services.conf /etc/openrc/services.conf
+  _root_host $_HOSTNAME-snapraid.conf /etc/snapraid.conf
 
   # user shared links
   _user_shared script-bashrc.sh .bashrc
@@ -60,67 +59,64 @@ configure() {
   _user_host $_HOSTNAME-podman-compose.yaml .config/podman/compose.yaml
   _user_host $_HOSTNAME-podman-haproxy.cfg .config/podman/haproxy.cfg
 
-  [ ! -f /etc/init.d/net.enp3s0 ] && link_as_root net.lo /etc/init.d/net.enp3s0         # interface
-  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER # runtime directory
+  [ ! -f /etc/init.d/net.$_interface ] && link_as_root net.lo /etc/init.d/net.$_interface # interface
+  [ ! -f /etc/init.d/user.$_USER ] && link_as_root user-runtime /etc/init.d/user.$_USER   # runtime directory
 
   get_parameter --install "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/installkernel -a
 
-    run_as_root sed -i "/# pool/,\$d" /etc/fstab
-    echo '# pool' | run_as_root tee -a /etc/fstab >/dev/null
+    run_as_root chgrp wheel /mnt
+    run_as_root chmod g+s /mnt
 
-    _i=0 && echo "$_cache" | tr , '\n' | while read -r _entry; do
-      _i=$((_i + 1)) && _device="/mnt/pool/fast-disk-$(printf "%02d" "$_i")"
-      run_as_root mkdir -p "$_device"
-      {
+    run_as_root sed -i "/# pool/,\$d" /etc/fstab && {
+      echo '# pool'
+      _i=0 && echo "$_fast" | tr , '\n' | while read -r _entry; do
+        _i=$((_i + 1))
+        _device="/mnt/pool/fast-$(printf "%02d" "$_i")"
+        run_as_root mkdir -p "$_device"
         printf 'UUID="%s" ' "$(get_uuid "/dev/${_entry}1")"
         printf '%s ext4 ' "$_device"
         printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
-      } | run_as_root tee -a /etc/fstab >/dev/null
-    done
-
-    _i=0 && echo "$_storage" | tr , '\n' | while read -r _entry; do
-      _i=$((_i + 1)) && _device="/mnt/pool/slow-disk-$(printf "%02d" "$_i")"
-      run_as_root mkdir -p "$_device"
-      {
+      done
+      _i=0 && echo "$_slow" | tr , '\n' | while read -r _entry; do
+        _i=$((_i + 1))
+        _device="/mnt/pool/slow-$(printf "%02d" "$_i")"
+        run_as_root mkdir -p "$_device"
         printf 'UUID="%s" ' "$(get_uuid "/dev/${_entry}1")"
         printf '%s ext4 ' "$_device"
         printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
-      } | run_as_root tee -a /etc/fstab >/dev/null
-    done
-
-    _device=/mnt/parity
-    run_as_root mkdir -p "$_device"
-    {
+      done
+      _device=/mnt/parity
+      run_as_root mkdir -p "$_device"
       printf 'UUID="%s" ' "$(get_uuid "/dev/${_parity}1")"
       printf '%s ext4 ' "$_device"
       printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
     } | run_as_root tee -a /etc/fstab >/dev/null
 
-    run_as_root sed -i "/# mergerfs/,\$d" /etc/fstab
-    echo '# mergerfs' | run_as_root tee -a /etc/fstab >/dev/null
-
-    _device=/mnt/storage
-    run_as_root mkdir -p "$_device"
-    {
-      printf '/mnt/pool/fast-disk-*:/mnt/pool/slow-disk-* '
+    run_as_root sed -i "/# mergerfs/,\$d" /etc/fstab && {
+      echo '# mergerfs'
+      _device=/mnt/storage/fast
+      run_as_root mkdir -p "$_device"
+      printf '/mnt/pool/fast-* '
+      printf '%s mergerfs ' $_device
+      printf 'defaults\n'
+      _device=/mnt/storage/slow
+      run_as_root mkdir -p "$_device"
+      printf '/mnt/pool/slow-* '
+      printf '%s mergerfs ' $_device
+      printf 'defaults\n'
+      _device=/mnt/data
+      run_as_root mkdir -p "$_device"
+      printf '/mnt/pool/fast-*:/mnt/pool/slow-* '
       printf '%s mergerfs ' $_device
       printf 'defaults,category.create=ff\n'
     } | run_as_root tee -a /etc/fstab >/dev/null
-
-    _device=/mnt/storage-uncached
-    run_as_root mkdir -p "$_device"
-    {
-      printf '/mnt/pool/slow-disk-* '
-      printf '%s mergerfs ' $_device
-      printf 'defaults\n'
-    } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
-  run_as_root /usr/bin/fcrontab /etc/fcron/crontab.conf
   run_as_root /usr/bin/setup-openrc
+  setup_fcron "$_configure_dots/hosts/$_HOSTNAME/$_HOSTNAME-crontab.conf"
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/netboot &&
