@@ -27,6 +27,7 @@ configure() {
   # root shared links
   _root_shared kernel-unprivileged-port-start.conf /etc/sysctl.d/unprivileged-port-start.conf
   _root_shared portage-overlays.conf /etc/portage/repos.conf/overlays.conf
+  _root_shared script-balance-storage.sh /usr/bin/balance-storage
   _root_shared script-eauto.sh /usr/bin/eauto
   _root_shared script-edeclare.sh /usr/bin/edeclare
   _root_shared script-edelete.sh /usr/bin/edelete
@@ -78,7 +79,7 @@ configure() {
         run_as_root mkdir -p "$_device"
         printf 'UUID="%s" ' "$(get_uuid "/dev/${_entry}1")"
         printf '%s ext4 ' "$_device"
-        printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
+        printf 'defaults,nodev,nofail,nosuid 0 0\n'
       done
       _i=0 && echo "$_slow" | tr , '\n' | while read -r _entry; do
         _i=$((_i + 1))
@@ -86,13 +87,13 @@ configure() {
         run_as_root mkdir -p "$_device"
         printf 'UUID="%s" ' "$(get_uuid "/dev/${_entry}1")"
         printf '%s ext4 ' "$_device"
-        printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
+        printf 'defaults,nodev,nofail,nosuid 0 0\n'
       done
       _device=/mnt/parity
       run_as_root mkdir -p "$_device"
       printf 'UUID="%s" ' "$(get_uuid "/dev/${_parity}1")"
       printf '%s ext4 ' "$_device"
-      printf 'defaults,noatime,nodev,nofail,nosuid 0 0\n'
+      printf 'defaults,nodev,nofail,nosuid 0 0\n'
     } | run_as_root tee -a /etc/fstab >/dev/null
 
     run_as_root sed -i "/# mergerfs/,\$d" /etc/fstab && {
