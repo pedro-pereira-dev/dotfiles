@@ -7,6 +7,8 @@ _ROOT_SIZE=+32G
 _HOSTNAME=gs-home
 _USER=chuck
 
+_group=shared
+
 _network_interface=enp3s0
 
 _data_fast=sda3,sdb1
@@ -23,6 +25,9 @@ configure() {
   _user_shared() { link_as_user "$_USER" "$_configure_dots/files/$1" "$_configure_home/$2"; }
 
   setup_doas "$_configure_dots/files/system-doas.conf"
+  grep -q "^$_group:" /etc/group || { run_as_root groupadd -g 9999 shared && run_as_root usermod -aG shared chuck; }
+  run_as_root rm -fr /mnt
+
   delete_links_as_root
   link_as_root "$_configure_dots/dots.sh" /usr/bin/dots
 
@@ -73,7 +78,7 @@ configure() {
     run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/installkernel -a
 
-    run_as_root /usr/bin/set-mounts-permissions
+    # run_as_root /usr/bin/set-mounts-permissions
     run_as_root sed -i "/# storage/,\$d" /etc/fstab && {
       echo '# storage'
       _i=0 && echo "$_data_fast" | tr , '\n' | while read -r _entry; do
@@ -92,26 +97,26 @@ configure() {
         printf '%s ext4 ' "$_device"
         printf 'defaults,nodev,nofail,nosuid 0 0\n'
       done
-      _device=/mnt/pool/fast-storage
-      run_as_root mkdir -p "$_device"
-      printf '/mnt/pool/fast-disk-* '
-      printf '%s mergerfs ' $_device
-      printf 'defaults\n'
-      _device=/mnt/pool/slow-storage
-      run_as_root mkdir -p "$_device"
-      printf '/mnt/pool/slow-disk-* '
-      printf '%s mergerfs ' $_device
-      printf 'defaults\n'
-      _device=/mnt/data
-      run_as_root mkdir -p "$_device"
-      printf '/mnt/pool/fast-disk-*:/mnt/pool/slow-disk-* '
-      printf '%s mergerfs ' $_device
-      printf 'defaults,category.create=ff\n'
-      _device=/mnt/parity
-      run_as_root mkdir -p "$_device"
-      printf 'UUID="%s" ' "$(get_uuid "/dev/${_data_parity}")"
-      printf '%s ext4 ' "$_device"
-      printf 'defaults,nodev,nofail,nosuid 0 0\n'
+      # _device=/mnt/pool/fast-storage
+      # run_as_root mkdir -p "$_device"
+      # printf '/mnt/pool/fast-disk-* '
+      # printf '%s mergerfs ' $_device
+      # printf 'defaults\n'
+      # _device=/mnt/pool/slow-storage
+      # run_as_root mkdir -p "$_device"
+      # printf '/mnt/pool/slow-disk-* '
+      # printf '%s mergerfs ' $_device
+      # printf 'defaults\n'
+      # _device=/mnt/data
+      # run_as_root mkdir -p "$_device"
+      # printf '/mnt/pool/fast-disk-*:/mnt/pool/slow-disk-* '
+      # printf '%s mergerfs ' $_device
+      # printf 'defaults,category.create=ff\n'
+      # _device=/mnt/parity
+      # run_as_root mkdir -p "$_device"
+      # printf 'UUID="%s" ' "$(get_uuid "/dev/${_data_parity}")"
+      # printf '%s ext4 ' "$_device"
+      # printf 'defaults,nodev,nofail,nosuid 0 0\n'
     } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
