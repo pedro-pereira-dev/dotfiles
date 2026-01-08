@@ -40,10 +40,10 @@ curl -ILfs "$_url" >/dev/null &&
   _tmp=$(mktemp) && curl -Lfs "$_url" -o "$_tmp" && . "$_tmp" ||
   { echo "[E] failed to source $_url" && exit 1; }
 
-_disk=${_disk:-''} && [ -n "$_disk" ] ||
-  { echo '[E] missing required variable _disk' && exit 1; }
+_DISK=${_DISK:-''} && [ -n "$_DISK" ] ||
+  { echo '[E] missing required variable _DISK' && exit 1; }
 
-wipefs -a "$_disk"*
+wipefs -a "$_DISK"*
 # removes mapped devices
 find /dev/disk -type l -exec sh -c '[ ! -e "$1" ] && rm -f "$1"' _ {} \;
 
@@ -55,13 +55,13 @@ is_bios && _disk_layout="0,n, , , ,$_boot_size,a,n, , , ,$_root_size" &&
   [ "$_root_size" != ' ' ] && _disk_layout="${_disk_layout},n, , , , "
 is_uefi && _disk_layout="g,n, , ,$_boot_size,Y,t,1,n, , ,$_root_size,Y" &&
   [ "$_root_size" != ' ' ] && _disk_layout="${_disk_layout},n, , , ,Y"
-printf '%s' "${_disk_layout},p,w" | tr , '\n' | fdisk "$_disk"
+printf '%s' "${_disk_layout},p,w" | tr , '\n' | fdisk "$_DISK"
 
-_boot_dev=/dev/$(get_device_partition "$_disk" 1)
-_root_dev=/dev/$(get_device_partition "$_disk" 2)
+_boot_dev=/dev/$(get_device_partition "$_DISK" 1)
+_root_dev=/dev/$(get_device_partition "$_DISK" 2)
 
 [ "$_root_size" != ' ' ] &&
-  { mkfs.ext4 -F "/dev/$(get_device_partition "$_disk" 3)" || exit 1; }
+  { mkfs.ext4 -F "/dev/$(get_device_partition "$_DISK" 3)" || exit 1; }
 
 _installer_repo=$(get_parameter --installer-repository "$@") && [ -n "$_installer_repo" ] ||
   _installer_repo=pedro-pereira-dev/gentoo-installer
@@ -85,5 +85,5 @@ echo $_user:$_password | chpasswd
 
 emerge --ask=n -1n dev-vcs/git
 curl -Lfs -- $_url/$_dots_repo/refs/heads/$_branch/dots.sh | 
-  sh -s -- sync --hostname $_hostname --install --user $_user
+  sh -s -- sync --full --hostname $_hostname --user $_user
 EOF

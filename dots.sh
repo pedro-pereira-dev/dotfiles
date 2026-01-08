@@ -5,118 +5,145 @@ set -eou pipefail
 is_linux() { test "$(uname)" = Linux; }
 is_macos() { test "$(uname)" = Darwin; }
 
-is_user() { _is_user_user=$1 && test "$(id -u)" -eq "$(id -u "$_is_user_user")"; }
 is_root() { is_user root; }
+is_user() { _is_user_user=$1 && test "$(id -u)" -eq "$(id -u "$_is_user_user")"; }
 
 run_as_root() {
-  if is_root; then
-    "$@"
-  elif command -v doas >/dev/null; then
-    doas "$@"
-  elif command -v sudo >/dev/null; then
-    sudo "$@"
-  fi
+  is_root && "$@"
+  is_root && return $?
+  command -v doas >/dev/null && doas "$@"
+  command -v doas >/dev/null && return $?
+  command -v sudo >/dev/null && sudo "$@"
+  command -v sudo >/dev/null && return $?
 }
 run_as_user() {
   _run_as_user_user=$1 && shift
-  if is_user "$_run_as_user_user"; then
-    "$@"
-  else
-    run_as_root su "$_run_as_user_user" -c "$(printf '%s ' "$@")"
-  fi
+  is_user "$_run_as_user_user" && "$@"
+  is_user "$_run_as_user_user" && return $?
+  run_as_root su "$_run_as_user_user" -c "$(printf '%s ' "$@")"
 }
 
-link_as_root() { _link_as_root_source=$1 && _link_as_root_target=$2 &&
-  run_as_root rm -fr "$_link_as_root_target" &&
-  run_as_root mkdir -p "$(dirname "$_link_as_root_target")" &&
-  run_as_root ln -fsv "$_link_as_root_source" "$_link_as_root_target"; }
-link_as_user() { _link_as_user_user=$1 && _link_as_user_source=$2 && _link_as_user_target=$3 &&
-  run_as_user "$_link_as_user_user" rm -fr "$_link_as_user_target" &&
-  run_as_user "$_link_as_user_user" mkdir -p "$(dirname "$_link_as_user_target")" &&
-  run_as_user "$_link_as_user_user" ln -fsv "$_link_as_user_source" "$_link_as_user_target"; }
+link_as_root() {
+  _link_as_root_source=$1 && _link_as_root_target=$2
+  run_as_root rm -fr "$_link_as_root_target"
+  run_as_root mkdir -p "$(dirname "$_link_as_root_target")"
+  run_as_root ln -fsv "$_link_as_root_source" "$_link_as_root_target"
+}
+link_as_user() {
+  _link_as_user_user=$1 && _link_as_user_source=$2 && _link_as_user_target=$3
+  run_as_user "$_link_as_user_user" rm -fr "$_link_as_user_target"
+  run_as_user "$_link_as_user_user" mkdir -p "$(dirname "$_link_as_user_target")"
+  run_as_user "$_link_as_user_user" ln -fsv "$_link_as_user_source" "$_link_as_user_target"
+}
+
+link_root_host() { link_as_root "$_DOTS/hosts/$_HOSTNAME/$1" "$2"; }
+link_root_shared() { link_as_root "$_DOTS/files/$1" "$2"; }
+link_user_host() { link_as_user "$_user" "$_DOTS/hosts/$_HOSTNAME/$1" "$_home/$2"; }
+link_user_shared() { link_as_user "$_user" "$_DOTS/files/$1" "$_home/$2"; }
 
 delete_links() {
   _delete_links_dir=$1 && shift
-  "$@" find "$_delete_links_dir" -type l 2>/dev/null | while IFS= read -r _entry; do # lists links
-    # matches entries to ignore, usually system directories
-    case $_entry in */.local/share/containers/* | */lost+found/* | /usr/*-linux-*/*) continue ;; esac
-    case $_entry in /boot/* | /dev/* | /efi/* | /media/* | /mnt/*) continue ;; esac
-    case $_entry in /opt/* | /proc/* | /run/* | /sys/* | /tmp/* | /var/*) continue ;; esac
-    case $_entry in /etc/pam.d/* | /etc/runlevels/* | /etc/ssl/*) continue ;; esac
-    case $_entry in /usr/include/* | /usr/lib/* | /usr/lib64/*) continue ;; esac
-    case $_entry in /usr/libexec/* | /usr/local/* | /usr/share/* | /usr/src/*) continue ;; esac
-    # resolves link, deletes it and deletes all parent directories if empty
-    "$@" find "$_entry" -printf '%l\n' 2>/dev/null | while IFS= read -r _path; do
-      case $_path in */dotfiles/*) "$@" rm "$_entry" && echo "'$_entry' X" &&
-        "$@" rmdir -p "$(dirname "$_entry")" 2>/dev/null ;;
-      esac
+  "$@" find "$_delete_links_dir" -type l 2>/dev/null |
+    # lists all system links
+    while IFS= read -r _link; do
+      # ignored entries
+      case $_link in */.local/share/containers/* | */lost+found/* | /usr/*-linux-*/*) continue ;; esac
+      case $_link in /boot/* | /dev/* | /efi/* | /media/* | /mnt/*) continue ;; esac
+      case $_link in /opt/* | /proc/* | /run/* | /sys/* | /tmp/* | /var/*) continue ;; esac
+      case $_link in /etc/pam.d/* | /etc/runlevels/* | /etc/ssl/*) continue ;; esac
+      case $_link in /usr/include/* | /usr/lib/* | /usr/lib64/*) continue ;; esac
+      case $_link in /usr/libexec/* | /usr/local/* | /usr/share/* | /usr/src/*) continue ;; esac
+      # cheks if link is a dotfiles resources and deletes it if it is
+      "$@" find "$_link" -printf '%l\n' 2>/dev/null |
+        while IFS= read -r _link_path; do
+          case $_link_path in */$_dots_path/*)
+            "$@" rm "$_link"
+            echo "'$_link' X"
+            "$@" rmdir -p "$(dirname "$_link")" 2>/dev/null
+            ;;
+          esac
+        done
     done
-  done
 }
+
 delete_links_as_root() { delete_links / run_as_root; }
-delete_links_as_user() { _delete_links_as_user_user=$1 && _delete_links_as_user_dir=$2 &&
-  delete_links "$_delete_links_dir" run_as_user "$_delete_links_as_user_user"; }
+delete_links_as_user() {
+  _delete_links_as_user_user=$1 && _delete_links_as_user_dir=$2
+  delete_links "$_delete_links_dir" run_as_user "$_delete_links_as_user_user"
+}
 
-setup_doas() { _setup_doas_conf=$1 &&
-  { ! command -v doas >/dev/null && run_as_root emerge --ask=n -n app-admin/doas || true; } &&
-  run_as_root cp -f "$_setup_doas_conf" /etc/doas.conf &&
-  run_as_root chown root:root /etc/doas.conf &&
-  run_as_root chmod u=rw /etc/doas.conf &&
-  run_as_root passwd -dl root >/dev/null; }
-setup_fcron() { _setup_fcron_conf=$1 &&
-  command -v fcrontab >/dev/null &&
-  link_as_root "$_setup_fcron_conf" /etc/fcron/crontab.conf &&
-  run_as_root /usr/bin/fcrontab /etc/fcron/crontab.conf; }
-
-get_uuid() { blkid -o export "$1" | grep ^UUID | cut -d= -f2; }
-
-get_first_wheel_user() { is_root && grep ^wheel: /etc/group | cut -d, -f2 | grep -v root || whoami; }
-get_home() { _get_home_user=$1 &&
-  { is_linux && echo "/home/$_get_home_user"; } ||
-  { is_macos && echo "/Users/$_get_home_user"; }; }
-
+get_first_wheel_user() {
+  is_root && grep ^wheel: /etc/group | cut -d, -f2 | grep -v root
+  is_root && return $?
+  ! is_root && whoami
+  ! is_root && return $?
+}
+get_home() {
+  _get_home_user=$1
+  is_linux && echo "/home/$_get_home_user"
+  is_linux && return $?
+  is_macos && echo "/Users/$_get_home_user"
+  is_macos && return $?
+}
 get_parameter() {
   _get_parameter_flag=$1 && shift
   while [ $# -ge 1 ]; do
     _get_parameter_param=$1 && shift
-    [ "$_get_parameter_flag" = "$_get_parameter_param" ] && {
-      _get_parameter_val='' && [ $# -ge 1 ] && _get_parameter_val=$1
-      # prints out if not starting by -
-      [ -n "$_get_parameter_val" ] && expr "x$_get_parameter_val" : 'x[^-]' >/dev/null &&
-        echo "$_get_parameter_val" || true
-    } && return 0
-  done && return 1
+    [ "$_get_parameter_flag" != "$_get_parameter_param" ] && continue
+    _get_parameter_val='' && [ $# -ge 1 ] && _get_parameter_val=$1
+    [ -n "$_get_parameter_val" ] &&
+      expr "x$_get_parameter_val" : 'x[^-]' >/dev/null &&
+      echo "$_get_parameter_val"
+    return 0
+  done
+  return 1
+}
+get_uuid() {
+  _get_uuid_part=$1
+  blkid -o export "$_get_uuid_part" | grep ^UUID | cut -d= -f2
 }
 
-dots_bootstrap() {
-  _dots_bootstrap_user=$1
-  _dots_bootstrap_home=$(get_home "$_dots_bootstrap_user") || return 1
-  [ -d "$_dots_bootstrap_home/workspace/personal/dotfiles/.git" ] && return 0
-  run_as_user "$_dots_bootstrap_user" mkdir -p "$_dots_bootstrap_home/workspace/personal"
-  run_as_user "$_dots_bootstrap_user" rm -fr "$_dots_bootstrap_home/workspace/personal/dotfiles"
-  run_as_user "$_dots_bootstrap_user" git clone https://github.com/pedro-pereira-dev/dotfiles.git "$_dots_bootstrap_home/workspace/personal/dotfiles"
+setup_doas() {
+  _setup_doas_conf=$1
+  ! command -v doas >/dev/null &&
+    { run_as_root emerge --ask=n -n app-admin/doas || return 1; }
+  run_as_root cp -f "$_setup_doas_conf" /etc/doas.conf
+  run_as_root chown root:root /etc/doas.conf
+  run_as_root chmod u=rw /etc/doas.conf
+  run_as_root passwd -dl root >/dev/null
 }
-dots_update() {
-  _dots_update_user=$1
-  _dots_update_home=$(get_home "$_dots_update_user") || return 1
-  run_as_user "$_dots_update_user" git -C "$_dots_update_home/workspace/personal/dotfiles" fetch origin || return 1
-  run_as_user "$_dots_update_user" git -C "$_dots_update_home/workspace/personal/dotfiles" reset --hard origin/main || return 1
-  run_as_user "$_dots_update_user" git -C "$_dots_update_home/workspace/personal/dotfiles" clean -dfqx
-}
-dots_sync() {
-  _dots_sync_hostname=$1 && shift && _dots_sync_user=$1 && shift
-  _dots_sync_home=$(get_home "$_dots_sync_user") || return 1
-  . "$_dots_sync_home/workspace/personal/dotfiles/hosts/$_dots_sync_hostname/$_dots_sync_hostname.sh" || return 1
-  configure "$@"
+setup_fcron() {
+  _setup_fcron_conf=$1
+  ! command -v fcrontab >/dev/null && return 1
+  link_as_root "$_setup_fcron_conf" /etc/fcron/crontab.conf
+  run_as_root /usr/bin/fcrontab /etc/fcron/crontab.conf
 }
 
-_hostname=$(get_parameter --hostname "$@") && [ -n "$_hostname" ] || _hostname=$(hostname) ||
+_HOSTNAME=$(get_parameter --hostname "$@") && [ -n "$_HOSTNAME" ] ||
+  _HOSTNAME=$(hostname) ||
   { echo '[E] missing required argument --hostname' && exit 1; }
-_user=$(get_parameter --user "$@") && [ -n "$_user" ] || _user=$(get_first_wheel_user) ||
+_user=$(get_parameter --user "$@") && [ -n "$_user" ] ||
+  _user=$(get_first_wheel_user) ||
   { echo '[E] missing required argument --user' && exit 1; }
-[ "$#" -ge 1 ] && _CMD=$1 && shift && case $_CMD in
 
-update) dots_bootstrap "$_user" && dots_update "$_user" || exit 1 ;;
-sync) dots_bootstrap "$_user" && dots_sync "$_hostname" "$_user" "$@" || exit 1 ;;
+_home=$(get_home "$_user") || exit 1
+_url=$(get_parameter --url "$@") && [ -n "$_url" ] ||
+  _url=https://github.com/pedro-pereira-dev/dotfiles.git
 
-*) exit 1 ;; esac && exit 0
+_dots_path=workspace/personal/dotfiles
+_DOTS=$_home/$_dots_path
+
+[ ! -d "$_DOTS/.git" ] && {
+  run_as_user "$_user" mkdir -p "$(dirname "$_DOTS")"
+  run_as_user "$_user" rm -fr "$_DOTS"
+  run_as_user "$_user" git clone "$_url" "$_DOTS" || exit 1
+}
+
+run_as_user "$_user" git -C "$_DOTS" fetch origin || exit 1
+_branch=$(get_parameter --branch "$@") && [ -n "$_branch" ] &&
+  { run_as_user "$_user" git -C "$_DOTS" checkout -f "$_branch" || exit 1; }
+run_as_user "$_user" git -C "$_DOTS" reset --hard "@{u}" || exit 1
+run_as_user "$_user" git -C "$_DOTS" clean -dfqx || exit 1
+
+. "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME.sh" || exit 1
+sync "$@"
