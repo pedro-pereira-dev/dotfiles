@@ -72,6 +72,7 @@ configure() {
     } | run_as_root tee -a /etc/fstab >/dev/null
   }
 
+  run_as_root /usr/bin/set-mounts-permissions
   run_as_root /usr/bin/setup-openrc
   setup_fcron "$_configure_dots/hosts/$_HOSTNAME/$_HOSTNAME-crontab.conf"
 

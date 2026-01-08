@@ -1,13 +1,20 @@
 version: "3"
 services:
-  reverse_proxy:
-    container_name: reverse_proxy
+  haproxy:
+    container_name: haproxy
     image: docker.io/haproxy:alpine
     ports: ["80:80", "443:443"]
     sysctls: ["net.ipv4.ip_unprivileged_port_start=0"]
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
       - /etc/ssl/certs/:/etc/ssl/certs:ro
+
+  vaultwarden:
+    container_name: vaultwarden
+    image: docker.io/vaultwarden/server:alpine
+    expose: ["80"]
+    volumes:
+      - /mnt/data/managed/vaultwarden:/data:U,Z
 
   teste1:
     container_name: teste1

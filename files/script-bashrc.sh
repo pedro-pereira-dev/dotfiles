@@ -37,3 +37,5 @@ is_linux && alias shutdown='doas shutdown -h now'
 alias ~='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
+
+alias pc='podman-compose -f ~/.config/podman/compose.yaml'
