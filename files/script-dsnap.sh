@@ -5,13 +5,14 @@ get_parameter() {
   _get_parameter_flag=$1 && shift
   while [ $# -ge 1 ]; do
     _get_parameter_param=$1 && shift
-    [ "$_get_parameter_flag" = "$_get_parameter_param" ] && {
-      _get_parameter_val='' && [ $# -ge 1 ] && _get_parameter_val=$1
-      # prints out if not starting by -
-      [ -n "$_get_parameter_val" ] && expr "x$_get_parameter_val" : 'x[^-]' >/dev/null &&
-        echo "$_get_parameter_val" || true
-    } && return 0
-  done && return 1
+    [ "$_get_parameter_flag" != "$_get_parameter_param" ] && continue
+    _get_parameter_val='' && [ $# -ge 1 ] && _get_parameter_val=$1
+    [ -n "$_get_parameter_val" ] &&
+      expr "x$_get_parameter_val" : 'x[^-]' >/dev/null &&
+      echo "$_get_parameter_val"
+    return 0
+  done
+  return 1
 }
 
 _max_deleted=$(get_parameter --max-deleted "$@") && [ -n "$_max_deleted" ] || _max_deleted=10

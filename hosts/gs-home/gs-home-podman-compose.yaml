@@ -14,7 +14,7 @@ services:
     image: docker.io/vaultwarden/server:alpine
     expose: ["80"]
     volumes:
-      - /mnt/data/managed/vaultwarden:/data:U,Z
+      - /mnt/data/managed/vaultwarden:/data
 
   teste1:
     container_name: teste1

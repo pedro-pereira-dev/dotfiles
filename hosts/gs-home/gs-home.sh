@@ -15,6 +15,7 @@ sync() {
   link_root_shared portage-overlays.conf /etc/portage/repos.conf/overlays.conf
   link_root_shared portage-package-mask.conf /etc/portage/package.mask
   link_root_shared portage-package-unmask.conf /etc/portage/package.unmask
+  link_root_shared script-dbackup.sh /usr/bin/dbackup
   link_root_shared script-dsnap.sh /usr/bin/dsnap
   link_root_shared script-duncache.sh /usr/bin/duncache
   link_root_shared script-eauto.sh /usr/bin/eauto
@@ -27,7 +28,7 @@ sync() {
   link_root_shared service-user-runtime.sh /etc/init.d/user-runtime
   link_root_shared system-grub.conf /etc/default/grub
   link_root_shared system-nftables.conf /var/lib/nftables/rules-save
-  link_root_shared system-podman.conf /etc/containers/containers.conf
+  link_root_shared system-podman-containers.conf /etc/containers/containers.conf
   link_root_shared system-sshd.conf /etc/ssh/sshd_config.d/key-authentication.conf
 
   # root host links
@@ -37,6 +38,8 @@ sync() {
   link_root_host "$_HOSTNAME-package-keywords.conf" /etc/portage/package.accept_keywords
   link_root_host "$_HOSTNAME-package-license.conf" /etc/portage/package.license
   link_root_host "$_HOSTNAME-package-use.conf" /etc/portage/package.use
+  link_root_host "$_HOSTNAME-podman-compose.yaml" /etc/podman/compose.yaml
+  link_root_host "$_HOSTNAME-podman-haproxy.cfg" /etc/podman/haproxy.cfg
   link_root_host "$_HOSTNAME-services.conf" /etc/openrc/services.conf
   link_root_host "$_HOSTNAME-snapraid.conf" /etc/snapraid.conf
 
@@ -45,8 +48,6 @@ sync() {
 
   # user host links
   link_user_host "$_HOSTNAME-authorized-keys.conf" .ssh/authorized_keys
-  link_user_host "$_HOSTNAME-podman-compose.yaml" .config/podman/compose.yaml
-  link_user_host "$_HOSTNAME-podman-haproxy.cfg" .config/podman/haproxy.cfg
 
   [ ! -f /etc/init.d/net.enp3s0 ] && link_as_root net.lo /etc/init.d/net.enp3s0       # interface
   [ ! -f /etc/init.d/user.chuck ] && link_as_root user-runtime /etc/init.d/user.chuck # runtime directory
@@ -55,6 +56,16 @@ sync() {
     run_as_root /usr/bin/eauto --unattended
     run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/installkernel -a
+
+    ! id -u podman >/dev/null 2>&1 &&
+      run_as_root useradd -md /var/lib/podman -rs /usr/bin/nologin -u 200 podman &&
+      run_as_root usermod --add-subgids 200000-265535 podman &&
+      run_as_root usermod --add-subuids 200000-265535 podman
+
+    ! grep -q ^shared: /etc/group &&
+      run_as_root groupadd -g 9999 shared &&
+      run_as_root usermod -aG shared chuck &&
+      run_as_root usermod -aG shared podman
 
     run_as_root sed -i "/# custom/,\$d" /etc/fstab && {
       echo '# custom'
@@ -75,10 +86,6 @@ sync() {
       /mnt/pool/slow-storage \
       /mnt/data \
       /mnt/parity
-
-    ! grep -q ^shared: /etc/group &&
-      run_as_root groupadd -g 9999 shared &&
-      run_as_root usermod -aG shared chuck
 
     run_as_root mount -a
     run_as_root chgrp -R shared /mnt

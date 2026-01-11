@@ -49,16 +49,17 @@ sync() {
     run_as_root /usr/bin/eselect news read --quiet all
     run_as_root /usr/bin/installkernel -a
 
-    run_as_root sed -i "/# custom/,\$d" /etc/fstab && {
-      echo '# custom'
-      echo "UUID=\"$(get_uuid /dev/sda3)\" /mnt/backups/gs-home ext4 defaults,nodev,nofail,nosuid 0 0"
-    } | run_as_root tee -a /etc/fstab >/dev/null
-
-    run_as_root mkdir -p /mnt/backups/gs-home
-
     ! grep -q ^shared: /etc/group &&
       run_as_root groupadd -g 9999 shared &&
       run_as_root usermod -aG shared chuck
+
+    run_as_root sed -i "/# custom/,\$d" /etc/fstab && {
+      echo '# custom'
+      echo "UUID=\"$(get_uuid /dev/sda3)\" /mnt/gs-home ext4 defaults,nodev,nofail,nosuid 0 0"
+    } | run_as_root tee -a /etc/fstab >/dev/null
+
+    run_as_root mkdir -p \
+      /mnt/gs-home
 
     run_as_root mount -a
     run_as_root chgrp -R shared /mnt
