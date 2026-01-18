@@ -3,14 +3,6 @@ networks:
   private:
   public:
 services:
-  acme:
-    container_name: acme
-    image: docker.io/neilpang/acme.sh:latest
-    command: daemon
-    networks: ["public"]
-    volumes:
-      - /mnt/data/managed/acme/account:/acme.sh
-
   haproxy:
     container_name: haproxy
     image: docker.io/haproxy:alpine
@@ -20,14 +12,6 @@ services:
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - /mnt/data/managed/acme/certs:/certs
-
-  # vaultwarden:
-  #   container_name: vaultwarden
-  #   image: docker.io/vaultwarden/server:alpine
-  #   networks: ["public"]
-  #   expose: ["80"]
-  #   volumes:
-  #     - /mnt/data/managed/vaultwarden:/data
 
   teste1:
     container_name: teste1

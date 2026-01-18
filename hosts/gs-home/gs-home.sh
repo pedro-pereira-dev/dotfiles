@@ -15,6 +15,7 @@ sync() {
   link_root_shared portage-overlays.conf /etc/portage/repos.conf/overlays.conf
   link_root_shared portage-package-mask.conf /etc/portage/package.mask
   link_root_shared portage-package-unmask.conf /etc/portage/package.unmask
+  link_root_shared script-certs-manager.sh /usr/bin/certs-manager
   link_root_shared script-dbackup.sh /usr/bin/dbackup
   link_root_shared script-dsnap.sh /usr/bin/dsnap
   link_root_shared script-duncache.sh /usr/bin/duncache
