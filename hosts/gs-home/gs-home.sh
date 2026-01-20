@@ -22,7 +22,6 @@ sync() {
   link_root_shared script-edelete.sh /usr/bin/edelete
   link_root_shared script-eupdate.sh /usr/bin/eupdate
   link_root_shared script-eupgrade.sh /usr/bin/eupgrade
-  link_root_shared script-setup-openrc.sh /usr/bin/setup-openrc
   link_root_shared service-nftables.conf /etc/conf.d/nftables
   link_root_shared service-user-runtime.sh /etc/init.d/user-runtime
   link_root_shared system-grub.conf /etc/default/grub
@@ -40,7 +39,6 @@ sync() {
   link_root_host "$_HOSTNAME-podman-compose.yaml" /etc/podman/compose.yaml
   link_root_host "$_HOSTNAME-podman-haproxy.cfg" /etc/podman/haproxy.cfg
   link_root_host "$_HOSTNAME-podman-renew-certificates.sh" /usr/bin/podman-renew-certificates
-  link_root_host "$_HOSTNAME-services.conf" /etc/openrc/services.conf
   link_root_host "$_HOSTNAME-snapraid.conf" /etc/snapraid.conf
 
   # user shared links
@@ -92,8 +90,8 @@ sync() {
     run_as_root chmod -R g=rwx,g+s /mnt
   }
 
-  run_as_root /usr/bin/setup-openrc
   setup_fcron "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME-crontab.conf"
+  setup_openrc "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME-services.conf"
 
   return 0
 }

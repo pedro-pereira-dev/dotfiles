@@ -107,6 +107,7 @@ setup_doas() {
   _setup_doas_conf=$1
   ! command -v doas >/dev/null &&
     { run_as_root emerge --ask=n -n app-admin/doas || return 1; }
+  ! doas -C "$_setup_doas_conf" 2>/dev/null && return 1
   run_as_root cp -f "$_setup_doas_conf" /etc/doas.conf
   run_as_root chown root:root /etc/doas.conf
   run_as_root chmod u=rw /etc/doas.conf
@@ -115,8 +116,27 @@ setup_doas() {
 setup_fcron() {
   _setup_fcron_conf=$1
   ! command -v fcrontab >/dev/null && return 1
-  link_as_root "$_setup_fcron_conf" /etc/fcron/crontab.conf
-  run_as_root /usr/bin/fcrontab /etc/fcron/crontab.conf
+  run_as_root /usr/bin/fcrontab "$_setup_fcron_conf"
+}
+setup_openrc() {
+  _setup_openrc_conf=$1
+  [ ! -f "$_setup_openrc_conf" ] && return 1
+  _declared=$(mktemp)
+  sed -E \
+    -e '/^[[:space:]]*([#]|$)/d' \
+    -e 's/([[:space:]])+#.*$//' \
+    "$_setup_openrc_conf" | sort -u >"$_declared"
+  _enabled=$(mktemp)
+  rc-update show default | awk '{print $1}' | sort -u >"$_enabled"
+  _add=$(mktemp)
+  comm -23 "$_declared" "$_enabled" >"$_add"
+  _delete=$(mktemp)
+  comm -23 "$_enabled" "$_declared" >"$_delete"
+  [ -s "$_add" ] &&
+    cat "$_add" | run_as_root xargs -I {} rc-update add {} default
+  [ -s "$_delete" ] &&
+    cat "$_delete" | run_as_root xargs -I {} rc-update del {} default
+  rm -f "$_add" "$_declared" "$_delete" "$_enabled"
 }
 
 _HOSTNAME=$(get_parameter --hostname "$@") && [ -n "$_HOSTNAME" ] ||

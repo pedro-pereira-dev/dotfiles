@@ -19,7 +19,6 @@ sync() {
   link_root_shared script-edelete.sh /usr/bin/edelete
   link_root_shared script-eupdate.sh /usr/bin/eupdate
   link_root_shared script-eupgrade.sh /usr/bin/eupgrade
-  link_root_shared script-setup-openrc.sh /usr/bin/setup-openrc
   link_root_shared service-nftables.conf /etc/conf.d/nftables
   link_root_shared service-user-runtime.sh /etc/init.d/user-runtime
   link_root_shared system-grub.conf /etc/default/grub
@@ -32,7 +31,6 @@ sync() {
   link_root_host "$_HOSTNAME-package-keywords.conf" /etc/portage/package.accept_keywords
   link_root_host "$_HOSTNAME-package-license.conf" /etc/portage/package.license
   link_root_host "$_HOSTNAME-package-use.conf" /etc/portage/package.use
-  link_root_host "$_HOSTNAME-services.conf" /etc/openrc/services.conf
 
   # user shared links
   link_user_shared script-bashrc.sh .bashrc
@@ -65,8 +63,8 @@ sync() {
     run_as_root chmod -R g=rwx,g+s /mnt
   }
 
-  run_as_root /usr/bin/setup-openrc
   setup_fcron "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME-crontab.conf"
+  setup_openrc "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME-services.conf"
 
   [ ! -f /efi/EFI/netboot/netboot.xyz-arm64.efi ] &&
     run_as_root rm -fr /efi/EFI/netboot &&
