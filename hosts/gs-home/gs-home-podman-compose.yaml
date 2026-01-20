@@ -7,7 +7,7 @@ services:
     container_name: haproxy
     image: docker.io/haproxy:alpine
     sysctls: ["net.ipv4.ip_unprivileged_port_start=0"]
-    networks: ["public"]
+    networks: ["public", "private"]
     ports: ["80:80", "443:443"]
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg

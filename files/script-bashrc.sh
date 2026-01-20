@@ -38,4 +38,5 @@ alias ~='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
 
-alias pc='podman-compose -f ~/.config/podman/compose.yaml'
+alias pp='doas -u podman podman'
+alias ppc='doas -u podman podman-compose -f /etc/podman/compose.yaml'
