@@ -1,24 +1,89 @@
 version: "3"
-networks:
-  private:
-  public:
+x-podman:
+  in_pod: false
+
+secrets:
+  authelia_authentication_backend_ldap_password:
+    file: ./storage/authelia/secrets/authentication_backend_ldap_password.sec
+  authelia_jwt_secret:
+    file: ./storage/authelia/secrets/jwt_secret.sec
+  authelia_session_secret:
+    file: ./storage/authelia/secrets/session_secret.sec
+  authelia_storage_encryption_key:
+    file: ./storage/authelia/secrets/storage_encryption_key.sec
+  lldap_key_seed_file:
+    file: ./storage/lldap/secrets/key_seed_file.sec
+  lldap_ldap_jwt_secret:
+    file: ./storage/lldap/secrets/ldap_jwt_secret.sec
+  lldap_ldap_user_pass:
+    file: ./storage/lldap/secrets/ldap_user_pass.sec
+
 services:
-  haproxy:
-    container_name: haproxy
+  ldap:
+    container_name: ldap
+    image: docker.io/lldap/lldap:latest-alpine-rootless
+    userns_mode: keep-id
+    user: "200:9999"
+    expose: ["3890", "17170"]
+    secrets:
+      - lldap_key_seed_file
+      - lldap_ldap_jwt_secret
+      - lldap_ldap_user_pass
+    environment:
+      - LLDAP_FORCE_LDAP_USER_PASS_RESET=always
+      - LLDAP_JWT_SECRET_FILE=/run/secrets/lldap_ldap_jwt_secret
+      - LLDAP_KEY_FILE=""
+      - LLDAP_KEY_SEED_FILE=/run/secrets/lldap_key_seed_file
+      - LLDAP_LDAPS_OPTIONS__ENABLED=false
+      - LLDAP_LDAP_BASE_DN="dc=boarede,dc=com"
+      - LLDAP_LDAP_USER_EMAIL="lldap_admin@boarede.com"
+      - LLDAP_LDAP_USER_PASS_FILE=/run/secrets/lldap_ldap_user_pass
+      - LLDAP_SMTP_OPTIONS__ENABLE_PASSWORD_RESET=false
+    volumes:
+      - ./storage/lldap/data:/data
+
+  auth:
+    container_name: auth
+    image: docker.io/authelia/authelia:latest
+    expose: ["9091"]
+    secrets:
+      - authelia_authentication_backend_ldap_password
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_encryption_key
+    environment:
+      - AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE=/run/secrets/authelia_authentication_backend_ldap_password
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - X_AUTHELIA_CONFIG=/configuration.yml
+    volumes:
+      - ./authelia.yml:/configuration.yml
+      - ./storage/authelia/data:/config
+
+  proxy:
+    container_name: proxy
     image: docker.io/haproxy:alpine
     sysctls: ["net.ipv4.ip_unprivileged_port_start=0"]
-    networks: ["public", "private"]
     ports: ["80:80", "443:443"]
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./storage/haproxy/data:/data
+      ###
       - /mnt/data/managed/acme/certs:/certs
+
+  vaultwarden:
+    container_name: vaultwarden
+    image: docker.io/vaultwarden/server:alpine
+    expose: ["80"]
+    volumes:
+      - /mnt/data/managed/vaultwarden:/data
 
   teste1:
     container_name: teste1
     image: docker.io/traefik/whoami:latest
     environment:
       - WHOAMI_NAME=gs_home_teste1
-    networks: ["public"]
     expose: ["80"]
 
   teste2:
@@ -26,5 +91,4 @@ services:
     image: docker.io/traefik/whoami:latest
     environment:
       - WHOAMI_NAME=gs_home_teste2
-    networks: ["private"]
     expose: ["80"]

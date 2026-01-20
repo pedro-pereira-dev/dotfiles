@@ -36,6 +36,7 @@ sync() {
   link_root_host "$_HOSTNAME-package-keywords.conf" /etc/portage/package.accept_keywords
   link_root_host "$_HOSTNAME-package-license.conf" /etc/portage/package.license
   link_root_host "$_HOSTNAME-package-use.conf" /etc/portage/package.use
+  link_root_host "$_HOSTNAME-podman-authelia.yml" /etc/podman/authelia.yml
   link_root_host "$_HOSTNAME-podman-compose.yaml" /etc/podman/compose.yaml
   link_root_host "$_HOSTNAME-podman-haproxy.cfg" /etc/podman/haproxy.cfg
   link_root_host "$_HOSTNAME-podman-renew-certificates.sh" /usr/bin/podman-renew-certificates
@@ -49,6 +50,8 @@ sync() {
 
   [ ! -f /etc/init.d/net.enp3s0 ] && link_as_root net.lo /etc/init.d/net.enp3s0       # interface
   [ ! -f /etc/init.d/user.chuck ] && link_as_root user-runtime /etc/init.d/user.chuck # runtime directory
+
+  [ ! -e /etc/podman/storage ] && run_as_root ln -fsv "/mnt/data/managed/$_HOSTNAME/podman" /etc/podman/storage
 
   get_parameter --full "$@" >/dev/null && {
     run_as_root /usr/bin/eauto --unattended
@@ -92,6 +95,19 @@ sync() {
 
   setup_fcron "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME-crontab.conf"
   setup_openrc "$_DOTS/hosts/$_HOSTNAME/$_HOSTNAME-services.conf"
+
+  # might not work during installation
+  [ -d /mnt/data/managed/gs-home/podman/haproxy/data ] && {
+    run_as_user chuck \
+      curl -Lfs https://raw.githubusercontent.com/TimWolla/haproxy-auth-request/refs/heads/main/auth-request.lua \
+      -o /mnt/data/managed/gs-home/podman/haproxy/data/auth-request.lua
+    run_as_user chuck \
+      curl -Lfs https://raw.githubusercontent.com/haproxytech/haproxy-lua-http/refs/heads/master/http.lua \
+      -o /mnt/data/managed/gs-home/podman/haproxy/data/haproxy-lua-http.lua
+    run_as_user chuck \
+      curl -Lfs https://raw.githubusercontent.com/rxi/json.lua/refs/heads/master/json.lua \
+      -o /mnt/data/managed/gs-home/podman/haproxy/data/json.lua
+  }
 
   return 0
 }

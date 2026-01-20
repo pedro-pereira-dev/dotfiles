@@ -36,3 +36,5 @@ is_linux && alias shutdown='doas shutdown -h now'
 alias ~='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
+
+alias p='doas -u podman '

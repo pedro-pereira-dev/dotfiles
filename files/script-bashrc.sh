@@ -38,5 +38,6 @@ alias ~='cd ~'
 alias ..='cd ..'
 alias ...='cd ../..'
 
+alias p='doas -u podman'
 alias pp='doas -u podman podman'
 alias ppc='doas -u podman podman-compose -f /etc/podman/compose.yaml'
