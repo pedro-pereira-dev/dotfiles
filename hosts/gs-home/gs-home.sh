@@ -14,8 +14,6 @@ sync() {
   link_root_shared kernel-unprivileged-port-start.conf /etc/sysctl.d/unprivileged-port-start.conf
   link_root_shared portage-overlays.conf /etc/portage/repos.conf/overlays.conf
   link_root_shared portage-package-mask.conf /etc/portage/package.mask
-  link_root_shared portage-package-unmask.conf /etc/portage/package.unmask
-  link_root_shared script-certs-manager.sh /usr/bin/certs-manager
   link_root_shared script-dbackup.sh /usr/bin/dbackup
   link_root_shared script-dsnap.sh /usr/bin/dsnap
   link_root_shared script-duncache.sh /usr/bin/duncache
@@ -33,14 +31,15 @@ sync() {
   link_root_shared system-sshd.conf /etc/ssh/sshd_config.d/key-authentication.conf
 
   # root host links
-  link_root_host "$_HOSTNAME-firewall.conf" /var/lib/nftables/tables/table.conf
-  link_root_host "$_HOSTNAME-interface.conf" /etc/conf.d/net
+  link_root_host "$_HOSTNAME-network.conf" /etc/conf.d/net
+  link_root_host "$_HOSTNAME-nftables.conf" /var/lib/nftables/tables/default.conf
   link_root_host "$_HOSTNAME-package-declare.conf" /etc/portage/package.declare
   link_root_host "$_HOSTNAME-package-keywords.conf" /etc/portage/package.accept_keywords
   link_root_host "$_HOSTNAME-package-license.conf" /etc/portage/package.license
   link_root_host "$_HOSTNAME-package-use.conf" /etc/portage/package.use
   link_root_host "$_HOSTNAME-podman-compose.yaml" /etc/podman/compose.yaml
   link_root_host "$_HOSTNAME-podman-haproxy.cfg" /etc/podman/haproxy.cfg
+  link_root_host "$_HOSTNAME-podman-renew-certificates.sh" /usr/bin/podman-renew-certificates
   link_root_host "$_HOSTNAME-services.conf" /etc/openrc/services.conf
   link_root_host "$_HOSTNAME-snapraid.conf" /etc/snapraid.conf
 
@@ -48,7 +47,7 @@ sync() {
   link_user_shared script-bashrc.sh .bashrc
 
   # user host links
-  link_user_host "$_HOSTNAME-authorized-keys.conf" .ssh/authorized_keys
+  link_user_host "$_HOSTNAME-sshd-authorized-keys.conf" .ssh/authorized_keys
 
   [ ! -f /etc/init.d/net.enp3s0 ] && link_as_root net.lo /etc/init.d/net.enp3s0       # interface
   [ ! -f /etc/init.d/user.chuck ] && link_as_root user-runtime /etc/init.d/user.chuck # runtime directory

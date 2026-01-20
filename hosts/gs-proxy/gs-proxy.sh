@@ -14,7 +14,6 @@ sync() {
   # root shared links
   link_root_shared portage-overlays.conf /etc/portage/repos.conf/overlays.conf
   link_root_shared portage-package-mask.conf /etc/portage/package.mask
-  link_root_shared portage-package-unmask.conf /etc/portage/package.unmask
   link_root_shared script-eauto.sh /usr/bin/eauto
   link_root_shared script-edeclare.sh /usr/bin/edeclare
   link_root_shared script-edelete.sh /usr/bin/edelete
@@ -28,7 +27,7 @@ sync() {
   link_root_shared system-sshd.conf /etc/ssh/sshd_config.d/key-authentication.conf
 
   # root host links
-  link_root_host "$_HOSTNAME-firewall.conf" /var/lib/nftables/tables/table.conf
+  link_root_host "$_HOSTNAME-nftables.conf" /var/lib/nftables/tables/default.conf
   link_root_host "$_HOSTNAME-package-declare.conf" /etc/portage/package.declare
   link_root_host "$_HOSTNAME-package-keywords.conf" /etc/portage/package.accept_keywords
   link_root_host "$_HOSTNAME-package-license.conf" /etc/portage/package.license
@@ -39,7 +38,7 @@ sync() {
   link_user_shared script-bashrc.sh .bashrc
 
   # user host links
-  link_user_host "$_HOSTNAME-authorized-keys.conf" .ssh/authorized_keys
+  link_user_host "$_HOSTNAME-sshd-authorized-keys.conf" .ssh/authorized_keys
 
   [ ! -f /etc/init.d/agetty.ttyAMA0 ] && link_as_root agetty /etc/init.d/agetty.ttyAMA0 # console
   [ ! -f /etc/init.d/user.chuck ] && link_as_root user-runtime /etc/init.d/user.chuck   # runtime directory
