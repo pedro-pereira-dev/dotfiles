@@ -7,6 +7,9 @@ secrets:
     file: ./storage/acme/secrets/spaceship_api_key.sec
   acme_spaceship_api_secret:
     file: ./storage/acme/secrets/spaceship_api_secret.sec
+  db_postgres_password:
+    file: ./storage/db/secrets/postgres_password.sec
+
   authelia_authentication_backend_ldap_password:
     file: ./storage/authelia/secrets/authentication_backend_ldap_password.sec
   authelia_identity_providers_oidc_clients_vaultwarden_secret:
@@ -48,6 +51,18 @@ services:
       - ACME_SPACESHIP_API_KEY_FILE=/run/secrets/acme_spaceship_api_key
       - ACME_SPACESHIP_API_SECRET_FILE=/run/secrets/acme_spaceship_api_secret
       - DOMAINS=boarede.com,*.boarede.com
+
+  db:
+    container_name: db
+    image: docker.io/postgres:alpine
+    user: 200:9999
+    userns_mode: keep-id
+    volumes:
+      - ./storage/db/data:/var/lib/postgresql
+    secrets:
+      - db_postgres_password
+    environment:
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_postgres_password
 
   ldap:
     container_name: ldap
