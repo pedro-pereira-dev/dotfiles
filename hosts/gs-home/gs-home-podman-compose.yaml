@@ -21,6 +21,8 @@ secrets:
     file: ./storage/authelia/secrets/session_secret.sec
   authelia_storage_encryption_key:
     file: ./storage/authelia/secrets/storage_encryption_key.sec
+  maddy_ldap_user_password:
+    file: ./storage/maddy/secrets/ldap_user_password.sec
   lldap_key_seed_file:
     file: ./storage/lldap/secrets/key_seed_file.sec
   lldap_ldap_jwt_secret:
@@ -39,8 +41,9 @@ services:
     command: /entrypoint.sh
     volumes:
       - ./entrypoint-acme.sh:/entrypoint.sh
-      - ./storage/acme/data:/acme.sh
-      - ./storage/acme/secrets/certs:/etc/haproxy
+      - ./storage/acme/data/acme:/acme.sh
+      - ./storage/acme/data/certs/haproxy:/etc/haproxy
+      - ./storage/acme/data/certs/maddy:/etc/maddy
     secrets:
       - acme_spaceship_api_key
       - acme_spaceship_api_secret
@@ -120,8 +123,14 @@ services:
     network_mode: host
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./storage/acme/secrets/certs:/certs
+      - ./storage/acme/data/certs/haproxy:/certs
       - ./storage/haproxy/data:/data
+
+  root:
+    container_name: root
+    image: docker.io/traefik/whoami:latest
+    ports:
+      - 8080:80
 
   vault:
     container_name: vault
@@ -139,8 +148,20 @@ services:
       - ENV_FILE=/vaultwarden.env
       - SSO_CLIENT_SECRET_FILE=/run/secrets/authelia_identity_providers_oidc_clients_vaultwarden_secret
 
-  root:
-    container_name: root
-    image: docker.io/traefik/whoami:latest
-    ports:
-      - 8080:80
+  mail:
+    container_name: mail
+    image: docker.io/foxcpp/maddy:latest
+    entrypoint: /entrypoint.sh
+    network_mode: host
+    volumes:
+      - ./entrypoint-maddy.sh:/entrypoint.sh
+      - ./maddy.conf:/maddy.conf
+      - ./storage/acme/data/certs/maddy:/certs
+      - ./storage/maddy/data/dkim:/data/dkim_keys
+      - ./storage/maddy/data/mails:/mails
+    secrets:
+      - maddy_ldap_user_password
+    environment:
+      - LDAP_USER_PASSWORD_FILE=/run/secrets/maddy_ldap_user_password
+      - MADDY_DOMAIN=boarede.com
+      - MADDY_HOSTNAME=mail.boarede.com

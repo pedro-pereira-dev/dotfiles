@@ -40,9 +40,11 @@ sync() {
   link_root_host "$_HOSTNAME-podman-compose.yaml" /etc/podman/compose.yaml
   link_root_host "$_HOSTNAME-podman-entrypoint-acme.sh" /etc/podman/entrypoint-acme.sh
   link_root_host "$_HOSTNAME-podman-entrypoint-authelia.sh" /etc/podman/entrypoint-authelia.sh
+  link_root_host "$_HOSTNAME-podman-entrypoint-maddy.sh" /etc/podman/entrypoint-maddy.sh
   link_root_host "$_HOSTNAME-podman-entrypoint-valkey.sh" /etc/podman/entrypoint-valkey.sh
   link_root_host "$_HOSTNAME-podman-haproxy.cfg" /etc/podman/haproxy.cfg
   link_root_host "$_HOSTNAME-podman-lldap.toml" /etc/podman/lldap.toml
+  link_root_host "$_HOSTNAME-podman-maddy.conf" /etc/podman/maddy.conf
   link_root_host "$_HOSTNAME-podman-valkey.conf" /etc/podman/valkey.conf
   link_root_host "$_HOSTNAME-podman-vaultwarden.env" /etc/podman/vaultwarden.env
   link_root_host "$_HOSTNAME-snapraid.conf" /etc/snapraid.conf

@@ -10,6 +10,8 @@ access_control:
       domain: vault.boarede.com
       subject: group:vault
     - policy: bypass
+      domain: mail.boarede.com
+    - policy: bypass
       domain:
         - boarede.com
 
