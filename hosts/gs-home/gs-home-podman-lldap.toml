@@ -1,4 +1,4 @@
-http_url = "https://www.ldap.boarede.com"
+http_url = "https://ldap.boarede.com"
 ldap_base_dn = "dc=boarede,dc=com"
 
 force_ldap_user_pass_reset = "always"

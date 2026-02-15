@@ -7,9 +7,6 @@ secrets:
     file: ./storage/acme/secrets/spaceship_api_key.sec
   acme_spaceship_api_secret:
     file: ./storage/acme/secrets/spaceship_api_secret.sec
-  db_postgres_password:
-    file: ./storage/db/secrets/postgres_password.sec
-
   authelia_authentication_backend_ldap_password:
     file: ./storage/authelia/secrets/authentication_backend_ldap_password.sec
   authelia_identity_providers_oidc_clients_vaultwarden_secret:
@@ -41,7 +38,7 @@ services:
     image: docker.io/neilpang/acme.sh:latest
     command: /entrypoint.sh
     volumes:
-      - ./acme-entrypoint.sh:/entrypoint.sh
+      - ./entrypoint-acme.sh:/entrypoint.sh
       - ./storage/acme/data:/acme.sh
       - ./storage/acme/secrets/certs:/etc/haproxy
     secrets:
@@ -51,18 +48,6 @@ services:
       - ACME_SPACESHIP_API_KEY_FILE=/run/secrets/acme_spaceship_api_key
       - ACME_SPACESHIP_API_SECRET_FILE=/run/secrets/acme_spaceship_api_secret
       - DOMAINS=boarede.com,*.boarede.com
-
-  db:
-    container_name: db
-    image: docker.io/postgres:alpine
-    user: 200:9999
-    userns_mode: keep-id
-    volumes:
-      - ./storage/db/data:/var/lib/postgresql
-    secrets:
-      - db_postgres_password
-    environment:
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db_postgres_password
 
   ldap:
     container_name: ldap
@@ -87,14 +72,11 @@ services:
   cache:
     container_name: cache
     image: docker.io/valkey/valkey:alpine
-    command: >
-      sh -c 'apk add --no-cache gettext &&
-             export USER_AUTHELIA_PASSWORD=$(cat $USER_AUTHELIA_PASSWORD_FILE | tr -d "\n") &&
-             envsubst < /valkey.conf > /configuration.conf &&
-             exec valkey-server /configuration.conf'
+    command: /entrypoint.sh
     ports:
       - 6379:6379
     volumes:
+      - ./entrypoint-valkey.sh:/entrypoint.sh
       - ./storage/valkey/data:/data
       - ./valkey.conf:/valkey.conf
     secrets:
@@ -109,8 +91,8 @@ services:
     ports:
       - 9091:9091
     volumes:
-      - ./authelia-entrypoint.sh:/entrypoint.sh
       - ./authelia.yml:/authelia.yml
+      - ./entrypoint-authelia.sh:/entrypoint.sh
       - ./storage/authelia/data:/config
     secrets:
       - authelia_authentication_backend_ldap_password
@@ -141,8 +123,8 @@ services:
       - ./storage/acme/secrets/certs:/certs
       - ./storage/haproxy/data:/data
 
-  pwmg:
-    container_name: pwmg
+  vault:
+    container_name: vault
     image: docker.io/vaultwarden/server:alpine
     ports:
       - 8081:80

@@ -7,8 +7,8 @@ access_control:
       domain: ldap.boarede.com
       subject: group:ldap
     - policy: two_factor
-      domain: pwmg.boarede.com
-      subject: group:pwmg
+      domain: vault.boarede.com
+      subject: group:vault
     - policy: bypass
       domain:
         - boarede.com
@@ -63,4 +63,4 @@ identity_providers:
         pkce_challenge_method: S256
         pre_configured_consent_duration: 1M
         redirect_uris:
-          - https://pwmg.boarede.com/identity/connect/oidc-signin
+          - https://vault.boarede.com/identity/connect/oidc-signin
