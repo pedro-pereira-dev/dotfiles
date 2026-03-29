@@ -113,6 +113,7 @@ passwd ubuntu
 sudo su
 cd /boot/efi
 wget https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi
+wget https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi
 ```
 - Reboot and press ESC repeatdly until the UEFI shell appear then choose Boot Maintenance Manager > Boot From File > search for the netboot file
 - Choose Linux Network Installers > Alpine > Login as root with not password and setup environment:
@@ -136,3 +137,111 @@ sh -s -- --hostname gs-proxy --password root
 
 [Source](https://gist.github.com/amishmm/e2dc93e65cf79116f2ef2d542f05e61b)
 [authelia haproxy](https://gist.github.com/matejaputic/52a0716da980f992800ba53202274884)
+
+```shell
+# elevate to root
+sudo -i
+# prevent any snap installation
+cat <<EOF > /etc/apt/preferences.d/nosnap.pref
+Package: snapd
+Pin: release a=*
+Pin-Priority: -10
+EOF
+# update 
+apt update
+apt dist-upgrade -y
+apt install lsof -y
+# make snap disappear
+snap remove --purge oracle-cloud-agent
+snap remove --purge core18
+snap remove --purge snapd
+systemctl stop snapd
+systemctl disable snapd.service snapd.socket
+apt purge snapd -y
+rm -rf /var/cache/snapd/ /var/lib/snapd/ /var/snap/ /snap/ /home/*/snap /root/snap
+# reboot so latest kernel is used
+reboot
+# re-elevate to root
+sudo -i
+# do the cleanup
+apt purge $(dpkg-query -Wf '${Package}\n' | grep header) $(apt list --installed | grep -oP "^linux.*\d\d\d\d-oracle" | grep -v "$(uname -r)") linux-modules-extra-$(uname -r) lxc* lxd* vim* -y
+apt autoremove -y
+apt autoclean -y
+apt clean -y
+rm -rf /var/log/* /var/lib/apt/lists/*
+# check /dev/sda1, it should be small enough
+df -h
+# create the ramdisk (since i'm on the arm64 ampere A1 i have 24GB ram so put 4G there)
+cd /
+mount -t tmpfs -o size=4000m tmpfs mnt
+tar --one-file-system -c . | tar -C /mnt -x
+# switch the VFS
+mount --make-private -o remount,rw /
+mount --move dev mnt/dev
+mount --move proc mnt/proc
+mount --move run mnt/run
+mount --move sys mnt/sys
+# rewrite the fstab to pount to our ramdisk
+sed -i '/^[^#]/d;' mnt/etc/fstab
+echo 'tmpfs / tmpfs defaults 0 0' >> mnt/etc/fstab
+# go into our ramdisk
+cd mnt
+mkdir old_root
+mount --make-private /
+unshare -m
+pivot_root . old_root
+# actually fix the env so shit work
+chroot /mnt
+# kill processes
+pkill agetty
+pkill dbus-daemon
+pkill atd
+pkill iscsid
+pkill rpcbind
+pkill -f unattended-upgrades
+kill 1
+# check if there is no stupid process still running
+lsof /old_root
+# prep our disk to be overwritten
+umount -l /dev/sda1
+# last sanity check
+df -h
+lsblk
+# here we gooooo (flashing latest debian)
+curl -L https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-arm64.tar.xz | tar -OJxvf - disk.raw | dd of=/dev/sda bs=1M
+# sync once it's done
+sync
+# now to reboot we need to use magic trick as reboot won't work under chroot
+echo 1 > /proc/sys/kernel/sysrq
+echo b > /proc/sysrq-trigger
+```
+
+```md
+make opnsense work in virtualized proxmox oci
+same mac address on the oci vnic and vmbridge of wan opnsense
+on the network interface settings of the bridge in the proxmox host
+auto vmbr1
+iface vmbr1 inet manual
+        bridge-ports enp1s0
+        bridge-stp off
+        bridge-fd 0
+        post-up ip link set enp1s0 promisc on
+        post-up bridge fdb flush dev vmbr1
+```
+
+{
+  echo '# system'
+  is_bios && echo "UUID=\"$(get_uuid "$_boot_dev")\" /boot ext4 defaults,noatime,nodev,nosuid 0 2"
+  is_uefi && echo "UUID=\"$(get_uuid "$_boot_dev")\" /efi vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2"
+  echo "UUID=\"$(get_uuid "$_root_dev")\" / ext4 defaults,noatime 0 1"
+} >/mnt/etc/fstab
+
+is_swap_enabled "$@" && {
+  chroot /mnt /bin/bash -c "fallocate -l $_swap_size /swap" || exit 1
+  chroot /mnt /bin/bash -c 'chmod 600 /swap'
+  chroot /mnt /bin/bash -c 'mkswap /swap' || exit 1
+  {
+    echo '# base'
+    echo '/swap none swap sw 0 0'
+  } >>/mnt/etc/fstab
+}
