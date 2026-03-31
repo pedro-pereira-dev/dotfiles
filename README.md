@@ -2,6 +2,12 @@
 
 My custom system dotfiles - *_WORK IN PROGRESS_*
 
+## Proxmox
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/refs/heads/main/restore-host-from)"
+```
+
 ## Linux
 
 ```bash
@@ -245,3 +251,13 @@ is_swap_enabled "$@" && {
     echo '/swap none swap sw 0 0'
   } >>/mnt/etc/fstab
 }
+
+
+@reboot (sleep 60 && echo 0 > /sys/class/backlight/intel_backlight/brightness)
+
+/etc/apt/
+/etc/fstab
+/etc/hosts
+/etc/ssh/sshd_config
+/etc/bin.d/*
+crontab -e
