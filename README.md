@@ -361,3 +361,49 @@ content /mnt/pool/fast-disk-01/.snapraid.content
 content /mnt/pool/slow-disk-01/.snapraid.content
 
 parity /mnt/pool/parity-disk-01/.snapraid.parity
+
+
+
+
+
+nano /etc/systemd/system/maintain-snapraid.service
+
+[Unit]
+Description=Mantains snapraid disk array
+
+[Service]
+Type=oneshot
+ExecStart=/etc/bin.d/maintain-snapraid.sh
+
+
+
+
+
+nano /etc/systemd/system/maintain-snapraid.timer
+
+[Unit]
+Description=Run snapraid disk array maintenance at a random time each day
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=24h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+
+
+nano /etc/systemd/system/hdds-spindown-enabled.service
+
+[Unit]
+Description=Spindown all hdd devices after one hour idle
+After=local-fs.target systemd-udev-settle.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for d in /sys/block/sd*; do [ -f "$d/queue/rotational" ] && [ "$(cat $d/queue/rotational)" -eq 1 ] && [ -b "/dev/$(basename $d)" ] && /usr/bin/hdparm -S 242 -B 127 /dev/$(basename $d) 2>/dev/null || true; done'
+
+[Install]
+WantedBy=multi-user.target
+
