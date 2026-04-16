@@ -261,3 +261,103 @@ is_swap_enabled "$@" && {
 /etc/ssh/sshd_config
 /etc/bin.d/*
 crontab -e
+
+
+
+arch: amd64
+cores: 2
+features: nesting=1,fuse=1
+hostname: pve1-nas
+memory: 2048
+net0: name=eth0,bridge=vmbr0,gw=192.168.0.1,hwaddr=BC:24:11:48:20:D1,ip=192.168.0.30/24,type=veth
+onboot: 1
+ostype: debian
+rootfs: data:vm-1030-disk-0,size=8G
+snaptime: 1775596478
+swap: 512
+tags: nas;network
+timezone: Europe/Lisbon
+lxc.cgroup2.devices.allow: a
+lxc.cap.drop:
+lxc.cgroup2.devices.allow: b 8:* rwm
+lxc.cgroup2.devices.allow: c 188:* rwm
+lxc.cgroup2.devices.allow: c 189:* rwm
+lxc.mount.entry: /dev/sda           dev/sda           none bind,optional,create=file
+lxc.mount.entry: /dev/sda1          dev/sda1          none bind,optional,create=file
+lxc.mount.entry: /dev/sdc           dev/sdc           none bind,optional,create=file
+lxc.mount.entry: /dev/sdc1          dev/sdc1          none bind,optional,create=file
+lxc.mount.entry: /dev/sdd           dev/sdd           none bind,optional,create=file
+lxc.mount.entry: /dev/sdd1          dev/sdd1          none bind,optional,create=file
+lxc.mount.entry: /dev/serial/by-id  dev/serial/by-id  none bind,optional,create=dir
+lxc.mount.entry: /dev/ttyACM0       dev/ttyACM0       none bind,optional,create=file
+lxc.mount.entry: /dev/ttyACM1       dev/ttyACM1       none bind,optional,create=file
+lxc.mount.entry: /dev/ttyUSB0       dev/ttyUSB0       none bind,optional,create=file
+lxc.mount.entry: /dev/ttyUSB1       dev/ttyUSB1       none bind,optional,create=file
+
+
+
+
+
+nano /etc/systemd/system/nebula-sync.service
+
+[Unit]
+Description=Nebula Sync Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/nebula-sync run --env-file /root/nebula-sync/nebula-sync.env
+Restart=on-failure
+RestartSec=1min
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+nano nebula-sync/nebula-sync.env
+
+
+PRIMARY=http://192.168.0.2|
+REPLICAS=http://127.0.0.1|
+
+CRON=* * * * *
+FULL_SYNC=true
+RUN_GRAVITY=true
+
+
+nano $(which update)
+
+nano nebula-sync/update.sh
+#!/bin/bash
+curl -Lfs "$(
+  curl -s https://api.github.com/repos/lovelaze/nebula-sync/releases/latest |
+    grep 'browser_download_url.*linux_amd64.tar.gz' | cut -d '"' -f 4
+)" | tar -xzC /usr/bin/
+chmod +x /usr/bin/nebula-sync
+
+
+nano $(which update)
+bash -c "/root/nebula-sync/update.sh"
+
+
+### https://github.com/DoTheEvo/NAS-MergerFS-SnapRAID
+
+UUID=785deb18-6f84-4821-b181-9a2b236a9919 /mnt/pool/fast-disk-01 ext4 defaults 0 0
+UUID=d24931cf-c8c5-49c4-aa61-2d46699d5a05 /mnt/pool/slow-disk-01 ext4 defaults 0 0
+UUID=4d3499fd-cec2-41bf-afd1-55ebd3f260b0 /mnt/pool/parity-disk-01 ext4 defaults 0 0
+
+/mnt/pool/fast-disk-* /mnt/storage/fast mergerfs defaults 0 0
+/mnt/pool/slow-disk-* /mnt/storage/slow mergerfs defaults 0 0
+/mnt/pool/fast-disk-*:/mnt/pool/slow-disk-* /mnt/storage/data mergerfs defaults,category.create=ff 0 0
+
+autosave 64
+
+disk fast-disk-01 /mnt/pool/fast-disk-01
+disk slow-disk-01 /mnt/pool/slow-disk-01
+
+content /mnt/pool/.snapraid.content
+content /mnt/pool/fast-disk-01/.snapraid.content
+content /mnt/pool/slow-disk-01/.snapraid.content
+
+parity /mnt/pool/parity-disk-01/.snapraid.parity
