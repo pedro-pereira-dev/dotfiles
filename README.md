@@ -407,3 +407,14 @@ ExecStart=/bin/sh -c 'for d in /sys/block/sd*; do [ -f "$d/queue/rotational" ] &
 [Install]
 WantedBy=multi-user.target
 
+
+
+[Interface]
+Address = 10.100.100.2/24
+PrivateKey =
+DNS = 10.100.100.1
+
+[Peer]
+AllowedIPs = 0.0.0.0/0
+Endpoint = 79.72.63.98:61820
+PublicKey =
