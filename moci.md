@@ -41,15 +41,17 @@ Host a storage sharing solution on /mnt/storage. Mining. Git hosting.
 ## Initial system setup
 
 ```bash
-# setup netboot
-mkdir -p /boot/efi/EFI/netboot
-curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /boot/efi/EFI/netboot/netboot.xyz-arm64.efi
-
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
 echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
 echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
-systemctl restart ssh
+systemctl reboot
+```
+
+```bash
+# setup netboot
+mkdir -p /boot/efi/EFI/netboot
+curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /boot/efi/EFI/netboot/netboot.xyz-arm64.efi
 
 # setup fstab
 echo 'UUID=CC5B-D676          /boot/efi       vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2' > /etc/fstab
@@ -109,9 +111,9 @@ echo 'PostDown = iptables -t nat -D POSTROUTING -o enp0s6 -j MASQUERADE' >> /etc
 echo 'PostUp = iptables -I FORWARD -i wg0 -o enp0s6 -j ACCEPT' >> /etc/wireguard/wg0.conf
 echo 'PostUp = iptables -t nat -I POSTROUTING -o enp0s6 -j MASQUERADE' >> /etc/wireguard/wg0.conf
 echo '' >> /etc/wireguard/wg0.conf
-echo '#[Peer]' >> /etc/wireguard/wg0.conf
-echo '#AllowedIPs = 10.100.100.2/32' >> /etc/wireguard/wg0.conf
-echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo '[Peer]' >> /etc/wireguard/wg0.conf
+echo 'AllowedIPs = 10.100.100.70/32' >> /etc/wireguard/wg0.conf
+echo 'PublicKey = ' >> /etc/wireguard/wg0.conf
 echo
 systemctl enable wg-quick@wg0.service
 systemctl daemon-reload

@@ -45,15 +45,9 @@ echo 'UUID=60E2-4989          /boot/efi       vfat defaults,noatime,nodev,noexec
 echo '/dev/mapper/vg-root     /               ext4 defaults,errors=remount-ro 0 1' >> /etc/fstab
 echo '/dev/mapper/vg-swap     none            swap sw 0 0' >> /etc/fstab
 
-# disable ipv6
-echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/disable-ipv6.conf
-echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/disable-ipv6.conf
-echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/disable-ipv6.conf
-sysctl -p /etc/sysctl.d/disable-ipv6.conf
-
 # setup grub
-sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 ipv6.disable=1"/' /etc/default/grub
+sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1"/' /etc/default/grub
 update-grub
 
 # setup apt
