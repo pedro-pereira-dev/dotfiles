@@ -1,12 +1,12 @@
-# `neli-netbird-routing-peer`
+# `neli-mail`
 
 ## Details
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.51`
+- IPv4: `192.168.0.99`
 
-Containerized Wireguard and Rathole client to proxy `moci` server and dockerized Netbird management plane.
+TBD.
 
 Ports opened:
 - local network
@@ -21,7 +21,7 @@ TBD.
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1051
+pct enter 1099
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
@@ -52,16 +52,14 @@ echo
 apt update
 apt full-upgrade -y
 
-# install netbird
-bash -c "$(curl -fsSL https://pkgs.netbird.io/install.sh)"
-netbird up --management-url https://netbird.boarede.com --setup-key SECRET_KEY_TOKEN
+# install stalwart
+bash -c "$(curl -fsSL https://get.stalw.art/install.sh)"
 
 # setup update scripts
 echo
 echo '#!/bin/sh' > /usr/bin/update
 echo 'bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"' >> /usr/bin/update
 echo 'apt autoremove -y' >> /usr/bin/update
-echo 'update-rathole' >> /usr/bin/update
 echo
 chmod +x /usr/bin/update
 
@@ -73,5 +71,9 @@ ufw default deny incoming
 ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
+# stalwart webui - 8080
+ufw allow in on eth0 from 10.0.0.0/8 to any port 8080 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 8080 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 8080 proto tcp
 ufw enable
 ```

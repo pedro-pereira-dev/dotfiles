@@ -231,4 +231,8 @@ ufw enable
 
 # add dependencies
 apt install -y btop fastfetch
+
+# install netbird
+bash -c "$(curl -fsSL https://pkgs.netbird.io/install.sh)"
+netbird up --management-url https://netbird.boarede.com --setup-key SECRET_KEY_TOKEN
 ```
