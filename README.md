@@ -418,3 +418,10 @@ DNS = 10.100.100.1
 AllowedIPs = 0.0.0.0/0
 Endpoint = 79.72.63.98:61820
 PublicKey =
+
+
+
+
+
+
+ufw route allow in on podman0 out on eth0
