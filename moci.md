@@ -235,4 +235,14 @@ apt install -y btop fastfetch
 # install netbird
 bash -c "$(curl -fsSL https://pkgs.netbird.io/install.sh)"
 netbird up --management-url https://netbird.boarede.com --setup-key SECRET_KEY_TOKEN
+
+# setup nginx-proxy-manager
+mkdir -p /etc/nginx-proxy-manager
+podman run -d --restart always --name moci-nginx-proxy-manager \
+  --network host \
+  -e DISABLE_IPV6='true' \
+  -v /etc/nginx-proxy-manager:/data \
+  -v /etc/nginx-proxy-manager:/etc/letsencrypt \
+  docker.io/jc21/nginx-proxy-manager:latest
+
 ```
