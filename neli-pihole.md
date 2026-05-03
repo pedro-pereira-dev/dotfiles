@@ -1,16 +1,16 @@
-# `neli-dockhand`
+# `neli-pihole`
 
 ## Details
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.70`
+- IPv4: `192.168.0.2`
 
-TBD
+Containerized Unbound / Pihole service for preferred name resolution server in home network.
 
 Ports opened:
 - local network
-  TBD
+  - 53/udp    - DNS server
 
 #### To do:
 
@@ -21,7 +21,7 @@ TBD.
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1070
+pct enter 1002
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
@@ -77,25 +77,69 @@ systemctl enable --now podman-restart.service
 systemctl enable --now podman.service
 systemctl enable --now podman.socket
 
-# setup dockhand
-mkdir -p /etc/dockhand
-podman run -d --restart always --name neli-dockhand-dockhand \
+# setup unbound
+mkdir -p /etc/unbound
+echo
+echo 'server:' > /etc/unbound/unbound.conf
+echo '  access-control: 10.0.0.0/8 allow' >> /etc/unbound/unbound.conf
+echo '  access-control: 169.254.0.0/16 allow' >> /etc/unbound/unbound.conf
+echo '  access-control: 172.16.0.0/12 allow' >> /etc/unbound/unbound.conf
+echo '  access-control: 192.168.0.0/16 allow' >> /etc/unbound/unbound.conf
+echo '  cache-max-ttl: 14400' >> /etc/unbound/unbound.conf
+echo '  cache-min-ttl: 300' >> /etc/unbound/unbound.conf
+echo '  do-ip6: no' >> /etc/unbound/unbound.conf
+echo '  harden-referral-path: yes' >> /etc/unbound/unbound.conf
+echo '  hide-identity: yes' >> /etc/unbound/unbound.conf
+echo '  hide-version: yes' >> /etc/unbound/unbound.conf
+echo '  interface: 0.0.0.0' >> /etc/unbound/unbound.conf
+echo '  key-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  msg-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  neg-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  port: 5353' >> /etc/unbound/unbound.conf
+echo '  prefetch-key: yes' >> /etc/unbound/unbound.conf
+echo '  prefetch: yes' >> /etc/unbound/unbound.conf
+echo '  private-address: 10.0.0.0/8' >> /etc/unbound/unbound.conf
+echo '  private-address: 169.254.0.0/16' >> /etc/unbound/unbound.conf
+echo '  private-address: 172.16.0.0/12' >> /etc/unbound/unbound.conf
+echo '  private-address: 192.168.0.0/16' >> /etc/unbound/unbound.conf
+echo '  rrset-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  verbosity: 0' >> /etc/unbound/unbound.conf
+echo
+podman run -d --restart always --name neli-pihole-unbound \
   --network host \
-  -e DATA_DIR=/etc/dockhand \
-  -v /etc/dockhand:/etc/dockhand \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
-  docker.io/fnsys/dockhand:latest
+  -v /etc/unbound/unbound.conf:/etc/unbound/unbound.conf \
+  docker.io/alpinelinux/unbound:latest
+
+# setup pihole
+mkdir -p /etc/pihole
+podman run -d --restart always --name neli-pihole-pihole \
+  --hostname neli-pihole \
+  --network host \
+  -e FTLCONF_dns_domainNeeded=true \
+  -e FTLCONF_dns_domain_name='' \
+  -e FTLCONF_dns_expandHosts=true \
+  -e FTLCONF_dns_piholePTR=HOSTNAME \
+  -e FTLCONF_dns_revServers='true,192.168.0.0/24,192.168.0.1' \
+  -e FTLCONF_dns_upstreams=127.0.0.1#5353 \
+  -e FTLCONF_ntp_ipv4_active=false \
+  -e FTLCONF_ntp_ipv6_active=false \
+  -e FTLCONF_ntp_sync_active=false \
+  -e FTLCONF_webserver_api_password='' \
+  -e FTLCONF_webserver_domain=pihole.neli.boarede.com \
+  -e FTLCONF_webserver_port=80o \
+  -v /etc/pihole:/etc/pihole \
+  docker.io/pihole/pihole:latest
 
 # setup hawser
 mkdir -p /etc/hawser
-podman run -d --restart always --name neli-dockhand-hawser \
+podman run -d --restart always --name neli-pihole-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /etc/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
@@ -105,14 +149,18 @@ ufw default deny incoming
 ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
+# dns - 53
+ufw allow in on eth0 from 10.0.0.0/8 to any port 53
+ufw allow in on eth0 from 172.16.0.0/12 to any port 53
+ufw allow in on eth0 from 192.168.0.0/16 to any port 53
+# pihole webui - 80
+ufw allow in on eth0 from 10.0.0.0/8 to any port 80 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 80 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
 # hawser - 2376
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
-# dockhand - 3000
-ufw allow in on eth0 from 10.0.0.0/8 to any port 3000 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 3000 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 3000 proto tcp
 ufw enable
 
 ```

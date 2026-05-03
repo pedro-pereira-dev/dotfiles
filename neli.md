@@ -12,10 +12,10 @@ The server hosts a Proxmox server and containerized systems in LXCs.
 root@neli:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
 NAME              FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
 nvme0n1                                                              476.9G
-├─nvme0n1p1       vfat        60E2-4989                                 63M   57.6M /boot/efi
+├─nvme0n1p1       vfat        31E4-2937                                 63M   57.6M /boot/efi
 └─nvme0n1p2       LVM2_member 4yUXAd-yubY-RIpf-hcPP-7Asc-i1K9-bLuUoN 476.9G
-  ├─vg-swap       swap        cb70914a-1234-4abb-9272-399998bd1d6f       1G         [SWAP]
-  ├─vg-root       ext4        1cd91d53-c5d0-45f2-b99a-be37ab385bf2      16G   10.4G /
+  ├─vg-swap       swap        c55fc166-325c-4dd6-9de6-e437625e431b       1G         [SWAP]
+  ├─vg-root       ext4        34572075-21de-4976-8fb9-19c725b9df36      16G   10.2G /
   ├─vg-data_tmeta                                                      116M
   │ └─vg-data                                                        459.6G
   └─vg-data_tdata                                                    459.6G
@@ -34,6 +34,7 @@ Setup backup daily.
 ## Initial system setup
 
 ```bash
+
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
 echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
@@ -41,18 +42,24 @@ echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
 systemctl restart ssh
 
 # setup fstab
-echo 'UUID=60E2-4989          /boot/efi       vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2' > /etc/fstab
+echo 'UUID=31E4-2937          /boot/efi       vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2' > /etc/fstab
 echo '/dev/mapper/vg-root     /               ext4 defaults,errors=remount-ro 0 1' >> /etc/fstab
 echo '/dev/mapper/vg-swap     none            swap sw 0 0' >> /etc/fstab
 
+# disable ipv6
+echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
+echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
+echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
+sysctl --system
+
 # setup grub
-sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1"/' /etc/default/grub
+sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 ipv6.disable=1"/' /etc/default/grub
 update-grub
 
 # setup apt
 apt install -y curl
-rm -f /etc/apt/sources.list
+rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
 curl -L https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg -o /usr/share/keyrings/proxmox-archive-keyring.gpg
 echo
 echo 'Types: deb' > /etc/apt/sources.list.d/debian.sources
@@ -82,27 +89,34 @@ echo
 apt update
 apt full-upgrade -y
 
-# setup proxmox
+# setup proxmox kernel
 apt install -y proxmox-default-kernel
 systemctl reboot
+
+# setup proxmox dependencies
 apt install -y proxmox-ve postfix open-iscsi chrony
 # choose local only and leave the system name as is
 apt remove -y linux-image-amd64 'linux-image-6.12*'
 update-grub
 apt remove -y os-prober
-systemctl reboot
+
+# setup update scripts
+echo
+echo '#!/bin/sh' > /usr/bin/update
+echo 'apt update' >> /usr/bin/update
+echo 'apt full-upgrade -y' >> /usr/bin/update
+echo 'apt autoremove -y' >> /usr/bin/update
+echo
+chmod +x /usr/bin/update
+
+# setup storage
+lvcreate -l 100%FREE --thinpool data vg
 
 # run proxmox helper scripts
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/microcode.sh)"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/kernel-clean.sh)"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/scaling-governor.sh)"
-apt update
-apt full-upgrade -y
-systemctl reboot
-
-# setup storage
-lvcreate -l 100%FREE --thinpool data vg
 
 # setup network
 echo
@@ -168,15 +182,6 @@ echo 'HandleLidSwitchExternalPower=ignore' >> /etc/systemd/logind.conf.d/lid.con
 echo 'HandleLidSwitchDocked=ignore' >> /etc/systemd/logind.conf.d/lid.conf
 echo
 systemctl restart systemd-logind
-
-# setup update scripts
-echo
-echo '#!/bin/sh' > /usr/bin/update
-echo 'apt update' >> /usr/bin/update
-echo 'apt full-upgrade -y' >> /usr/bin/update
-echo 'apt autoremove -y' >> /usr/bin/update
-echo
-chmod +x /usr/bin/update
 
 # setup autoaspm
 echo '#!/usr/bin/env python3' > /usr/bin/autoaspm
@@ -345,12 +350,15 @@ echo '/usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"' >
 echo
 chmod +x /usr/bin/backup-host-to
 
+# add dependencies
+apt install -y btop fastfetch ufw
+
 # setup firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
 # local network - 22, 8006
-# SSH - 22
+# ssh - 22
 ufw allow in on vmbr0 from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow in on vmbr0 from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow in on vmbr0 from 192.168.0.0/16 to any port 22 proto tcp
@@ -360,6 +368,4 @@ ufw allow in on vmbr0 from 172.16.0.0/12 to any port 8006 proto tcp
 ufw allow in on vmbr0 from 192.168.0.0/16 to any port 8006 proto tcp
 ufw enable
 
-# add dependencies
-apt install -y btop fastfetch
 ```
