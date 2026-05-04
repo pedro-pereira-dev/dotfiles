@@ -41,29 +41,27 @@ Host a storage sharing solution on /mnt/storage. Mining. Git hosting.
 ## Initial system setup
 
 ```bash
-# setup ssh
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
-echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
-echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
-systemctl reboot
-```
-
-```bash
 # setup netboot
 mkdir -p /boot/efi/EFI/netboot
 curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /boot/efi/EFI/netboot/netboot.xyz-arm64.efi
 
+# setup ssh
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
+echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
+echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
+systemctl restart ssh
+
 # setup fstab
 echo 'UUID=CC5B-D676          /boot/efi       vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2' > /etc/fstab
 echo '/dev/mapper/vg-root     /               ext4 defaults,errors=remount-ro 0 1' >> /etc/fstab
-echo '/dev/mapper/vg-data     /mnt/data       ext4 defaults 0 0' >> /etc/fstab
 echo '/dev/mapper/vg-swap     none            swap sw 0 0' >> /etc/fstab
+echo '/dev/mapper/vg-data     /mnt/data       ext4 defaults 0 0' >> /etc/fstab
 
 # disable ipv6
-echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/disable-ipv6.conf
-echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/disable-ipv6.conf
-echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/disable-ipv6.conf
-sysctl -p /etc/sysctl.d/disable-ipv6.conf
+echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
+echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
+echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
+sysctl --system
 
 # setup grub
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
@@ -71,7 +69,7 @@ sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 ipv
 update-grub
 
 # setup apt
-rm -f /etc/apt/sources.list
+rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
 echo
 echo 'Types: deb' > /etc/apt/sources.list.d/debian.sources
 echo 'URIs: http://deb.debian.org/debian/' >> /etc/apt/sources.list.d/debian.sources
@@ -93,6 +91,100 @@ echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sou
 echo
 apt update
 apt full-upgrade -y
+
+# setup update scripts
+echo
+echo '#!/bin/sh' > /usr/bin/update
+echo 'apt update' >> /usr/bin/update
+echo 'apt full-upgrade -y' >> /usr/bin/update
+echo 'apt autoremove -y' >> /usr/bin/update
+echo
+chmod +x /usr/bin/update
+
+# install dependencies
+apt install -y crun podman ufw
+
+# setup podman
+apt install -y crun podman
+systemctl enable --now podman-restart.service
+systemctl enable --now podman.service
+systemctl enable --now podman.socket
+
+# setup unbound
+mkdir -p /etc/unbound
+echo
+echo 'server:' > /etc/unbound/unbound.conf
+echo '  access-control: 10.0.0.0/8 allow' >> /etc/unbound/unbound.conf
+echo '  access-control: 169.254.0.0/16 allow' >> /etc/unbound/unbound.conf
+echo '  access-control: 172.16.0.0/12 allow' >> /etc/unbound/unbound.conf
+echo '  access-control: 192.168.0.0/16 allow' >> /etc/unbound/unbound.conf
+echo '  cache-max-ttl: 14400' >> /etc/unbound/unbound.conf
+echo '  cache-min-ttl: 300' >> /etc/unbound/unbound.conf
+echo '  do-ip6: no' >> /etc/unbound/unbound.conf
+echo '  harden-referral-path: yes' >> /etc/unbound/unbound.conf
+echo '  hide-identity: yes' >> /etc/unbound/unbound.conf
+echo '  hide-version: yes' >> /etc/unbound/unbound.conf
+echo '  interface: 0.0.0.0' >> /etc/unbound/unbound.conf
+echo '  key-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  msg-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  neg-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  port: 5353' >> /etc/unbound/unbound.conf
+echo '  prefetch-key: yes' >> /etc/unbound/unbound.conf
+echo '  prefetch: yes' >> /etc/unbound/unbound.conf
+echo '  private-address: 10.0.0.0/8' >> /etc/unbound/unbound.conf
+echo '  private-address: 169.254.0.0/16' >> /etc/unbound/unbound.conf
+echo '  private-address: 172.16.0.0/12' >> /etc/unbound/unbound.conf
+echo '  private-address: 192.168.0.0/16' >> /etc/unbound/unbound.conf
+echo '  rrset-cache-size: 256m' >> /etc/unbound/unbound.conf
+echo '  so-sndbuf: 0' >> /etc/unbound/unbound.conf
+echo '  verbosity: 0' >> /etc/unbound/unbound.conf
+echo
+podman run -d --restart always --name moci-pihole-unbound \
+  --network host \
+  -v /etc/unbound/unbound.conf:/etc/unbound/unbound.conf \
+  docker.io/alpinelinux/unbound:latest
+
+# setup pihole
+mkdir -p /etc/pihole
+podman run -d --restart always --name moci-pihole-pihole \
+  --hostname moci-pihole \
+  --network host \
+  -e FTLCONF_dns_domainNeeded=true \
+  -e FTLCONF_dns_domain_name='' \
+  -e FTLCONF_dns_expandHosts=true \
+  -e FTLCONF_dns_piholePTR=HOSTNAME \
+  -e FTLCONF_dns_upstreams=127.0.0.1#5353 \
+  -e FTLCONF_ntp_ipv4_active=false \
+  -e FTLCONF_ntp_ipv6_active=false \
+  -e FTLCONF_ntp_sync_active=false \
+  -e FTLCONF_webserver_api_password='' \
+  -e FTLCONF_webserver_domain=pihole.moci.boarede.com \
+  -e FTLCONF_webserver_port=8080o \
+  -v /etc/pihole:/etc/pihole \
+  docker.io/pihole/pihole:latest
+
+# setup firewall
+apt install -y ufw
+ufw default allow outgoing
+ufw default deny incoming
+# public internet - 80, 443, 3478, 51820
+#ufw allow 80/tcp # HTTP
+#ufw allow 443/tcp # HTTPS
+#ufw allow 3478/udp # TURN
+#ufw allow 51820/udp # wireguard
+# oracle firewalled - 22, 8080, 61820
+ufw allow 22/tcp # SSH
+ufw allow 8080/tcp # pihole webui
+#ufw allow 61820/udp # wireguard server
+# wireguard network - 53, 2333
+#ufw allow in on wg0 from 10.100.100.0/24 to any port 53 proto udp # DNS
+#ufw allow in on wg0 from 10.100.100.0/24 to any port 2333 proto tcp # rathole server
+ufw enable
+
+
+
+
+# WIP
 
 # setup wireguard
 apt install -y ufw wireguard
@@ -119,30 +211,6 @@ systemctl enable wg-quick@wg0.service
 systemctl daemon-reload
 systemctl start wg-quick@wg0
 
-# setup unbound
-apt install -y unbound
-echo
-echo 'server:' > /etc/unbound/unbound.conf.d/local.conf
-echo '  access-control: 10.100.100.0/24 allow' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  cache-max-ttl: 14400' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  cache-min-ttl: 300' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  harden-referral-path: yes' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  hide-identity: yes' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  hide-version: yes' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  key-cache-size: 256m' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  msg-cache-size: 256m' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  neg-cache-size: 256m' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  port: 5335' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  prefetch-key: yes' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  prefetch: yes' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  private-address: 10.0.0.0/8' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  private-address: 169.254.0.0/16' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  private-address: 172.16.0.0/12' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  private-address: 192.168.0.0/16' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  rrset-cache-size: 256m' >> /etc/unbound/unbound.conf.d/local.conf
-echo '  verbosity: 0' >> /etc/unbound/unbound.conf.d/local.conf
-echo
-systemctl restart unbound
 
 # setup pihole
 apt install -y curl
@@ -201,34 +269,6 @@ systemctl enable rathole.service
 systemctl daemon-reload
 systemctl start rathole.service
 
-# setup update scripts
-echo
-echo '#!/bin/sh' > /usr/bin/update
-echo 'apt update' >> /usr/bin/update
-echo 'apt full-upgrade -y' >> /usr/bin/update
-echo 'apt autoremove -y' >> /usr/bin/update
-echo 'pihole -up' >> /usr/bin/update
-echo 'update-rathole' >> /usr/bin/update
-echo
-chmod +x /usr/bin/update
-
-# setup firewall
-ufw default allow outgoing
-ufw default deny incoming
-# public internet - 80, 443, 3478, 51820
-ufw allow 80/tcp # HTTP
-ufw allow 443/tcp # HTTPS
-ufw allow 3478/udp # TURN
-ufw allow 51820/udp # wireguard
-# oracle firewalled - 22, 8080, 61820
-ufw allow 22/tcp # SSH
-ufw allow 8080/tcp # pihole webui
-ufw allow 61820/udp # wireguard server
-# wireguard network - 53, 2333
-ufw allow in on wg0 from 10.100.100.0/24 to any port 53 proto udp # DNS
-ufw allow in on wg0 from 10.100.100.0/24 to any port 2333 proto tcp # rathole server
-ufw enable
-
 # add dependencies
 apt install -y btop fastfetch
 
@@ -244,5 +284,13 @@ podman run -d --restart always --name moci-nginx-proxy-manager \
   -v /etc/nginx-proxy-manager:/data \
   -v /etc/nginx-proxy-manager:/etc/letsencrypt \
   docker.io/jc21/nginx-proxy-manager:latest
+
+# setup wireguard-server
+mkdir -p /etc/wireguard-server
+podman run --restart always --name moci-wireguard-server \
+  --network host \
+  --cap-add=NET_ADMIN \
+  -v /etc/wireguard-server:/config \
+  docker.io/linuxserver/wireguard:latest
 
 ```
