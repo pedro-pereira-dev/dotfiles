@@ -9,8 +9,29 @@
 Containerized Unbound / Pihole service for preferred name resolution server in home network.
 
 Ports opened:
-- local network
-  - 53/udp    - DNS server
+
+```
+root@neli-pihole:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp on eth0             ALLOW IN    10.0.0.0/8
+22/tcp on eth0             ALLOW IN    172.16.0.0/12
+22/tcp on eth0             ALLOW IN    192.168.0.0/16
+53 on eth0                 ALLOW IN    10.0.0.0/8
+53 on eth0                 ALLOW IN    172.16.0.0/12
+53 on eth0                 ALLOW IN    192.168.0.0/16
+80/tcp on eth0             ALLOW IN    10.0.0.0/8
+80/tcp on eth0             ALLOW IN    172.16.0.0/12
+80/tcp on eth0             ALLOW IN    192.168.0.0/16
+2376/tcp on eth0           ALLOW IN    10.0.0.0/8
+2376/tcp on eth0           ALLOW IN    172.16.0.0/12
+2376/tcp on eth0           ALLOW IN    192.168.0.0/16
+```
 
 #### To do:
 
@@ -21,6 +42,7 @@ TBD.
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+# nesting, keyctl, fuse and tun
 pct enter 1002
 
 # setup ssh
@@ -33,6 +55,10 @@ systemctl restart ssh
 echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
 echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
 echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
+sysctl --system
+
+# enable unprivileged port start
+echo 'net.ipv4.ip_unprivileged_port_start = 0' > /etc/sysctl.d/99-unprivileged-port-start.conf
 sysctl --system
 
 # setup apt
@@ -73,73 +99,87 @@ apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
-systemctl enable --now podman-restart.service
-systemctl enable --now podman.service
-systemctl enable --now podman.socket
+echo 'podman:1001:64535' > /etc/subgid
+echo 'podman:1001:64535' > /etc/subuid
+useradd -d /opt/podman -ms /bin/bash podman
+loginctl enable-linger podman
+systemctl --user -M podman@ enable --now podman.service podman.socket podman-restart.service
+podman system connection add podman unix:///run/user/$(id -u podman)/podman/podman.sock
+podman system connection default podman
 
 # setup unbound
-mkdir -p /etc/unbound
+runuser podman -c 'mkdir -p /opt/podman/unbound'
+runuser podman -c 'touch /opt/podman/unbound/unbound.conf'
 echo
-echo 'server:' > /etc/unbound/unbound.conf
-echo '  access-control: 10.0.0.0/8 allow' >> /etc/unbound/unbound.conf
-echo '  access-control: 169.254.0.0/16 allow' >> /etc/unbound/unbound.conf
-echo '  access-control: 172.16.0.0/12 allow' >> /etc/unbound/unbound.conf
-echo '  access-control: 192.168.0.0/16 allow' >> /etc/unbound/unbound.conf
-echo '  cache-max-ttl: 14400' >> /etc/unbound/unbound.conf
-echo '  cache-min-ttl: 300' >> /etc/unbound/unbound.conf
-echo '  do-ip6: no' >> /etc/unbound/unbound.conf
-echo '  harden-referral-path: yes' >> /etc/unbound/unbound.conf
-echo '  hide-identity: yes' >> /etc/unbound/unbound.conf
-echo '  hide-version: yes' >> /etc/unbound/unbound.conf
-echo '  interface: 0.0.0.0' >> /etc/unbound/unbound.conf
-echo '  key-cache-size: 256m' >> /etc/unbound/unbound.conf
-echo '  msg-cache-size: 256m' >> /etc/unbound/unbound.conf
-echo '  neg-cache-size: 256m' >> /etc/unbound/unbound.conf
-echo '  port: 5353' >> /etc/unbound/unbound.conf
-echo '  prefetch-key: yes' >> /etc/unbound/unbound.conf
-echo '  prefetch: yes' >> /etc/unbound/unbound.conf
-echo '  private-address: 10.0.0.0/8' >> /etc/unbound/unbound.conf
-echo '  private-address: 169.254.0.0/16' >> /etc/unbound/unbound.conf
-echo '  private-address: 172.16.0.0/12' >> /etc/unbound/unbound.conf
-echo '  private-address: 192.168.0.0/16' >> /etc/unbound/unbound.conf
-echo '  rrset-cache-size: 256m' >> /etc/unbound/unbound.conf
-echo '  verbosity: 0' >> /etc/unbound/unbound.conf
+echo 'server:' > /opt/podman/unbound/unbound.conf
+echo '  access-control: 10.0.0.0/8 allow' >> /opt/podman/unbound/unbound.conf
+echo '  access-control: 169.254.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
+echo '  access-control: 172.16.0.0/12 allow' >> /opt/podman/unbound/unbound.conf
+echo '  access-control: 192.168.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
+echo '  cache-max-ttl: 14400' >> /opt/podman/unbound/unbound.conf
+echo '  cache-min-ttl: 300' >> /opt/podman/unbound/unbound.conf
+echo '  do-ip6: no' >> /opt/podman/unbound/unbound.conf
+echo '  harden-referral-path: yes' >> /opt/podman/unbound/unbound.conf
+echo '  hide-identity: yes' >> /opt/podman/unbound/unbound.conf
+echo '  hide-version: yes' >> /opt/podman/unbound/unbound.conf
+echo '  interface: 0.0.0.0' >> /opt/podman/unbound/unbound.conf
+echo '  key-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
+echo '  msg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
+echo '  neg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
+echo '  prefetch-key: yes' >> /opt/podman/unbound/unbound.conf
+echo '  prefetch: yes' >> /opt/podman/unbound/unbound.conf
+echo '  private-address: 10.0.0.0/8' >> /opt/podman/unbound/unbound.conf
+echo '  private-address: 169.254.0.0/16' >> /opt/podman/unbound/unbound.conf
+echo '  private-address: 172.16.0.0/12' >> /opt/podman/unbound/unbound.conf
+echo '  private-address: 192.168.0.0/16' >> /opt/podman/unbound/unbound.conf
+echo '  rrset-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
+echo '  verbosity: 0' >> /opt/podman/unbound/unbound.conf
 echo
-podman run -d --restart always --name neli-pihole-unbound \
-  --network host \
-  -v /etc/unbound/unbound.conf:/etc/unbound/unbound.conf \
+podman --remote run -d --restart always \
+  --userns auto \
+  --name neli-pihole-unbound \
+  -p 5353:53/tcp \
+  -p 5353:53/udp \
+  -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf:U \
   docker.io/alpinelinux/unbound:latest
 
 # setup pihole
-mkdir -p /etc/pihole
-podman run -d --restart always --name neli-pihole-pihole \
+runuser podman -c 'mkdir -p /opt/podman/pihole'
+podman --remote run -d --restart always \
+  --userns auto \
+  --name neli-pihole-pihole \
   --hostname neli-pihole \
-  --network host \
+  -p 53:53/tcp \
+  -p 53:53/udp \
+  -p 80:80 \
   -e FTLCONF_dns_domainNeeded=true \
   -e FTLCONF_dns_domain_name='' \
   -e FTLCONF_dns_expandHosts=true \
   -e FTLCONF_dns_piholePTR=HOSTNAME \
   -e FTLCONF_dns_revServers='true,192.168.0.0/24,192.168.0.1' \
-  -e FTLCONF_dns_upstreams=127.0.0.1#5353 \
+  -e FTLCONF_dns_upstreams=host.containers.internal#5353 \
   -e FTLCONF_ntp_ipv4_active=false \
   -e FTLCONF_ntp_ipv6_active=false \
   -e FTLCONF_ntp_sync_active=false \
   -e FTLCONF_webserver_api_password='' \
   -e FTLCONF_webserver_domain=pihole.neli.boarede.com \
   -e FTLCONF_webserver_port=80o \
-  -v /etc/pihole:/etc/pihole \
+  -v /opt/podman/pihole:/etc/pihole:U \
   docker.io/pihole/pihole:latest
+#podman --remote exec -it neli-pihole-pihole pihole -g -f
 
 # setup hawser
-mkdir -p /etc/hawser
-podman run -d --restart always --name neli-pihole-hawser \
-  --network host \
+runuser podman -c 'mkdir -p /opt/podman/hawser'
+podman --remote run -d --restart always \
+  --userns auto \
+  --name neli-pihole-hawser \
+  -p 2376:2376 \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
-  -v /etc/hawser:/etc/hawser \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
+  -v /opt/podman/hawser:/etc/hawser:U \
+  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock:U \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
+podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw

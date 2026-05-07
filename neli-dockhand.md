@@ -9,8 +9,26 @@
 TBD
 
 Ports opened:
-- local network
-  TBD
+
+```
+root@neli-dockhand:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp on eth0             ALLOW IN    10.0.0.0/8
+22/tcp on eth0             ALLOW IN    172.16.0.0/12
+22/tcp on eth0             ALLOW IN    192.168.0.0/16
+2376/tcp on eth0           ALLOW IN    10.0.0.0/8
+2376/tcp on eth0           ALLOW IN    172.16.0.0/12
+2376/tcp on eth0           ALLOW IN    192.168.0.0/16
+3000/tcp on eth0           ALLOW IN    10.0.0.0/8
+3000/tcp on eth0           ALLOW IN    172.16.0.0/12
+3000/tcp on eth0           ALLOW IN    192.168.0.0/16
+```
 
 #### To do:
 
@@ -21,6 +39,7 @@ TBD.
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+# nesting, keyctl, fuse and tun
 pct enter 1070
 
 # setup ssh
@@ -73,29 +92,37 @@ apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
-systemctl enable --now podman-restart.service
-systemctl enable --now podman.service
-systemctl enable --now podman.socket
+echo 'podman:1001:64535' > /etc/subgid
+echo 'podman:1001:64535' > /etc/subuid
+useradd -d /opt/podman -ms /bin/bash podman
+loginctl enable-linger podman
+systemctl --user -M podman@ enable --now podman.service podman.socket podman-restart.service
+podman system connection add podman unix:///run/user/$(id -u podman)/podman/podman.sock
+podman system connection default podman
 
 # setup dockhand
-mkdir -p /etc/dockhand
-podman run -d --restart always --name neli-dockhand-dockhand \
-  --network host \
+runuser podman -c 'mkdir -p /opt/podman/dockhand'
+podman --remote run -d --restart always \
+  --userns auto \
+  --name neli-dockhand-dockhand \
+  -p 3000:3000 \
   -e DATA_DIR=/etc/dockhand \
-  -v /etc/dockhand:/etc/dockhand \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
+  -v /opt/podman/dockhand:/etc/dockhand:U \
+  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock:U \
   docker.io/fnsys/dockhand:latest
 
 # setup hawser
-mkdir -p /etc/hawser
-podman run -d --restart always --name neli-dockhand-hawser \
-  --network host \
+runuser podman -c 'mkdir -p /opt/podman/hawser'
+podman --remote run -d --restart always \
+  --userns auto \
+  --name neli-dockhand-hawser \
+  -p 2376:2376 \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
-  -v /etc/hawser:/etc/hawser \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
+  -v /opt/podman/hawser:/etc/hawser:U \
+  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock:U \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
+podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
