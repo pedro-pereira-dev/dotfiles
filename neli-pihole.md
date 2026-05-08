@@ -57,6 +57,10 @@ echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.c
 echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
 sysctl --system
 
+# enable unprivileged port start
+echo 'net.ipv4.ip_unprivileged_port_start = 0' > /etc/sysctl.d/99-unprivileged-port-start.conf
+sysctl --system
+
 # setup apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
 echo
@@ -95,10 +99,17 @@ apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
-systemctl enable --now podman.service podman.socket podman-restart.service
+echo 'podman:1001:64535' > /etc/subgid
+echo 'podman:1001:64535' > /etc/subuid
+useradd -d /opt/podman -ms /bin/bash podman
+loginctl enable-linger podman
+systemctl --user -M podman@ enable --now podman.service podman.socket podman-restart.service
+podman system connection add podman unix:///run/user/$(id -u podman)/podman/podman.sock
+podman system connection default podman
 
 # setup unbound
-mkdir -p /opt/podman/unbound
+runuser podman -c 'mkdir -p /opt/podman/unbound'
+runuser podman -c 'touch -f /opt/podman/unbound/unbound.conf'
 echo
 echo 'server:' > /opt/podman/unbound/unbound.conf
 echo '  access-control: 10.0.0.0/8 allow' >> /opt/podman/unbound/unbound.conf
@@ -125,15 +136,15 @@ echo '  private-address: 192.168.0.0/16' >> /opt/podman/unbound/unbound.conf
 echo '  rrset-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
 echo '  verbosity: 0' >> /opt/podman/unbound/unbound.conf
 echo
-podman run -d --restart always \
+podman --remote run -d --restart always \
   --name neli-pihole-unbound \
   --network host \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
   docker.io/alpinelinux/unbound:latest
 
 # setup pihole
-mkdir -p /opt/podman/pihole
-podman run -d --restart always \
+runuser podman -c 'mkdir -p /opt/podman/pihole'
+podman --remote run -d --restart always \
   --name neli-pihole-pihole \
   --hostname neli-pihole \
   --network host \
@@ -151,18 +162,19 @@ podman run -d --restart always \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
   docker.io/pihole/pihole:latest
+#podman --remote exec -it neli-pihole-pihole pihole -g -f
 
 # setup hawser
-mkdir -p /opt/podman/hawser
-podman run -d --restart always \
+runuser podman -c 'mkdir -p /opt/podman/hawser'
+podman --remote run -d --restart always \
   --name neli-pihole-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
+  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
+podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw

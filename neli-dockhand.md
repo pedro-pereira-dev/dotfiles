@@ -92,29 +92,35 @@ apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
-systemctl enable --now podman.service podman.socket podman-restart.service
+echo 'podman:1001:64535' > /etc/subgid
+echo 'podman:1001:64535' > /etc/subuid
+useradd -d /opt/podman -ms /bin/bash podman
+loginctl enable-linger podman
+systemctl --user -M podman@ enable --now podman.service podman.socket podman-restart.service
+podman system connection add podman unix:///run/user/$(id -u podman)/podman/podman.sock
+podman system connection default podman
 
 # setup dockhand
-mkdir -p /opt/podman/dockhand
-podman run -d --restart always \
+runuser podman -c 'mkdir -p /opt/podman/dockhand'
+podman --remote run -d --restart always \
   --name neli-dockhand-dockhand \
   --network host \
   -e DATA_DIR=/etc/dockhand \
   -v /opt/podman/dockhand:/etc/dockhand \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
+  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock \
   docker.io/fnsys/dockhand:latest
 
 # setup hawser
-mkdir -p /opt/podman/hawser
-podman run -d --restart always \
+runuser podman -c 'mkdir -p /opt/podman/hawser'
+podman --remote run -d --restart always \
   --name neli-dockhand-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
+  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
+podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
