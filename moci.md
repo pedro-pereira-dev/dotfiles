@@ -203,17 +203,22 @@ echo '        address 10.11.12.1/24' >> /etc/network/interfaces
 echo '        bridge-ports none' >> /etc/network/interfaces
 echo '        bridge-stp off' >> /etc/network/interfaces
 echo '        bridge-fd 0' >> /etc/network/interfaces
+echo ''                    >> /etc/network/interfaces
+echo '        # forward' >> /etc/network/interfaces
 echo '        post-up   echo 1 > /proc/sys/net/ipv4/ip_forward' >> /etc/network/interfaces
+echo ''                                                         >> /etc/network/interfaces
+echo '        # masquerade' >> /etc/network/interfaces
 echo "        post-up   iptables -t nat -A POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
 echo "        post-down iptables -t nat -D POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
+echo ''                                                                                            >> /etc/network/interfaces
+echo '        # 8080 traffic to 10.11.12.2:80' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 8080 -j DNAT --to-destination 10.11.12.2:80' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 8080 -j DNAT --to-destination 10.11.12.2:80' >> /etc/network/interfaces
 
 # setup firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# vmbr0 forwarding
-ufw route allow in on vmbr0 out on enp0s6 from 10.11.12.0/24
-# local network - 22, 8006
 # ssh - 22
 ufw allow in on enp0s6 to any port 22 proto tcp
 ufw allow in on enp0s6 to any port 22 proto tcp
@@ -222,6 +227,10 @@ ufw allow in on enp0s6 to any port 22 proto tcp
 ufw allow in on enp0s6 to any port 8006 proto tcp
 ufw allow in on enp0s6 to any port 8006 proto tcp
 ufw allow in on enp0s6 to any port 8006 proto tcp
+# forward vmbr0
+ufw route allow in on vmbr0 out on enp0s6 from 10.11.12.0/24
+# forward pihole webui 80
+ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.2 port 80 proto tcp
 ufw enable
 
 ```

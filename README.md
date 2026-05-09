@@ -425,3 +425,25 @@ PublicKey =
 
 
 ufw route allow in on podman0 out on eth0
+
+
+
+
+auto vmbr0
+iface vmbr0 inet manual
+        address 10.11.12.1/24
+        bridge-ports none
+        bridge-stp off
+        bridge-fd 0
+        # Existing MASQUERADE rules
+        post-up   echo 1 > /proc/sys/net/ipv4/ip_forward
+        post-up   iptables -t nat -A POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE
+        post-down iptables -t nat -D POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE
+
+        # PORT FORWARDING: HTTP (80)
+        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.10:80
+        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.10:80
+
+        # PORT FORWARDING: DNS (53)
+        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p udp --dport 53 -j DNAT --to-destination 10.11.12.10:53
+        post-down iptables -t nat -D PREROUTING -i enp0s6 -p udp --dport 53 -j DNAT --to-destination 10.11.12.10:53

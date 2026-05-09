@@ -195,13 +195,13 @@ ufw allow in on eth0 from 10.0.0.0/8 to any port 53
 ufw allow in on eth0 from 172.16.0.0/12 to any port 53
 ufw allow in on eth0 from 192.168.0.0/16 to any port 53
 # pihole webui - 80
-ufw allow in on eth0 from 10.0.0.0/8 to any port 80 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 80 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
+ufw allow in on eth0 to any port 80 proto tcp
+ufw allow in on eth0 to any port 80 proto tcp
+ufw allow in on eth0 to any port 80 proto tcp
 # hawser - 2376
-ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
+ufw allow in on eth0 to any port 2376 proto tcp
+ufw allow in on eth0 to any port 2376 proto tcp
+ufw allow in on eth0 to any port 2376 proto tcp
 ufw enable
 
 ```
