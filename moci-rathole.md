@@ -1,18 +1,18 @@
-# `neli-pihole`
+# `moci-rathole`
 
 ## Details
 
-- Site: Personal
+- Cloud: Oracle
 - OS: Debian 13
-- IPv4: `192.168.0.2`
+- IPv4: `10.11.12.10`
 
 Ports opened:
 
 ```
-root@neli-pihole:~# ufw status verbose
+root@moci-rathole:~# ufw status verbose
 Status: active
 Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
+Default: deny (incoming), allow (outgoing), deny (routed)
 New profiles: skip
 
 To                         Action      From
@@ -20,23 +20,24 @@ To                         Action      From
 22/tcp on eth0             ALLOW IN    10.0.0.0/8
 22/tcp on eth0             ALLOW IN    172.16.0.0/12
 22/tcp on eth0             ALLOW IN    192.168.0.0/16
-53 on eth0                 ALLOW IN    10.0.0.0/8
-53 on eth0                 ALLOW IN    172.16.0.0/12
-53 on eth0                 ALLOW IN    192.168.0.0/16
-80/tcp on eth0             ALLOW IN    10.0.0.0/8
-80/tcp on eth0             ALLOW IN    172.16.0.0/12
-80/tcp on eth0             ALLOW IN    192.168.0.0/16
 2376/tcp on eth0           ALLOW IN    10.0.0.0/8
 2376/tcp on eth0           ALLOW IN    172.16.0.0/12
 2376/tcp on eth0           ALLOW IN    192.168.0.0/16
+3333/tcp on eth0           ALLOW IN    Anywhere
 ```
 
 ## Initial system setup
 
 ```bash
 # setup basic container
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1002
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/ct/debian.sh)"
+pct enter 1010
+
+# fix arm networking while installing
+systemctl disable --now systemd-networkd systemd-resolved
+systemctl restart networking
+
+# ---
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
@@ -90,73 +91,42 @@ apt install -y crun podman ufw
 apt install -y crun podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# setup unbound
-mkdir -p /opt/podman/unbound
+# setup rathole
+mkdir -p /opt/podman/rathole
 echo
-echo 'server:' > /opt/podman/unbound/unbound.conf
-echo '  access-control: 10.0.0.0/8 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 169.254.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 172.16.0.0/12 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 192.168.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
-echo '  cache-max-ttl: 14400' >> /opt/podman/unbound/unbound.conf
-echo '  cache-min-ttl: 300' >> /opt/podman/unbound/unbound.conf
-echo '  do-ip6: no' >> /opt/podman/unbound/unbound.conf
-echo '  harden-referral-path: yes' >> /opt/podman/unbound/unbound.conf
-echo '  hide-identity: yes' >> /opt/podman/unbound/unbound.conf
-echo '  hide-version: yes' >> /opt/podman/unbound/unbound.conf
-echo '  interface: 0.0.0.0' >> /opt/podman/unbound/unbound.conf
-echo '  key-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  msg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  neg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  port: 5353' >> /opt/podman/unbound/unbound.conf
-echo '  prefetch-key: yes' >> /opt/podman/unbound/unbound.conf
-echo '  prefetch: yes' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 10.0.0.0/8' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 169.254.0.0/16' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 172.16.0.0/12' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 192.168.0.0/16' >> /opt/podman/unbound/unbound.conf
-echo '  rrset-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  so-sndbuf: 0' >> /opt/podman/unbound/unbound.conf
-echo '  verbosity: 0' >> /opt/podman/unbound/unbound.conf
+echo '[server]' > /opt/podman/rathole/server.toml
+echo 'bind_addr = "0.0.0.0:3333"' >> /opt/podman/rathole/server.toml
+echo "default_token = \"$(openssl rand -hex 64)\"" >> /opt/podman/rathole/server.toml
+echo '' >> /opt/podman/rathole/server.toml
+echo '[server.services.moci-ssh]' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "10.11.12.1:22"' >> /opt/podman/rathole/server.toml
+echo '[server.services.moci-pxvirt]' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "10.11.12.1:8006"' >> /opt/podman/rathole/server.toml
+echo '' >> /opt/podman/rathole/server.toml
+echo '[server.services.moci-pihole-ssh]' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "10.11.12.2:22"' >> /opt/podman/rathole/server.toml
+echo '[server.services.moci-pihole-pihole]' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "10.11.12.2:80"' >> /opt/podman/rathole/server.toml
+echo '[server.services.moci-pihole-hawser]' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "10.11.12.2:2376"' >> /opt/podman/rathole/server.toml
 echo
 podman run -d --restart always \
-  --name neli-pihole-unbound \
+  --name moci-rathole \
   --network host \
-  -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
-  docker.io/alpinelinux/unbound:latest
-
-# setup pihole
-mkdir -p /opt/podman/pihole
-podman run -d --restart always \
-  --name neli-pihole \
-  --hostname neli-pihole \
-  --network host \
-  -e FTLCONF_dns_domainNeeded=true \
-  -e FTLCONF_dns_domain_name='' \
-  -e FTLCONF_dns_expandHosts=true \
-  -e FTLCONF_dns_piholePTR=HOSTNAME \
-  -e FTLCONF_dns_revServers='true,192.168.0.0/24,192.168.0.1' \
-  -e FTLCONF_dns_upstreams=127.0.0.1#5353 \
-  -e FTLCONF_ntp_ipv4_active=false \
-  -e FTLCONF_ntp_ipv6_active=false \
-  -e FTLCONF_ntp_sync_active=false \
-  -e FTLCONF_webserver_api_password='' \
-  -e FTLCONF_webserver_domain=pihole.neli.boarede.com \
-  -e FTLCONF_webserver_port=80o \
-  -v /opt/podman/pihole:/etc/pihole \
-  docker.io/pihole/pihole:latest
+  -v /opt/podman/rathole/server.toml:/server.toml \
+  ghcr.io/rathole-org/rathole:dev /server.toml
 
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
-  --name neli-pihole-hawser \
+  --name moci-rathole-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-rathole-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
@@ -166,18 +136,12 @@ ufw default deny incoming
 ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
-# dns - 53
-ufw allow in on eth0 from 10.0.0.0/8 to any port 53
-ufw allow in on eth0 from 172.16.0.0/12 to any port 53
-ufw allow in on eth0 from 192.168.0.0/16 to any port 53
-# pihole webui - 80
-ufw allow in on eth0 from 10.0.0.0/8 to any port 80 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 80 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
 # hawser - 2376
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
+# rathole - 3333
+ufw allow in on eth0 to any port 3333 proto tcp
 ufw enable
 
 ```

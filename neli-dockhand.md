@@ -6,8 +6,6 @@
 - OS: Debian 13
 - IPv4: `192.168.0.70`
 
-TBD
-
 Ports opened:
 
 ```
@@ -30,16 +28,11 @@ To                         Action      From
 3000/tcp on eth0           ALLOW IN    192.168.0.0/16
 ```
 
-#### To do:
-
-TBD.
-
 ## Initial system setup
 
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-# nesting, keyctl, fuse and tun
 pct enter 1070
 
 # setup ssh
@@ -92,33 +85,27 @@ apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
-echo 'podman:1001:64535' > /etc/subgid
-echo 'podman:1001:64535' > /etc/subuid
-useradd -d /opt/podman -ms /bin/bash podman
-loginctl enable-linger podman
-systemctl --user -M podman@ enable --now podman.service podman.socket podman-restart.service
-podman system connection add podman unix:///run/user/$(id -u podman)/podman/podman.sock
-podman system connection default podman
+systemctl enable --now podman-restart.service podman.service podman.socket
 
 # setup dockhand
-runuser podman -c 'mkdir -p /opt/podman/dockhand'
-podman --remote run -d --restart always \
-  --name neli-dockhand-dockhand \
+mkdir -p /opt/podman/dockhand
+podman run -d --restart always \
+  --name neli-dockhand \
   --network host \
   -e DATA_DIR=/etc/dockhand \
   -v /opt/podman/dockhand:/etc/dockhand \
-  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock \
+  -v /run/podman/podman.sock:/var/run/docker.sock \
   docker.io/fnsys/dockhand:latest
 
 # setup hawser
-runuser podman -c 'mkdir -p /opt/podman/hawser'
-podman --remote run -d --restart always \
+mkdir -p /opt/podman/hawser
+podman run -d --restart always \
   --name neli-dockhand-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
-  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock \
+  -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
 podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
 

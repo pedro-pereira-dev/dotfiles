@@ -6,8 +6,6 @@
 - OS: Debian 13
 - IPv4: `10.11.12.2`
 
-Containerized Unbound / Pihole service for preferred name resolution server in home network.
-
 Ports opened:
 
 ```
@@ -33,10 +31,6 @@ To                         Action      From
 2376/tcp on eth0           ALLOW IN    192.168.0.0/16
 ```
 
-#### To do:
-
-TBD.
-
 ## Initial system setup
 
 ```bash
@@ -61,10 +55,6 @@ systemctl restart ssh
 echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
 echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
 echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-sysctl --system
-
-# enable unprivileged port start
-echo 'net.ipv4.ip_unprivileged_port_start = 0' > /etc/sysctl.d/99-unprivileged-port-start.conf
 sysctl --system
 
 # setup apt
@@ -105,17 +95,10 @@ apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
-echo 'podman:1001:64535' > /etc/subgid
-echo 'podman:1001:64535' > /etc/subuid
-useradd -d /opt/podman -ms /bin/bash podman
-loginctl enable-linger podman
-systemctl --user -M podman@ enable --now podman.service podman.socket podman-restart.service
-podman system connection add podman unix:///run/user/$(id -u podman)/podman/podman.sock
-podman system connection default podman
+systemctl enable --now podman-restart.service podman.service podman.socket
 
 # setup unbound
-runuser podman -c 'mkdir -p /opt/podman/unbound'
-runuser podman -c 'touch -f /opt/podman/unbound/unbound.conf'
+mkdir -p /opt/podman/unbound
 echo
 echo 'server:' > /opt/podman/unbound/unbound.conf
 echo '  access-control: 10.0.0.0/8 allow' >> /opt/podman/unbound/unbound.conf
@@ -140,18 +123,19 @@ echo '  private-address: 169.254.0.0/16' >> /opt/podman/unbound/unbound.conf
 echo '  private-address: 172.16.0.0/12' >> /opt/podman/unbound/unbound.conf
 echo '  private-address: 192.168.0.0/16' >> /opt/podman/unbound/unbound.conf
 echo '  rrset-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
+echo '  so-sndbuf: 0' >> /opt/podman/unbound/unbound.conf
 echo '  verbosity: 0' >> /opt/podman/unbound/unbound.conf
 echo
-podman --remote run -d --restart always \
+podman run -d --restart always \
   --name moci-pihole-unbound \
   --network host \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
   docker.io/alpinelinux/unbound:latest
 
 # setup pihole
-runuser podman -c 'mkdir -p /opt/podman/pihole'
-podman --remote run -d --restart always \
-  --name moci-pihole-pihole \
+mkdir -p /opt/podman/pihole
+podman run -d --restart always \
+  --name moci-pihole \
   --hostname moci-pihole \
   --network host \
   -e FTLCONF_dns_domainNeeded=true \
@@ -164,23 +148,22 @@ podman --remote run -d --restart always \
   -e FTLCONF_ntp_ipv6_active=false \
   -e FTLCONF_ntp_sync_active=false \
   -e FTLCONF_webserver_api_password='' \
-  -e FTLCONF_webserver_domain=pihole.neli.boarede.com \
+  -e FTLCONF_webserver_domain=pihole.moci.boarede.com \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
   docker.io/pihole/pihole:latest
-#podman --remote exec -it moci-pihole-pihole pihole -g -f
 
 # setup hawser
-runuser podman -c 'mkdir -p /opt/podman/hawser'
-podman --remote run -d --restart always \
+mkdir -p /opt/podman/hawser
+podman run -d --restart always \
   --name moci-pihole-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
-  -v /run/user/$(id -u podman)/podman/podman.sock:/var/run/docker.sock \
+  -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-pihole-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-pihole-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
@@ -195,13 +178,13 @@ ufw allow in on eth0 from 10.0.0.0/8 to any port 53
 ufw allow in on eth0 from 172.16.0.0/12 to any port 53
 ufw allow in on eth0 from 192.168.0.0/16 to any port 53
 # pihole webui - 80
-ufw allow in on eth0 to any port 80 proto tcp
-ufw allow in on eth0 to any port 80 proto tcp
-ufw allow in on eth0 to any port 80 proto tcp
+ufw allow in on eth0 from 10.0.0.0/8 to any port 80 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 80 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
 # hawser - 2376
-ufw allow in on eth0 to any port 2376 proto tcp
-ufw allow in on eth0 to any port 2376 proto tcp
-ufw allow in on eth0 to any port 2376 proto tcp
+ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
 ufw enable
 
 ```
