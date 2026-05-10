@@ -1,28 +1,14 @@
-# `nedi-rathole-client`
+# `nedi-tunnel-client`
 
 ## Details
 
 - Cloud: Oracle
 - OS: Debian 13
-- IPv4: `192.168.0.98`
+- IPv4: `192.168.0.11`
 
 Ports opened:
 
 ```
-root@nedi-rathole-client:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp on eth0             ALLOW IN    10.0.0.0/8
-22/tcp on eth0             ALLOW IN    172.16.0.0/12
-22/tcp on eth0             ALLOW IN    192.168.0.0/16
-2376/tcp on eth0           ALLOW IN    10.0.0.0/8
-2376/tcp on eth0           ALLOW IN    172.16.0.0/12
-2376/tcp on eth0           ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -30,7 +16,7 @@ To                         Action      From
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1098
+pct enter 1011
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
@@ -78,7 +64,26 @@ echo
 chmod +x /usr/bin/update
 
 # install dependencies
-apt install -y crun podman ufw
+apt install -y crun podman ufw wireguard
+
+# setup wireguard
+apt install -y ufw wireguard
+sed -i 's/^#\(net\/ipv4\/ip_forward=1\)/\1/' /etc/ufw/sysctl.conf
+(cd /etc/wireguard; umask 077; cd)
+wg genkey | tee /etc/wireguard/client.key | wg pubkey > /etc/wireguard/client.pub
+echo
+echo '[Interface]' > /etc/wireguard/wg0.conf
+echo 'Address = 10.11.13.11/32' >> /etc/wireguard/wg0.conf
+echo "PrivateKey = $(cat /etc/wireguard/client.key)" >> /etc/wireguard/wg0.conf
+echo '' >> /etc/wireguard/wg0.conf
+echo '#[Peer]' >> /etc/wireguard/wg0.conf
+echo '#AllowedIPs = 10.11.13.10/32, 10.11.12.0/24' >> /etc/wireguard/wg0.conf
+echo '#Endpoint = wireguard.boarede.com:61820' >> /etc/wireguard/wg0.conf
+echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo
+systemctl enable wg-quick@wg0.service
+systemctl daemon-reload
+systemctl start wg-quick@wg0
 
 # setup podman
 apt install -y crun podman
@@ -88,16 +93,16 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 mkdir -p /opt/podman/rathole
 echo
 echo '[client]' > /opt/podman/rathole/client.toml
-echo 'remote_addr = "10.11.12.98:3333"' >> /opt/podman/rathole/client.toml
+echo 'remote_addr = "10.11.12.10:3333"' >> /opt/podman/rathole/client.toml
 echo 'default_token = ""' >> /opt/podman/rathole/client.toml
 echo '' >> /opt/podman/rathole/client.toml
 echo '[client.services.nedi-proxy-http]' >> /opt/podman/rathole/client.toml
-echo 'local_addr = "192.168.0.10:80"' >> /opt/podman/rathole/client.toml
+echo 'local_addr = "192.168.0.15:80"' >> /opt/podman/rathole/client.toml
 echo '[client.services.nedi-proxy-https]' >> /opt/podman/rathole/client.toml
-echo 'local_addr = "192.168.0.10:443"' >> /opt/podman/rathole/client.toml
+echo 'local_addr = "192.168.0.15:443"' >> /opt/podman/rathole/client.toml
 echo
 podman run -d --restart always \
-  --name nedi-rathole-client \
+  --name nedi-tunnel-client-rathole \
   --network host \
   -v /opt/podman/rathole/client.toml:/client.toml \
   ghcr.io/rathole-org/rathole:dev /client.toml
@@ -105,14 +110,14 @@ podman run -d --restart always \
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
-  --name nedi-rathole-client-hawser \
+  --name nedi-tunnel-client-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-rathole-client-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-tunnel-client-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
