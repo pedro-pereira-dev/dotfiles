@@ -107,6 +107,12 @@ podman run -d --restart always \
   -v /opt/podman/rathole/client.toml:/client.toml \
   ghcr.io/rathole-org/rathole:dev /client.toml
 
+# setup socat
+podman run -d --restart always \
+  --name nedi-tunnel-client-socat-moci-pihole-hawser \
+  --network host \
+  docker.io/alpine/socat:latest tcp-listen:2377,fork,reuseaddr tcp:10.11.12.2:2376
+
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
@@ -131,6 +137,10 @@ ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
+# moci-pihole-hawser - 2377
+ufw allow in on eth0 from 10.0.0.0/8 to any port 2377 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 2377 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 2377 proto tcp
 ufw enable
 
 ```
