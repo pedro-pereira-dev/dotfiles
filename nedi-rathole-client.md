@@ -1,18 +1,18 @@
-# `moci-rathole`
+# `nedi-rathole-client`
 
 ## Details
 
 - Cloud: Oracle
 - OS: Debian 13
-- IPv4: `10.11.12.10`
+- IPv4: `192.168.0.98`
 
 Ports opened:
 
 ```
-root@moci-rathole:~# ufw status verbose
+root@nedi-rathole-client:~# ufw status verbose
 Status: active
 Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
+Default: deny (incoming), allow (outgoing), disabled (routed)
 New profiles: skip
 
 To                         Action      From
@@ -23,21 +23,14 @@ To                         Action      From
 2376/tcp on eth0           ALLOW IN    10.0.0.0/8
 2376/tcp on eth0           ALLOW IN    172.16.0.0/12
 2376/tcp on eth0           ALLOW IN    192.168.0.0/16
-3333/tcp on eth0           ALLOW IN    Anywhere
 ```
 
 ## Initial system setup
 
 ```bash
 # setup basic container
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/ct/debian.sh)"
-pct enter 1010
-
-# fix arm networking while installing
-systemctl disable --now systemd-networkd systemd-resolved
-systemctl restart networking
-
-# ---
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+pct enter 1098
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
@@ -94,39 +87,32 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 # setup rathole
 mkdir -p /opt/podman/rathole
 echo
-echo '[server]' > /opt/podman/rathole/server.toml
-echo 'bind_addr = "0.0.0.0:3333"' >> /opt/podman/rathole/server.toml
-echo "default_token = \"$(openssl rand -hex 64)\"" >> /opt/podman/rathole/server.toml
-echo '' >> /opt/podman/rathole/server.toml
-echo '[server.services.moci-ssh]' >> /opt/podman/rathole/server.toml
-echo 'bind_addr = "10.11.12.1:22"' >> /opt/podman/rathole/server.toml
-echo '[server.services.moci-pxvirt]' >> /opt/podman/rathole/server.toml
-echo 'bind_addr = "10.11.12.1:8006"' >> /opt/podman/rathole/server.toml
-echo '' >> /opt/podman/rathole/server.toml
-echo '[server.services.moci-pihole-ssh]' >> /opt/podman/rathole/server.toml
-echo 'bind_addr = "10.11.12.2:22"' >> /opt/podman/rathole/server.toml
-echo '[server.services.moci-pihole-pihole]' >> /opt/podman/rathole/server.toml
-echo 'bind_addr = "10.11.12.2:80"' >> /opt/podman/rathole/server.toml
-echo '[server.services.moci-pihole-hawser]' >> /opt/podman/rathole/server.toml
-echo 'bind_addr = "10.11.12.2:2376"' >> /opt/podman/rathole/server.toml
+echo '[client]' > /opt/podman/rathole/client.toml
+echo 'remote_addr = "10.11.12.98:3333"' >> /opt/podman/rathole/client.toml
+echo 'default_token = ""' >> /opt/podman/rathole/client.toml
+echo '' >> /opt/podman/rathole/client.toml
+echo '[client.services.nedi-proxy-http]' >> /opt/podman/rathole/client.toml
+echo 'local_addr = "192.168.0.10:80"' >> /opt/podman/rathole/client.toml
+echo '[client.services.nedi-proxy-https]' >> /opt/podman/rathole/client.toml
+echo 'local_addr = "192.168.0.10:443"' >> /opt/podman/rathole/client.toml
 echo
 podman run -d --restart always \
-  --name moci-rathole \
+  --name nedi-rathole-client \
   --network host \
-  -v /opt/podman/rathole/server.toml:/server.toml \
-  ghcr.io/rathole-org/rathole:dev /server.toml
+  -v /opt/podman/rathole/client.toml:/client.toml \
+  ghcr.io/rathole-org/rathole:dev /client.toml
 
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
-  --name moci-rathole-hawser \
+  --name nedi-rathole-client-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-rathole-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-rathole-client-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
@@ -140,8 +126,6 @@ ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
-# rathole - 3333
-ufw allow in on eth0 to any port 3333 proto tcp
 ufw enable
 
 ```

@@ -35,6 +35,11 @@ To                         Action      From
 --                         ------      ----
 22/tcp on enp0s6           ALLOW IN    Anywhere
 8006/tcp on enp0s6         ALLOW IN    Anywhere
+
+Anywhere on enp0s6         ALLOW FWD   10.11.12.0/24 on vmbr0
+10.11.12.98 80/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
+10.11.12.98 443/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
+10.11.12.99 61820/udp on vmbr0 ALLOW FWD   Anywhere on enp0s6
 ```
 
 #### To do:
@@ -211,17 +216,17 @@ echo '        # masquerade' >> /etc/network/interfaces
 echo "        post-up   iptables -t nat -A POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
 echo "        post-down iptables -t nat -D POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
 echo ''                                                                                            >> /etc/network/interfaces
-echo '        # 80 traffic to 10.11.12.10:80' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.10:80' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.10:80' >> /etc/network/interfaces
+echo '        # tcp 80 traffic to 10.11.12.98:80' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.98:80' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.98:80' >> /etc/network/interfaces
 echo ''                                                                                                                    >> /etc/network/interfaces
-echo '        # 443 traffic to 10.11.12.10:443' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.11.12.80:443' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.11.12.80:443' >> /etc/network/interfaces
+echo '        # tcp 443 traffic to 10.11.12.98:443' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.11.12.98:443' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.11.12.98:443' >> /etc/network/interfaces
 echo ''                                                                                                                      >> /etc/network/interfaces
-echo '        # 3333 traffic to 10.11.12.10:3333' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 3333 -j DNAT --to-destination 10.11.12.10:3333' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 3333 -j DNAT --to-destination 10.11.12.10:3333' >> /etc/network/interfaces
+echo '        # udp 61820 traffic to 10.11.12.99:61820' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.11.12.99:61820' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.11.12.99:61820' >> /etc/network/interfaces
 
 # iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 8080 -j DNAT --to-destination 10.11.12.2:80 # port redirect
 # iptables -A FORWARD -i enp0s6 -o vmbr0 -p tcp -d 10.11.12.2 --dport 80 -j ACCEPT # ufw setup for target port
@@ -240,10 +245,11 @@ ufw allow in on enp0s6 to any port 8006 proto tcp
 ufw allow in on enp0s6 to any port 8006 proto tcp
 # forward vmbr0
 ufw route allow in on vmbr0 out on enp0s6 from 10.11.12.0/24
-# forward rathole - 80, 443 and 3333
-ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.10 port 80 proto tcp
-ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.10 port 443 proto tcp
-ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.10 port 3333 proto tcp
+# forward moci-rathole-server - 80 and 443
+ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.98 port 80 proto tcp
+ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.98 port 443 proto tcp
+# forward moci-wireguard-server - 61820
+ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.99 port 61820 proto udp
 ufw enable
 
 ```
