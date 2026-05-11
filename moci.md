@@ -33,13 +33,13 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp on enp0s6           ALLOW IN    Anywhere
-8006/tcp on enp0s6         ALLOW IN    Anywhere
+22/tcp                     ALLOW IN    Anywhere
+8006/tcp                   ALLOW IN    Anywhere
 
-Anywhere on enp0s6         ALLOW FWD   10.11.12.0/24 on vmbr0
-10.11.12.98 80/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
-10.11.12.98 443/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
-10.11.12.99 61820/udp on vmbr0 ALLOW FWD   Anywhere on enp0s6
+Anywhere on enp0s6         ALLOW FWD   10.0.10.0/24 on vmbr0
+10.0.10.15 80/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
+10.0.10.15 443/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
+10.0.10.10 61820/udp on vmbr0 ALLOW FWD   Anywhere on enp0s6
 ```
 
 #### To do:
@@ -216,13 +216,13 @@ echo '        # masquerade' >> /etc/network/interfaces
 echo "        post-up   iptables -t nat -A POSTROUTING -s '10.0.10.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
 echo "        post-down iptables -t nat -D POSTROUTING -s '10.0.10.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
 echo ''                                                                                           >> /etc/network/interfaces
-echo '        # tcp 80 traffic to 10.0.10.75:80' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.0.10.75:80' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.0.10.75:80' >> /etc/network/interfaces
+echo '        # tcp 80 traffic to 10.0.10.15:80' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.0.10.15:80' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.0.10.15:80' >> /etc/network/interfaces
 echo ''                                                                                                                   >> /etc/network/interfaces
-echo '        # tcp 443 traffic to 10.0.10.75:443' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.0.10.75:443' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.0.10.75:443' >> /etc/network/interfaces
+echo '        # tcp 443 traffic to 10.0.10.15:443' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.0.10.15:443' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.0.10.15:443' >> /etc/network/interfaces
 echo ''                                                                                                                     >> /etc/network/interfaces
 echo '        # udp 61820 traffic to 10.0.10.10:61820' >> /etc/network/interfaces
 echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.0.10.10:61820' >> /etc/network/interfaces
@@ -235,21 +235,12 @@ echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p udp --dport 6
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# ssh - 22
-ufw allow in on enp0s6 to any port 22 proto tcp
-ufw allow in on enp0s6 to any port 22 proto tcp
-ufw allow in on enp0s6 to any port 22 proto tcp
-# proxmox webui - 8006
-ufw allow in on enp0s6 to any port 8006 proto tcp
-ufw allow in on enp0s6 to any port 8006 proto tcp
-ufw allow in on enp0s6 to any port 8006 proto tcp
-# forward vmbr0
-ufw route allow in on vmbr0 out on enp0s6 from 10.0.10.0/24
-# forward moci-rathole-server - 80 and 443
-ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.75 port 80 proto tcp
-ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.75 port 443 proto tcp
-# forward moci-wireguard-server - 61820
-ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.10 port 61820 proto udp
+ufw allow 22/tcp                                                                # SSH
+ufw allow 8006/tcp                                                              # Pxvirt
+ufw route allow in on vmbr0 out on enp0s6 from 10.0.10.0/24                     # Forward vmbr0 to internet
+ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.15 port 80 proto tcp       # Forward HTTP to moci-rathole-server
+ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.15 port 443 proto tcp      # Forward HTTPs to moci-rathole-server
+ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.10 port 61820 proto udp    # Forward VPN to moci-wireguard-server
 ufw enable
 
 ```

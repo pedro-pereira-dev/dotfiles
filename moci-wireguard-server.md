@@ -9,7 +9,7 @@
 Ports opened:
 
 ```
-root@moci-tunnel-server:~# ufw status verbose
+root@moci-wireguard-server:~# ufw status verbose
 Status: active
 Logging: on (low)
 Default: deny (incoming), allow (outgoing), deny (routed)
@@ -17,16 +17,10 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp on eth0             ALLOW IN    10.0.0.0/8
-22/tcp on eth0             ALLOW IN    172.16.0.0/12
-22/tcp on eth0             ALLOW IN    192.168.0.0/16
-2333/tcp on eth0           ALLOW IN    10.0.0.0/8
-2333/tcp on eth0           ALLOW IN    172.16.0.0/12
-2333/tcp on eth0           ALLOW IN    192.168.0.0/16
-2376/tcp on eth0           ALLOW IN    10.0.0.0/8
-2376/tcp on eth0           ALLOW IN    172.16.0.0/12
-2376/tcp on eth0           ALLOW IN    192.168.0.0/16
-61820/udp on eth0          ALLOW IN    Anywhere
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+61820/udp                  ALLOW IN    Anywhere
 ```
 
 ## Initial system setup
@@ -104,8 +98,24 @@ echo '' >> /etc/wireguard/wg0.conf
 echo 'PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE' >> /etc/wireguard/wg0.conf
 echo 'PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE' >> /etc/wireguard/wg0.conf
 echo '' >> /etc/wireguard/wg0.conf
+echo '# neli-tunnel-moci-pihole' >> /etc/wireguard/wg0.conf
+echo '#[Peer]' >> /etc/wireguard/wg0.conf
+echo '#AllowedIPs = 10.1.10.4/32' >> /etc/wireguard/wg0.conf
+echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo '' >> /etc/wireguard/wg0.conf
+echo '# neli-tunnel-moci-wireguard-server' >> /etc/wireguard/wg0.conf
 echo '#[Peer]' >> /etc/wireguard/wg0.conf
 echo '#AllowedIPs = 10.1.10.10/32' >> /etc/wireguard/wg0.conf
+echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo '' >> /etc/wireguard/wg0.conf
+echo '# neli-tunnel-moci-rathole-server' >> /etc/wireguard/wg0.conf
+echo '#[Peer]' >> /etc/wireguard/wg0.conf
+echo '#AllowedIPs = 10.1.10.15/32' >> /etc/wireguard/wg0.conf
+echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo '' >> /etc/wireguard/wg0.conf
+echo '# neli-tunnel-moci' >> /etc/wireguard/wg0.conf
+echo '#[Peer]' >> /etc/wireguard/wg0.conf
+echo '#AllowedIPs = 10.1.10.33/32' >> /etc/wireguard/wg0.conf
 echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
 echo
 systemctl enable wg-quick@wg0.service
@@ -116,12 +126,12 @@ systemctl start wg-quick@wg0
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# ssh - 22
-ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
-# wireguard - 61820
-ufw allow in on eth0 to any port 61820 proto udp
+# SSH
+ufw allow from 10.0.0.0/8 to any port 22 proto tcp
+ufw allow from 172.16.0.0/12 to any port 22 proto tcp
+ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+# VPN
+ufw allow 61820/udp
 ufw enable
 
 ```

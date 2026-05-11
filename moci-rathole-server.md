@@ -1,15 +1,15 @@
-# `moci-tunnel-server`
+# `moci-rathole-server`
 
 ## Details
 
 - Cloud: Oracle
 - OS: Debian 13
-- IPv4: `10.11.12.10`
+- IPv4: `10.0.10.15`
 
 Ports opened:
 
 ```
-root@moci-tunnel-server:~# ufw status verbose
+root@moci-rathole-server:~# ufw status verbose
 Status: active
 Logging: on (low)
 Default: deny (incoming), allow (outgoing), deny (routed)
@@ -17,16 +17,17 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp on eth0             ALLOW IN    10.0.0.0/8
-22/tcp on eth0             ALLOW IN    172.16.0.0/12
-22/tcp on eth0             ALLOW IN    192.168.0.0/16
-2333/tcp on eth0           ALLOW IN    10.0.0.0/8
-2333/tcp on eth0           ALLOW IN    172.16.0.0/12
-2333/tcp on eth0           ALLOW IN    192.168.0.0/16
-2376/tcp on eth0           ALLOW IN    10.0.0.0/8
-2376/tcp on eth0           ALLOW IN    172.16.0.0/12
-2376/tcp on eth0           ALLOW IN    192.168.0.0/16
-61820/udp on eth0          ALLOW IN    Anywhere
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+80/tcp                     ALLOW IN    Anywhere
+443/tcp                    ALLOW IN    Anywhere
+2376/tcp                   ALLOW IN    10.0.0.0/8
+2376/tcp                   ALLOW IN    172.16.0.0/12
+2376/tcp                   ALLOW IN    192.168.0.0/16
+3333/tcp                   ALLOW IN    10.0.0.0/8
+3333/tcp                   ALLOW IN    172.16.0.0/12
+3333/tcp                   ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -34,7 +35,7 @@ To                         Action      From
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/ct/debian.sh)"
-pct enter 1010
+pct enter 1015
 
 # fix arm networking while installing
 systemctl disable --now systemd-networkd systemd-resolved
@@ -88,29 +89,7 @@ echo
 chmod +x /usr/bin/update
 
 # install dependencies
-apt install -y crun podman ufw wireguard
-
-# setup wireguard
-apt install -y ufw wireguard
-sed -i 's/^#\(net\/ipv4\/ip_forward=1\)/\1/' /etc/ufw/sysctl.conf
-(cd /etc/wireguard; umask 077; cd)
-wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub
-echo
-echo '[Interface]' > /etc/wireguard/wg0.conf
-echo 'Address = 10.11.13.10/24' >> /etc/wireguard/wg0.conf
-echo 'ListenPort = 61820' >> /etc/wireguard/wg0.conf
-echo "PrivateKey = $(cat /etc/wireguard/server.key)" >> /etc/wireguard/wg0.conf
-echo '' >> /etc/wireguard/wg0.conf
-echo 'PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE' >> /etc/wireguard/wg0.conf
-echo 'PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE' >> /etc/wireguard/wg0.conf
-echo '' >> /etc/wireguard/wg0.conf
-echo '#[Peer]' >> /etc/wireguard/wg0.conf
-echo '#AllowedIPs = 10.11.13.11/32' >> /etc/wireguard/wg0.conf
-echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
-echo
-systemctl enable wg-quick@wg0.service
-systemctl daemon-reload
-systemctl start wg-quick@wg0
+apt install -y crun podman ufw
 
 # setup podman
 apt install -y crun podman
@@ -123,13 +102,13 @@ echo '[server]' > /opt/podman/rathole/server.toml
 echo 'bind_addr = "0.0.0.0:3333"' >> /opt/podman/rathole/server.toml
 echo "default_token = \"$(openssl rand -hex 64)\"" >> /opt/podman/rathole/server.toml
 echo '' >> /opt/podman/rathole/server.toml
-echo '[server.services.nedi-proxy-http]' >> /opt/podman/rathole/server.toml
+echo '[server.services.neli-proxy-http]' >> /opt/podman/rathole/server.toml
 echo 'bind_addr = "0.0.0.0:80"' >> /opt/podman/rathole/server.toml
-echo '[server.services.nedi-proxy-https]' >> /opt/podman/rathole/server.toml
+echo '[server.services.neli-proxy-https]' >> /opt/podman/rathole/server.toml
 echo 'bind_addr = "0.0.0.0:443"' >> /opt/podman/rathole/server.toml
 echo
 podman run -d --restart always \
-  --name moci-tunnel-server-rathole \
+  --name moci-rathole-server \
   --network host \
   -v /opt/podman/rathole/server.toml:/server.toml \
   ghcr.io/rathole-org/rathole:dev /server.toml
@@ -137,33 +116,35 @@ podman run -d --restart always \
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
-  --name moci-tunnel-server-hawser \
+  --name moci-rathole-server-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-tunnel-server-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-rathole-server-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# ssh - 22
-ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
-# hawser - 2376
-ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
-# rathole - 3333
-ufw allow in on eth0 from 10.0.0.0/8 to any port 2333 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 2333 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 2333 proto tcp
-# wireguard - 61820
-ufw allow in on eth0 to any port 61820 proto udp
+# SSH
+ufw allow from 10.0.0.0/8 to any port 22 proto tcp
+ufw allow from 172.16.0.0/12 to any port 22 proto tcp
+ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+# HTTP
+ufw allow 80/tcp
+# HTTPs
+ufw allow 443/tcp
+# Hawser
+ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
+# Rathole
+ufw allow from 10.0.0.0/8 to any port 3333 proto tcp
+ufw allow from 172.16.0.0/12 to any port 3333 proto tcp
+ufw allow from 192.168.0.0/16 to any port 3333 proto tcp
 ufw enable
 
 ```

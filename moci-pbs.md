@@ -17,21 +17,21 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp                     ALLOW IN    10.0.0.0/8
-22/tcp                     ALLOW IN    172.16.0.0/12
-22/tcp                     ALLOW IN    192.168.0.0/16
-53                         ALLOW IN    10.0.0.0/8
-53                         ALLOW IN    172.16.0.0/12
-53                         ALLOW IN    192.168.0.0/16
-80/tcp                     ALLOW IN    10.0.0.0/8
-80/tcp                     ALLOW IN    172.16.0.0/12
-80/tcp                     ALLOW IN    192.168.0.0/16
-2376/tcp                   ALLOW IN    10.0.0.0/8
-2376/tcp                   ALLOW IN    172.16.0.0/12
-2376/tcp                   ALLOW IN    192.168.0.0/16
-3333/tcp                   ALLOW IN    10.0.0.0/8
-3333/tcp                   ALLOW IN    172.16.0.0/12
-3333/tcp                   ALLOW IN    192.168.0.0/16
+22/tcp on eth0             ALLOW IN    10.0.0.0/8
+22/tcp on eth0             ALLOW IN    172.16.0.0/12
+22/tcp on eth0             ALLOW IN    192.168.0.0/16
+53 on eth0                 ALLOW IN    10.0.0.0/8
+53 on eth0                 ALLOW IN    172.16.0.0/12
+53 on eth0                 ALLOW IN    192.168.0.0/16
+80/tcp on eth0             ALLOW IN    10.0.0.0/8
+80/tcp on eth0             ALLOW IN    172.16.0.0/12
+80/tcp on eth0             ALLOW IN    192.168.0.0/16
+2376/tcp on eth0           ALLOW IN    10.0.0.0/8
+2376/tcp on eth0           ALLOW IN    172.16.0.0/12
+2376/tcp on eth0           ALLOW IN    192.168.0.0/16
+3333/tcp on eth0           ALLOW IN    10.0.0.0/8
+3333/tcp on eth0           ALLOW IN    172.16.0.0/12
+3333/tcp on eth0           ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -163,7 +163,7 @@ echo 'bind_addr = "0.0.0.0:3333"' >> /opt/podman/rathole/server.toml
 echo "default_token = \"$(openssl rand -hex 64)\"" >> /opt/podman/rathole/server.toml
 echo '' >> /opt/podman/rathole/server.toml
 echo '[server.services.neli-pihole]' >> /opt/podman/rathole/server.toml
-echo 'bind_addr = "127.0.0.1:8181"' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "127.0.0.1:8081"' >> /opt/podman/rathole/server.toml
 echo
 podman run -d --restart always \
   --name moci-pihole-rathole \
@@ -177,7 +177,7 @@ podman run -d --restart always \
   --network host \
   -e CRON='0 * * * *' \
   -e FULL_SYNC=true \
-  -e PRIMARY='http://127.0.0.1:8181|' \
+  -e PRIMARY='http://127.0.0.1:8081|' \
   -e REPLICAS='http://127.0.0.1|' \
   -e RUN_GRAVITY=true \
   ghcr.io/lovelaze/nebula-sync:latest
@@ -198,26 +198,26 @@ podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-pihole-
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# SSH
-ufw allow from 10.0.0.0/8 to any port 22 proto tcp
-ufw allow from 172.16.0.0/12 to any port 22 proto tcp
-ufw allow from 192.168.0.0/16 to any port 22 proto tcp
-# DNS
-ufw allow from 10.0.0.0/8 to any port 53
-ufw allow from 172.16.0.0/12 to any port 53
-ufw allow from 192.168.0.0/16 to any port 53
-# Pihole
-ufw allow from 10.0.0.0/8 to any port 80 proto tcp
-ufw allow from 172.16.0.0/12 to any port 80 proto tcp
-ufw allow from 192.168.0.0/16 to any port 80 proto tcp
-# Hawser
-ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
-# Rathole        
-ufw allow from 10.0.0.0/8 to any port 3333 proto tcp
-ufw allow from 172.16.0.0/12 to any port 3333 proto tcp
-ufw allow from 192.168.0.0/16 to any port 3333 proto tcp
+# ssh - 22
+ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
+# dns - 53
+ufw allow in on eth0 from 10.0.0.0/8 to any port 53
+ufw allow in on eth0 from 172.16.0.0/12 to any port 53
+ufw allow in on eth0 from 192.168.0.0/16 to any port 53
+# pihole webui - 80
+ufw allow in on eth0 from 10.0.0.0/8 to any port 80 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 80 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
+# hawser - 2376
+ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
+# rathole - 3333
+ufw allow in on eth0 from 10.0.0.0/8 to any port 3333 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 3333 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 3333 proto tcp
 ufw enable
 
 ```
