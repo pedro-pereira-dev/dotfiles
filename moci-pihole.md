@@ -4,7 +4,7 @@
 
 - Cloud: Oracle
 - OS: Debian 13
-- IPv4: `10.11.12.2`
+- IPv4: `10.0.10.4`
 
 Ports opened:
 
@@ -37,7 +37,7 @@ To                         Action      From
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/ct/debian.sh)"
 # nesting, keyctl, fuse and tun
-pct enter 1002
+pct enter 1004
 
 # fix arm networking while installing
 systemctl disable --now systemd-networkd systemd-resolved
@@ -142,7 +142,6 @@ podman run -d --restart always \
   -e FTLCONF_dns_domain_name='' \
   -e FTLCONF_dns_expandHosts=true \
   -e FTLCONF_dns_piholePTR=HOSTNAME \
-  -e FTLCONF_dns_revServers='true,192.168.0.0/24,192.168.0.1' \
   -e FTLCONF_dns_upstreams=127.0.0.1#5353 \
   -e FTLCONF_ntp_ipv4_active=false \
   -e FTLCONF_ntp_ipv6_active=false \
@@ -152,6 +151,33 @@ podman run -d --restart always \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
   docker.io/pihole/pihole:latest
+
+# setup rathole
+mkdir -p /opt/podman/rathole
+echo
+echo '[server]' > /opt/podman/rathole/server.toml
+echo 'bind_addr = "0.0.0.0:3333"' >> /opt/podman/rathole/server.toml
+echo "default_token = \"$(openssl rand -hex 64)\"" >> /opt/podman/rathole/server.toml
+echo '' >> /opt/podman/rathole/server.toml
+echo '[server.services.neli-pihole]' >> /opt/podman/rathole/server.toml
+echo 'bind_addr = "127.0.0.1:81"' >> /opt/podman/rathole/server.toml
+echo
+podman run -d --restart always \
+  --name moci-pihole-rathole \
+  --network host \
+  -v /opt/podman/rathole/server.toml:/server.toml \
+  ghcr.io/rathole-org/rathole:dev /server.toml
+
+# setup nebula-sync
+podman run -d --restart always \
+  --name moci-pihole-nebula-sync \
+  --network host \
+  -e CRON='0 * * * *' \
+  -e FULL_SYNC=true \
+  -e PRIMARY='http://127.0.0.1:81|' \
+  -e REPLICAS='http://127.0.0.1|' \
+  -e RUN_GRAVITY=true \
+  ghcr.io/lovelaze/nebula-sync:latest
 
 # setup hawser
 mkdir -p /opt/podman/hawser
@@ -185,6 +211,10 @@ ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
+# rathole - 3333
+ufw allow in on eth0 from 10.0.0.0/8 to any port 2333 proto tcp
+ufw allow in on eth0 from 172.16.0.0/12 to any port 2333 proto tcp
+ufw allow in on eth0 from 192.168.0.0/16 to any port 2333 proto tcp
 ufw enable
 
 ```

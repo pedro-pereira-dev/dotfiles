@@ -4,7 +4,7 @@
 
 - Cloud: Oracle
 - OS: Debian 12 / Pxvirt 8
-- IPv4: `79.72.63.98` / `10.0.0.30`
+- IPv4: `79.72.63.98` / `10.0.0.30` / `10.0.10.1`
 
 The server hosts a wireguard server, pihole for blocking domains and unbound for name resolution. Additionally, there is a rathole server for exposing private network services to the public internet from remote systems.
 
@@ -204,7 +204,7 @@ echo '        gateway 10.0.0.1' >> /etc/network/interfaces
 echo '' >> /etc/network/interfaces
 echo 'auto vmbr0' >> /etc/network/interfaces
 echo 'iface vmbr0 inet manual' >> /etc/network/interfaces
-echo '        address 10.11.12.1/24' >> /etc/network/interfaces
+echo '        address 10.0.10.1/24' >> /etc/network/interfaces
 echo '        bridge-ports none' >> /etc/network/interfaces
 echo '        bridge-stp off' >> /etc/network/interfaces
 echo '        bridge-fd 0' >> /etc/network/interfaces
@@ -213,20 +213,20 @@ echo '        # forward' >> /etc/network/interfaces
 echo '        post-up   echo 1 > /proc/sys/net/ipv4/ip_forward' >> /etc/network/interfaces
 echo ''                                                         >> /etc/network/interfaces
 echo '        # masquerade' >> /etc/network/interfaces
-echo "        post-up   iptables -t nat -A POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
-echo "        post-down iptables -t nat -D POSTROUTING -s '10.11.12.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
-echo ''                                                                                            >> /etc/network/interfaces
-echo '        # tcp 80 traffic to 10.11.12.10:80' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.10:80' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.11.12.10:80' >> /etc/network/interfaces
-echo ''                                                                                                                    >> /etc/network/interfaces
-echo '        # tcp 443 traffic to 10.11.12.10:443' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.11.12.10:443' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.11.12.10:443' >> /etc/network/interfaces
-echo ''                                                                                                                      >> /etc/network/interfaces
-echo '        # udp 61820 traffic to 10.11.12.10:61820' >> /etc/network/interfaces
-echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.11.12.10:61820' >> /etc/network/interfaces
-echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.11.12.10:61820' >> /etc/network/interfaces
+echo "        post-up   iptables -t nat -A POSTROUTING -s '10.0.10.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
+echo "        post-down iptables -t nat -D POSTROUTING -s '10.0.10.0/24' -o enp0s6 -j MASQUERADE" >> /etc/network/interfaces
+echo ''                                                                                           >> /etc/network/interfaces
+echo '        # tcp 80 traffic to 10.0.10.75:80' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.0.10.75:80' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 80 -j DNAT --to-destination 10.0.10.75:80' >> /etc/network/interfaces
+echo ''                                                                                                                   >> /etc/network/interfaces
+echo '        # tcp 443 traffic to 10.0.10.75:443' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.0.10.75:443' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p tcp --dport 443 -j DNAT --to-destination 10.0.10.75:443' >> /etc/network/interfaces
+echo ''                                                                                                                     >> /etc/network/interfaces
+echo '        # udp 61820 traffic to 10.0.10.10:61820' >> /etc/network/interfaces
+echo '        post-up   iptables -t nat -A PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.0.10.10:61820' >> /etc/network/interfaces
+echo '        post-down iptables -t nat -D PREROUTING -i enp0s6 -p udp --dport 61820 -j DNAT --to-destination 10.0.10.10:61820' >> /etc/network/interfaces
 
 # iptables -t nat -A PREROUTING -i enp0s6 -p tcp --dport 8080 -j DNAT --to-destination 10.11.12.2:80 # port redirect
 # iptables -A FORWARD -i enp0s6 -o vmbr0 -p tcp -d 10.11.12.2 --dport 80 -j ACCEPT # ufw setup for target port
@@ -244,11 +244,12 @@ ufw allow in on enp0s6 to any port 8006 proto tcp
 ufw allow in on enp0s6 to any port 8006 proto tcp
 ufw allow in on enp0s6 to any port 8006 proto tcp
 # forward vmbr0
-ufw route allow in on vmbr0 out on enp0s6 from 10.11.12.0/24
-# forward moci-tunnel-server - 80 and 443
-ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.10 port 80 proto tcp
-ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.10 port 443 proto tcp
-ufw route allow in on enp0s6 out on vmbr0 to 10.11.12.10 port 61820 proto udp
+ufw route allow in on vmbr0 out on enp0s6 from 10.0.10.0/24
+# forward moci-rathole-server - 80 and 443
+ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.75 port 80 proto tcp
+ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.75 port 443 proto tcp
+# forward moci-wireguard-server - 61820
+ufw route allow in on enp0s6 out on vmbr0 to 10.0.10.10 port 61820 proto udp
 ufw enable
 
 ```
