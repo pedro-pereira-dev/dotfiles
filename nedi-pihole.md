@@ -17,18 +17,18 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp on eth0             ALLOW IN    10.0.0.0/8
-22/tcp on eth0             ALLOW IN    172.16.0.0/12
-22/tcp on eth0             ALLOW IN    192.168.0.0/16
-53 on eth0                 ALLOW IN    10.0.0.0/8
-53 on eth0                 ALLOW IN    172.16.0.0/12
-53 on eth0                 ALLOW IN    192.168.0.0/16
-80/tcp on eth0             ALLOW IN    10.0.0.0/8
-80/tcp on eth0             ALLOW IN    172.16.0.0/12
-80/tcp on eth0             ALLOW IN    192.168.0.0/16
-2376/tcp on eth0           ALLOW IN    10.0.0.0/8
-2376/tcp on eth0           ALLOW IN    172.16.0.0/12
-2376/tcp on eth0           ALLOW IN    192.168.0.0/16
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+53                         ALLOW IN    10.0.0.0/8
+53                         ALLOW IN    172.16.0.0/12
+53                         ALLOW IN    192.168.0.0/16
+80/tcp                     ALLOW IN    10.0.0.0/8
+80/tcp                     ALLOW IN    172.16.0.0/12
+80/tcp                     ALLOW IN    192.168.0.0/16
+2376/tcp                   ALLOW IN    10.0.0.0/8
+2376/tcp                   ALLOW IN    172.16.0.0/12
+2376/tcp                   ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -173,22 +173,22 @@ podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-pihole-
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# ssh - 22
-ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
-# dns - 53
-ufw allow in on eth0 from 10.0.0.0/8 to any port 53
-ufw allow in on eth0 from 172.16.0.0/12 to any port 53
-ufw allow in on eth0 from 192.168.0.0/16 to any port 53
-# pihole webui - 80
-ufw allow in on eth0 from 10.0.0.0/8 to any port 80 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 80 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 80 proto tcp
-# hawser - 2376
-ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
+# SSH
+ufw allow from 10.0.0.0/8 to any port 22 proto tcp
+ufw allow from 172.16.0.0/12 to any port 22 proto tcp
+ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+# DNS
+ufw allow from 10.0.0.0/8 to any port 53
+ufw allow from 172.16.0.0/12 to any port 53
+ufw allow from 192.168.0.0/16 to any port 53
+# Pihole
+ufw allow from 10.0.0.0/8 to any port 80 proto tcp
+ufw allow from 172.16.0.0/12 to any port 80 proto tcp
+ufw allow from 192.168.0.0/16 to any port 80 proto tcp
+# Hawser
+ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
 ufw enable
 
 ```

@@ -6,8 +6,6 @@
 - OS: Debian 13 / Proxmox 9
 - IPv4: `192.168.0.32`
 
-The server hosts a Proxmox server and containerized systems in LXCs.
-
 ```
 root@nedi:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
 NAME                         FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
@@ -41,17 +39,13 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp on vmbr0            ALLOW IN    10.0.0.0/8
-22/tcp on vmbr0            ALLOW IN    172.16.0.0/12
-22/tcp on vmbr0            ALLOW IN    192.168.0.0/16
-8006/tcp on vmbr0          ALLOW IN    10.0.0.0/8
-8006/tcp on vmbr0          ALLOW IN    172.16.0.0/12
-8006/tcp on vmbr0          ALLOW IN    192.168.0.0/16
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+8006/tcp                   ALLOW IN    10.0.0.0/8
+8006/tcp                   ALLOW IN    172.16.0.0/12
+8006/tcp                   ALLOW IN    192.168.0.0/16
 ```
-
-#### To do:
-
-Setup backup daily.
 
 ## Initial system setup
 
@@ -354,15 +348,14 @@ systemctl restart networking
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# local network - 22, 8006
-# ssh - 22
-ufw allow in on vmbr0 from 10.0.0.0/8 to any port 22 proto tcp
-ufw allow in on vmbr0 from 172.16.0.0/12 to any port 22 proto tcp
-ufw allow in on vmbr0 from 192.168.0.0/16 to any port 22 proto tcp
-# proxmox webui - 8006
-ufw allow in on vmbr0 from 10.0.0.0/8 to any port 8006 proto tcp
-ufw allow in on vmbr0 from 172.16.0.0/12 to any port 8006 proto tcp
-ufw allow in on vmbr0 from 192.168.0.0/16 to any port 8006 proto tcp
+# SSH
+ufw allow from 10.0.0.0/8 to any port 22 proto tcp
+ufw allow from 172.16.0.0/12 to any port 22 proto tcp
+ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+# Proxmox
+ufw allow from 10.0.0.0/8 to any port 8006 proto tcp
+ufw allow from 172.16.0.0/12 to any port 8006 proto tcp
+ufw allow from 192.168.0.0/16 to any port 8006 proto tcp
 ufw enable
 
 ```
