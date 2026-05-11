@@ -1,18 +1,18 @@
-# `neli-pihole`
+# `neli-tunnel-moci-rathole-server`
 
 ## Details
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.2`
+- IPv4: `192.168.0.15`
 
 Ports opened:
 
 ```
-root@neli-pihole:~# ufw status verbose
+root@neli-tunnel-moci-rathole-server:~# ufw status verbose
 Status: active
 Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
+Default: deny (incoming), allow (outgoing), deny (routed)
 New profiles: skip
 
 To                         Action      From
@@ -20,15 +20,15 @@ To                         Action      From
 22/tcp                     ALLOW IN    10.0.0.0/8
 22/tcp                     ALLOW IN    172.16.0.0/12
 22/tcp                     ALLOW IN    192.168.0.0/16
-53                         ALLOW IN    10.0.0.0/8
-53                         ALLOW IN    172.16.0.0/12
-53                         ALLOW IN    192.168.0.0/16
-80/tcp                     ALLOW IN    10.0.0.0/8
-80/tcp                     ALLOW IN    172.16.0.0/12
-80/tcp                     ALLOW IN    192.168.0.0/16
+2222/tcp                   ALLOW IN    10.0.0.0/8
+2222/tcp                   ALLOW IN    172.16.0.0/12
+2222/tcp                   ALLOW IN    192.168.0.0/16
 2376/tcp                   ALLOW IN    10.0.0.0/8
 2376/tcp                   ALLOW IN    172.16.0.0/12
 2376/tcp                   ALLOW IN    192.168.0.0/16
+2377/tcp                   ALLOW IN    10.0.0.0/8
+2377/tcp                   ALLOW IN    172.16.0.0/12
+2377/tcp                   ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -36,13 +36,19 @@ To                         Action      From
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1002
+pct enter 1015
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
 echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
 echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
 systemctl restart ssh
+mkdir -p /etc/systemd/system/ssh.socket.d
+echo '[Socket]' > /etc/systemd/system/ssh.socket.d/override.conf
+echo 'ListenStream=' >> /etc/systemd/system/ssh.socket.d/override.conf
+echo 'ListenStream=2222' >> /etc/systemd/system/ssh.socket.d/override.conf
+systemctl daemon-reload
+systemctl restart ssh.socket
 
 # disable ipv6
 echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
@@ -84,100 +90,74 @@ echo
 chmod +x /usr/bin/update
 
 # install dependencies
-apt install -y crun podman ufw
+apt install -y crun podman ufw wireguard
+
+# setup wireguard
+apt install -y ufw wireguard
+sed -i 's/^#\(net\/ipv4\/ip_forward=1\)/\1/' /etc/ufw/sysctl.conf
+(cd /etc/wireguard; umask 077; cd)
+wg genkey | tee /etc/wireguard/client.key | wg pubkey > /etc/wireguard/client.pub
+echo
+echo '[Interface]' > /etc/wireguard/wg0.conf
+echo 'Address = 10.1.10.15/32' >> /etc/wireguard/wg0.conf
+echo "PrivateKey = $(cat /etc/wireguard/client.key)" >> /etc/wireguard/wg0.conf
+echo '' >> /etc/wireguard/wg0.conf
+echo '#[Peer]' >> /etc/wireguard/wg0.conf
+echo '#AllowedIPs = 10.1.10.1/32, 10.0.10.0/24' >> /etc/wireguard/wg0.conf
+echo '#Endpoint = wireguard.boarede.com:61820' >> /etc/wireguard/wg0.conf
+echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo
+systemctl enable wg-quick@wg0.service
+systemctl daemon-reload
+systemctl start wg-quick@wg0
 
 # setup podman
 apt install -y crun podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# setup unbound
-mkdir -p /opt/podman/unbound
-echo
-echo 'server:' > /opt/podman/unbound/unbound.conf
-echo '  access-control: 10.0.0.0/8 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 169.254.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 172.16.0.0/12 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 192.168.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
-echo '  cache-max-ttl: 14400' >> /opt/podman/unbound/unbound.conf
-echo '  cache-min-ttl: 300' >> /opt/podman/unbound/unbound.conf
-echo '  do-ip6: no' >> /opt/podman/unbound/unbound.conf
-echo '  harden-referral-path: yes' >> /opt/podman/unbound/unbound.conf
-echo '  hide-identity: yes' >> /opt/podman/unbound/unbound.conf
-echo '  hide-version: yes' >> /opt/podman/unbound/unbound.conf
-echo '  interface: 0.0.0.0' >> /opt/podman/unbound/unbound.conf
-echo '  key-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  msg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  neg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  port: 5353' >> /opt/podman/unbound/unbound.conf
-echo '  prefetch-key: yes' >> /opt/podman/unbound/unbound.conf
-echo '  prefetch: yes' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 10.0.0.0/8' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 169.254.0.0/16' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 172.16.0.0/12' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 192.168.0.0/16' >> /opt/podman/unbound/unbound.conf
-echo '  rrset-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  so-sndbuf: 0' >> /opt/podman/unbound/unbound.conf
-echo '  verbosity: 0' >> /opt/podman/unbound/unbound.conf
-echo
+# setup socat
 podman run -d --restart always \
-  --name neli-pihole-unbound \
+  --name neli-tunnel-moci-rathole-server-ssh \
   --network host \
-  -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
-  docker.io/alpinelinux/unbound:latest
-
-# setup pihole
-mkdir -p /opt/podman/pihole
+  docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.15:22
 podman run -d --restart always \
-  --name neli-pihole \
-  --hostname neli-pihole \
+  --name neli-tunnel-moci-rathole-server-hawser-remote \
   --network host \
-  -e FTLCONF_dns_domainNeeded=true \
-  -e FTLCONF_dns_domain_name='' \
-  -e FTLCONF_dns_expandHosts=true \
-  -e FTLCONF_dns_piholePTR=HOSTNAME \
-  -e FTLCONF_dns_revServers='true,192.168.0.0/24,192.168.0.1' \
-  -e FTLCONF_dns_upstreams=127.0.0.1#5353 \
-  -e FTLCONF_ntp_ipv4_active=false \
-  -e FTLCONF_ntp_ipv6_active=false \
-  -e FTLCONF_ntp_sync_active=false \
-  -e FTLCONF_webserver_api_password='' \
-  -e FTLCONF_webserver_domain=pihole.neli.boarede.com \
-  -e FTLCONF_webserver_port=80o \
-  -v /opt/podman/pihole:/etc/pihole \
-  docker.io/pihole/pihole:latest
+  docker.io/alpine/socat:latest tcp-listen:2376,fork,reuseaddr tcp:10.0.10.15:2376
 
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
-  --name neli-pihole-hawser \
+  --name neli-tunnel-moci-rathole-server-hawser \
   --network host \
+  -e PORT=2377 \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-tunnel-moci-rathole-server-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# SSH
+# SSH - moci-rathole-server
 ufw allow from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow from 192.168.0.0/16 to any port 22 proto tcp
-# DNS
-ufw allow from 10.0.0.0/8 to any port 53
-ufw allow from 172.16.0.0/12 to any port 53
-ufw allow from 192.168.0.0/16 to any port 53
-# Pihole
-ufw allow from 10.0.0.0/8 to any port 80 proto tcp
-ufw allow from 172.16.0.0/12 to any port 80 proto tcp
-ufw allow from 192.168.0.0/16 to any port 80 proto tcp
-# Hawser
+# SSH
+ufw allow from 10.0.0.0/8 to any port 2222 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2222 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2222 proto tcp
+# Hawser - moci-rathole-server
 ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
+# Hawser
+ufw allow from 10.0.0.0/8 to any port 2377 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2377 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2377 proto tcp
 ufw enable
 
 ```
