@@ -150,7 +150,7 @@ podman run -d --restart always \
 podman run -d --restart always \
   --name nedi-pihole-nebula-sync \
   --network host \
-  -e CRON='0 * * * *' \
+  -e CRON='0 8 * * *' \
   -e FULL_SYNC=true \
   -e PRIMARY='http://192.168.0.2|' \
   -e REPLICAS='http://127.0.0.1|' \

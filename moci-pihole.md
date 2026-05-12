@@ -175,7 +175,7 @@ podman run -d --restart always \
 podman run -d --restart always \
   --name moci-pihole-nebula-sync \
   --network host \
-  -e CRON='0 * * * *' \
+  -e CRON='0 8 * * *' \
   -e FULL_SYNC=true \
   -e PRIMARY='http://127.0.0.1:8181|' \
   -e REPLICAS='http://127.0.0.1|' \
