@@ -96,6 +96,7 @@ podman run -d --restart always \
   -v /opt/podman/dockhand:/etc/dockhand \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   --health-cmd='["curl", "-f", "http://127.0.0.1:3000"]' \
+  --health-on-failure restart \
   docker.io/fnsys/dockhand:latest
 
 # setup hawser
@@ -107,6 +108,7 @@ podman run -d --restart always \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
+  --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 podman --remote inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-dockhand-hawser | grep TOKEN | cut -d= -f2
 

@@ -112,6 +112,7 @@ podman run -d --restart always \
   --network host \
   -v /opt/podman/rathole/server.toml:/server.toml \
   --health-cmd='["/app/rathole", "--version"]' \
+  --health-on-failure restart \
   ghcr.io/rathole-org/rathole:dev /server.toml
 
 # setup hawser
@@ -123,6 +124,7 @@ podman run -d --restart always \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
+  --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-rathole-server-hawser | grep TOKEN | cut -d= -f2
 

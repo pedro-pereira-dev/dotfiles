@@ -123,16 +123,19 @@ podman run -d --restart always \
   --name neli-tunnel-moci-pihole-ssh \
   --network host \
   --health-cmd='["nc", "-z", "127.0.0.1", "22"]' \
+  --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.4:22
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole \
   --network host \
   --health-cmd='["nc", "-z", "127.0.0.1", "80"]' \
+  --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:80,fork,reuseaddr tcp:10.0.10.4:80
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole-hawser-remote \
   --network host \
   --health-cmd='["nc", "-z", "127.0.0.1", "2376"]' \
+  --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:2376,fork,reuseaddr tcp:10.0.10.4:2376
 
 # setup rathole
@@ -149,6 +152,7 @@ podman run -d --restart always \
   --name neli-pihole-rathole \
   --network host \
   --health-cmd='["/app/rathole", "--version"]' \
+  --health-on-failure restart \
   -v /opt/podman/rathole/client.toml:/client.toml \
   ghcr.io/rathole-org/rathole:dev /client.toml
 
@@ -162,6 +166,7 @@ podman run -d --restart always \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
+  --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-tunnel-moci-pihole-hawser | grep TOKEN | cut -d= -f2
 

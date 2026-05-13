@@ -124,6 +124,7 @@ podman run -d --restart always \
   --network host \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
   --health-cmd='["unbound-host", "gentoo.org"]' \
+  --health-on-failure restart \
   docker.io/alpinelinux/unbound:latest
 
 # setup pihole
@@ -146,6 +147,7 @@ podman run -d --restart always \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
   --health-cmd='["curl", "-f", "http://127.0.0.1/admin"]' \
+  --health-on-failure restart \
   docker.io/pihole/pihole:latest
 
 # setup hawser
@@ -157,6 +159,7 @@ podman run -d --restart always \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
+  --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-pihole-hawser | grep TOKEN | cut -d= -f2
 

@@ -123,6 +123,7 @@ podman run -d --restart always \
   --name nedi-pihole-unbound \
   --network host \
   --health-cmd='["unbound-host", "gentoo.org"]' \
+  --health-on-failure restart \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
   docker.io/alpinelinux/unbound:latest
 
@@ -146,6 +147,7 @@ podman run -d --restart always \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
   --health-cmd='["curl", "-f", "http://127.0.0.1/admin"]' \
+  --health-on-failure restart \
   docker.io/pihole/pihole:latest
 
 # setup nebula-sync
@@ -157,6 +159,7 @@ podman run -d --restart always \
   -e PRIMARY='http://192.168.0.2|' \
   -e REPLICAS='http://127.0.0.1|' \
   -e RUN_GRAVITY=true \
+  --health-on-failure restart \
   ghcr.io/lovelaze/nebula-sync:latest
 
 # setup hawser
@@ -168,6 +171,7 @@ podman run -d --restart always \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
+  --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-pihole-hawser | grep TOKEN | cut -d= -f2
 
