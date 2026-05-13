@@ -116,7 +116,7 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 podman run -d --restart always \
   --name neli-tunnel-moci-wireguard-server-ssh \
   --network host \
-  --health-cmd='["nc", "-z", "127.0.0.1", "22"]' \
+  --health-cmd='["nc", "-z", "10.0.10.10", "22"]' \
   --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.10:22
 

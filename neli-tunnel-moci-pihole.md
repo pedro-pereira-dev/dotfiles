@@ -122,19 +122,19 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole-ssh \
   --network host \
-  --health-cmd='["nc", "-z", "127.0.0.1", "22"]' \
+  --health-cmd='["nc", "-z", "10.0.10.4", "22"]' \
   --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.4:22
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole \
   --network host \
-  --health-cmd='["nc", "-z", "127.0.0.1", "80"]' \
+  --health-cmd='["nc", "-z", "10.0.10.4", "80"]' \
   --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:80,fork,reuseaddr tcp:10.0.10.4:80
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole-hawser-remote \
   --network host \
-  --health-cmd='["nc", "-z", "127.0.0.1", "2376"]' \
+  --health-cmd='["nc", "-z", "10.0.10.4", "2376"]' \
   --health-on-failure restart \
   docker.io/alpine/socat:latest tcp-listen:2376,fork,reuseaddr tcp:10.0.10.4:2376
 
