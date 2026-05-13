@@ -124,19 +124,25 @@ podman run -d --restart always \
   --network host \
   --health-cmd='["nc", "-z", "10.0.10.4", "22"]' \
   --health-on-failure restart \
-  docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.4:22
+  docker.io/alpine/socat:latest \
+    tcp-listen:22,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.0.10.4:22,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole \
   --network host \
   --health-cmd='["nc", "-z", "10.0.10.4", "80"]' \
   --health-on-failure restart \
-  docker.io/alpine/socat:latest tcp-listen:80,fork,reuseaddr tcp:10.0.10.4:80
+  docker.io/alpine/socat:latest \
+    tcp-listen:80,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.0.10.4:80,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 podman run -d --restart always \
   --name neli-tunnel-moci-pihole-hawser-remote \
   --network host \
   --health-cmd='["nc", "-z", "10.0.10.4", "2376"]' \
   --health-on-failure restart \
-  docker.io/alpine/socat:latest tcp-listen:2376,fork,reuseaddr tcp:10.0.10.4:2376
+  docker.io/alpine/socat:latest \
+    tcp-listen:2376,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.0.10.4:2376,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 
 # setup rathole
 mkdir -p /opt/podman/rathole

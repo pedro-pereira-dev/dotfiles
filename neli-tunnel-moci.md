@@ -121,13 +121,17 @@ podman run -d --restart always \
   --network host \
   --health-cmd='["nc", "-z", "10.0.10.1", "22"]' \
   --health-on-failure restart \
-  docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.1:22
+  docker.io/alpine/socat:latest \
+    tcp-listen:22,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.0.10.1:22,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 podman run -d --restart always \
   --name neli-tunnel-moci \
   --network host \
   --health-cmd='["nc", "-z", "10.0.10.1", "8006"]' \
   --health-on-failure restart \
-  docker.io/alpine/socat:latest tcp-listen:8006,fork,reuseaddr tcp:10.0.10.1:8006
+  docker.io/alpine/socat:latest \
+    tcp-listen:8006,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.0.10.1:8006,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 
 # setup hawser
 mkdir -p /opt/podman/hawser

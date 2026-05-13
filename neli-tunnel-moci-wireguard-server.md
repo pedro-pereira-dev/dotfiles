@@ -118,7 +118,9 @@ podman run -d --restart always \
   --network host \
   --health-cmd='["nc", "-z", "10.0.10.10", "22"]' \
   --health-on-failure restart \
-  docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.10:22
+  docker.io/alpine/socat:latest \
+    tcp-listen:22,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.0.10.10:22,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 
 # setup hawser
 mkdir -p /opt/podman/hawser
