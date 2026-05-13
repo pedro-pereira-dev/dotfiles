@@ -119,10 +119,12 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 podman run -d --restart always \
   --name neli-tunnel-moci-ssh \
   --network host \
+  --health-cmd='["nc", "-z", "127.0.0.1", "22"]' \
   docker.io/alpine/socat:latest tcp-listen:22,fork,reuseaddr tcp:10.0.10.1:22
 podman run -d --restart always \
   --name neli-tunnel-moci \
   --network host \
+  --health-cmd='["nc", "-z", "127.0.0.1", "8006"]' \
   docker.io/alpine/socat:latest tcp-listen:8006,fork,reuseaddr tcp:10.0.10.1:8006
 
 # setup hawser
