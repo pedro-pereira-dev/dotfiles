@@ -95,6 +95,7 @@ podman run -d --restart always \
   -e DATA_DIR=/etc/dockhand \
   -v /opt/podman/dockhand:/etc/dockhand \
   -v /run/podman/podman.sock:/var/run/docker.sock \
+  --health-cmd='["curl", "-f", "http://127.0.0.1:3000"]' \
   docker.io/fnsys/dockhand:latest
 
 # setup hawser
