@@ -123,6 +123,7 @@ podman run -d --restart always \
   --name neli-pihole-unbound \
   --network host \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
+  --health-cmd='["unbound-host", "gentoo.org"]' \
   docker.io/alpinelinux/unbound:latest
 
 # setup pihole
@@ -144,6 +145,7 @@ podman run -d --restart always \
   -e FTLCONF_webserver_domain=pihole.neli.boarede.com \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
+  --health-cmd='["curl", "-f", "http://127.0.0.1/admin"]' \
   docker.io/pihole/pihole:latest
 
 # setup hawser

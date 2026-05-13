@@ -122,6 +122,7 @@ echo
 podman run -d --restart always \
   --name nedi-pihole-unbound \
   --network host \
+  --health-cmd='["unbound-host", "gentoo.org"]' \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
   docker.io/alpinelinux/unbound:latest
 
@@ -144,6 +145,7 @@ podman run -d --restart always \
   -e FTLCONF_webserver_domain=pihole.nedi.boarede.com \
   -e FTLCONF_webserver_port=80o \
   -v /opt/podman/pihole:/etc/pihole \
+  --health-cmd='["curl", "-f", "http://127.0.0.1/admin"]' \
   docker.io/pihole/pihole:latest
 
 # setup nebula-sync
