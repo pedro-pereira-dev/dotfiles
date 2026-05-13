@@ -111,6 +111,7 @@ podman run -d --restart always \
   --name moci-rathole-server \
   --network host \
   -v /opt/podman/rathole/server.toml:/server.toml \
+  --health-cmd='["/app/rathole", "--version"]' \
   ghcr.io/rathole-org/rathole:dev /server.toml
 
 # setup hawser
