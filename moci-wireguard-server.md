@@ -113,6 +113,11 @@ echo '#[Peer]' >> /etc/wireguard/wg0.conf
 echo '#AllowedIPs = 10.1.10.15/32' >> /etc/wireguard/wg0.conf
 echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
 echo '' >> /etc/wireguard/wg0.conf
+echo '# neli-tunnel-moci-pbs' >> /etc/wireguard/wg0.conf
+echo '#[Peer]' >> /etc/wireguard/wg0.conf
+echo '#AllowedIPs = 10.1.10.23/32' >> /etc/wireguard/wg0.conf
+echo '#PublicKey = ' >> /etc/wireguard/wg0.conf
+echo '' >> /etc/wireguard/wg0.conf
 echo '# neli-tunnel-moci' >> /etc/wireguard/wg0.conf
 echo '#[Peer]' >> /etc/wireguard/wg0.conf
 echo '#AllowedIPs = 10.1.10.33/32' >> /etc/wireguard/wg0.conf

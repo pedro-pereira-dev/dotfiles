@@ -1,18 +1,18 @@
-# `moci-pbs`
+# `nedi-pbs`
 
 ## Details
 
 - Cloud: Oracle
 - OS: Debian 13
-- IPv4: `10.0.10.23`
+- IPv4: `192.168.0.22`
 
 Ports opened:
 
 ```
-root@moci-pbs:~# ufw status verbose
+root@nedi-pbs:~# ufw status verbose
 Status: active
 Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
+Default: deny (incoming), allow (outgoing), disabled (routed)
 New profiles: skip
 
 To                         Action      From
@@ -32,14 +32,8 @@ To                         Action      From
 
 ```bash
 # setup basic container
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/ct/debian.sh)"
-pct enter 1023
-
-# fix arm networking while installing
-systemctl disable --now systemd-networkd systemd-resolved
-systemctl restart networking
-
-# ---
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+pct enter 1022
 
 # setup ssh
 echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
@@ -128,7 +122,7 @@ gcc -shared -fPIC -ldl /opt/podman/libnoipv6/libnoipv6.c -o /opt/podman/libnoipv
 # setup pbs
 mkdir -p /local /opt/podman/pbs
 podman run -d --restart always \
-  --name moci-pbs \
+  --name nedi-pbs \
   --network host \
   --tmpfs /run \
   -e LD_PRELOAD=/lib/libnoipv6.so \
@@ -142,14 +136,14 @@ podman run -d --restart always \
 # setup hawser
 mkdir -p /opt/podman/hawser
 podman run -d --restart always \
-  --name moci-pbs-hawser \
+  --name nedi-pbs-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(openssl rand -hex 64) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' moci-pbs-hawser | grep TOKEN | cut -d= -f2
+podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-pbs-hawser | grep TOKEN | cut -d= -f2
 
 # setup firewall
 apt install -y ufw
@@ -163,7 +157,7 @@ ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
-# pbs - 8007
+# PBS - 8007
 ufw allow in on eth0 from 10.0.0.0/8 to any port 8007 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 8007 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 8007 proto tcp

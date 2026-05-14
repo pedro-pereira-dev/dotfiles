@@ -175,6 +175,7 @@ echo 'export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY' >> /usr/bin/backup-hos
 echo '/usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"' >> /usr/bin/backup-host-to
 echo
 chmod +x /usr/bin/backup-host-to
+(crontab -l 2>/dev/null; echo "0 */3 * * * (sleep 60 && /usr/bin/backup-host-to moci-pbs-local)") | crontab -
 
 # add dependencies
 apt install -y btop neofetch ufw

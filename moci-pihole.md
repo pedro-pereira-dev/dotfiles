@@ -39,7 +39,6 @@ To                         Action      From
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/ct/debian.sh)"
-# nesting, keyctl, fuse and tun
 pct enter 1004
 
 # fix arm networking while installing
