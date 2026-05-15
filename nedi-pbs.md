@@ -135,15 +135,16 @@ podman run -d --restart always \
 
 # setup hawser
 mkdir -p /opt/podman/hawser
+openssl rand -hex 64 > /opt/podman/hawser/token.key
 podman run -d --restart always \
   --name nedi-pbs-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
-  -e TOKEN=$(openssl rand -hex 64) \
+  -e TOKEN=$(cat /opt/podman/hawser/token.key) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' nedi-pbs-hawser | grep TOKEN | cut -d= -f2
+cat /opt/podman/hawser/token.key
 
 # setup firewall
 apt install -y ufw

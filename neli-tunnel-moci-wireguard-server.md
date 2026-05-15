@@ -124,17 +124,18 @@ podman run -d --restart always \
 
 # setup hawser
 mkdir -p /opt/podman/hawser
+openssl rand -hex 64 > /opt/podman/hawser/token.key
 podman run -d --restart always \
   --name neli-tunnel-moci-wireguard-server-hawser \
   --network host \
   -e PORT=2377 \
   -e STACKS_DIR=/etc/hawser \
-  -e TOKEN=$(openssl rand -hex 64) \
+  -e TOKEN=$(cat /opt/podman/hawser/token.key) \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
-podman inspect --format='{{range .Config.Env}}{{println .}}{{end}}' neli-tunnel-moci-wireguard-server-hawser | grep TOKEN | cut -d= -f2
+cat /opt/podman/hawser/token.key
 
 # setup firewall
 apt install -y ufw
