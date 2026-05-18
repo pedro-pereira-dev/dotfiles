@@ -61,10 +61,6 @@ systemctl restart ssh
 echo 'UUID=DFE9-64DC          /boot/efi       vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2' > /etc/fstab
 echo '/dev/mapper/vg-root     /               ext4 defaults,errors=remount-ro 0 1' >> /etc/fstab
 echo '/dev/mapper/vg-swap     none            swap sw 0 0' >> /etc/fstab
-echo '' >> /etc/fstab
-echo 'UUID=39a0ece3-e591-4076-b9fa-18623e9441ff     /mnt/disks/fast-01      ext4 defaults 0 0' >> /etc/fstab
-echo 'UUID=3d2a00d4-0650-4a0c-af1c-30e814922cda     /mnt/disks/slow-01      ext4 defaults 0 0' >> /etc/fstab
-echo 'UUID=ce94c2e2-b0e7-40c0-89a0-1846bc567155     /mnt/disks/parity-01    ext4 defaults 0 0' >> /etc/fstab
 
 # disable ipv6
 echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf

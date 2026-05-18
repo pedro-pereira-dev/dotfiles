@@ -155,6 +155,11 @@ lxc.mount.entry: /dev/ttyUSB1       dev/ttyUSB1       none bind,optional,create=
 
 ### https://github.com/DoTheEvo/NAS-MergerFS-SnapRAID
 
+echo '' >> /etc/fstab
+echo 'UUID=39a0ece3-e591-4076-b9fa-18623e9441ff     /mnt/disks/fast-01      ext4 defaults 0 0' >> /etc/fstab
+echo 'UUID=3d2a00d4-0650-4a0c-af1c-30e814922cda     /mnt/disks/slow-01      ext4 defaults 0 0' >> /etc/fstab
+echo 'UUID=ce94c2e2-b0e7-40c0-89a0-1846bc567155     /mnt/disks/parity-01    ext4 defaults 0 0' >> /etc/fstab
+
 UUID=785deb18-6f84-4821-b181-9a2b236a9919 /mnt/pool/fast-disk-01 ext4 defaults 0 0
 UUID=d24931cf-c8c5-49c4-aa61-2d46699d5a05 /mnt/pool/slow-disk-01 ext4 defaults 0 0
 UUID=4d3499fd-cec2-41bf-afd1-55ebd3f260b0 /mnt/pool/parity-disk-01 ext4 defaults 0 0
