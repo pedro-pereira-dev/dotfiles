@@ -82,7 +82,134 @@ echo
 chmod +x /usr/bin/update
 
 # install dependencies
-apt install -y ufw
+apt install -y crun podman ufw
+
+# setup podman
+apt install -y crun podman
+systemctl enable --now podman-restart.service podman.service podman.socket
+
+# setup share
+mkdir -p /data/share
+chmod 777 /data/share
+chown -R nobody:nogroup /data/share
+
+# setup users
+mkdir -p /opt/podman/samba
+echo
+echo '#username:uid:groupname:gid:password:homedir' > /opt/podman/samba/users.conf
+echo "admin:1000:admin:1000:$(openssl rand -hex 64)" >> /opt/podman/samba/users.conf
+echo "backup:1001:backup:1001:$(openssl rand -hex 64)" >> /opt/podman/samba/users.conf
+echo
+
+# setup samba
+mkdir -p /opt/podman/samba
+echo
+echo "admin:1000:admin:1000:$(openssl rand -hex 64)" > /opt/podman/samba/users.conf
+echo "test:1001:admin:1000:$(openssl rand -hex 64)" >> /opt/podman/samba/users.conf
+echo
+echo '[global]' > /opt/podman/samba/smb.conf
+echo '   server string = samba' >> /opt/podman/samba/smb.conf
+echo '   idmap config * : range = 3000-7999' >> /opt/podman/samba/smb.conf
+echo '   security = user' >> /opt/podman/samba/smb.conf
+echo '   server min protocol = SMB2' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '   # disable printing services' >> /opt/podman/samba/smb.conf
+echo '   load printers = no' >> /opt/podman/samba/smb.conf
+echo '   printing = bsd' >> /opt/podman/samba/smb.conf
+echo '   printcap name = /dev/null' >> /opt/podman/samba/smb.conf
+echo '   disable spoolss = yes' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '   host msdfs = no' >> /opt/podman/samba/smb.conf
+echo '   wide links = yes' >> /opt/podman/samba/smb.conf
+echo '   follow symlinks = yes' >> /opt/podman/samba/smb.conf
+echo '   unix extensions = no' >> /opt/podman/samba/smb.conf
+echo '   acl allow execute always = yes' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '   # allow SMB clients to read/write extended attributes (xattrs) on files' >> /opt/podman/samba/smb.conf
+echo '   # enabled to support vfs_streams_xattr' >> /opt/podman/samba/smb.conf
+echo '   ea support = yes' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '   # MacOS Compatibility options' >> /opt/podman/samba/smb.conf
+echo '   vfs objects = catia fruit streams_xattr' >> /opt/podman/samba/smb.conf
+echo '   fruit:resource = file' >> /opt/podman/samba/smb.conf
+echo '   fruit:metadata = stream' >> /opt/podman/samba/smb.conf
+echo '   fruit:locking = netatalk' >> /opt/podman/samba/smb.conf
+echo '   fruit:encoding = native' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '   # Special configuration for Apples Time Machine' >> /opt/podman/samba/smb.conf
+echo '   fruit:model = TimeCapsule' >> /opt/podman/samba/smb.conf
+echo '   fruit:aapl = yes' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '   # fix filenames with special chars (should be default)' >> /opt/podman/samba/smb.conf
+echo '   mangled names = no' >> /opt/podman/samba/smb.conf
+echo '   dos charset = CP850' >> /opt/podman/samba/smb.conf
+echo '   unix charset = UTF-8' >> /opt/podman/samba/smb.conf
+echo '' >> /opt/podman/samba/smb.conf
+echo '[share]' >> /opt/podman/samba/smb.conf
+echo '   browseable = yes' >> /opt/podman/samba/smb.conf
+echo '   path = /data' >> /opt/podman/samba/smb.conf
+echo '   read only = no' >> /opt/podman/samba/smb.conf
+echo '   valid users = admin' >> /opt/podman/samba/smb.conf
+echo '   write list = admin' >> /opt/podman/samba/smb.conf
+echo
+podman run -d --restart always \
+  --name moci-samba \
+  --network host \
+  -v /data/share:/data \
+  -v /opt/podman/samba/smb.conf:/etc/samba/smb.conf \
+  -v /opt/podman/samba/users.conf:/etc/samba/users.conf \
+  docker.io/dockurr/samba:latest
+
+# setup share
+mkdir -p /data/share
+chmod 777 /data/share
+chown -R nobody:nogroup /data/share
+echo
+echo '[global]' > /etc/samba/smb.conf
+echo 'dns proxy = no' >> /etc/samba/smb.conf
+echo 'encrypt passwords = yes' >> /etc/samba/smb.conf
+echo 'log file = /var/log/samba/log.%m' >> /etc/samba/smb.conf
+echo 'max log size = 1000' >> /etc/samba/smb.conf
+echo 'netbios name = MYSERVER' >> /etc/samba/smb.conf
+echo 'passdb backend = tdbsam' >> /etc/samba/smb.conf
+echo 'security = user' >> /etc/samba/smb.conf
+echo 'server string = moci-share Samba Server' >> /etc/samba/smb.conf
+echo 'workgroup = WORKGROUP' >> /etc/samba/smb.conf
+echo '' >> /etc/samba/smb.conf
+echo '[share]' >> /etc/samba/smb.conf
+echo 'browseable = yes' >> /etc/samba/smb.conf
+echo 'create mask = 0770' >> /etc/samba/smb.conf
+echo 'directory mask = 0770' >> /etc/samba/smb.conf
+echo 'guest ok = no' >> /etc/samba/smb.conf
+echo 'path = /data/share' >> /etc/samba/smb.conf
+echo 'read list = readonly_user' >> /etc/samba/smb.conf
+echo 'read only = no' >> /etc/samba/smb.conf
+echo 'valid users = @admin root readonly_user' >> /etc/samba/smb.conf
+echo 'write list = @admin root' >> /etc/samba/smb.conf
+echo '' >> /etc/samba/smb.conf
+echo '[public]' >> /etc/samba/smb.conf
+echo 'browseable = yes' >> /etc/samba/smb.conf
+echo 'create mask = 0666' >> /etc/samba/smb.conf
+echo 'directory mask = 0777' >> /etc/samba/smb.conf
+echo 'guest ok = yes' >> /etc/samba/smb.conf
+echo 'path = /data/share/public' >> /etc/samba/smb.conf
+echo 'read only = no' >> /etc/samba/smb.conf
+echo '' >> /etc/samba/smb.conf
+echo '[mail]' >> /etc/samba/smb.conf
+echo 'browseable = yes' >> /etc/samba/smb.conf
+echo 'create mask = 0770' >> /etc/samba/smb.conf
+echo 'directory mask = 0770' >> /etc/samba/smb.conf
+echo 'guest ok = no' >> /etc/samba/smb.conf
+echo 'path = /data/share/mail' >> /etc/samba/smb.conf
+echo 'read list = readonly_user' >> /etc/samba/smb.conf
+echo 'read only = no' >> /etc/samba/smb.conf
+echo 'valid users = exclusive_user root readonly_user' >> /etc/samba/smb.conf
+echo 'write list = exclusive_user root' >> /etc/samba/smb.conf
+echo
+
+
+
+
 
 # setup user
 mkdir -p /opt/share
@@ -90,10 +217,6 @@ useradd -ms /usr/bin/false share
 openssl rand -hex 64 > /opt/share/share.key
 passwd --stdin share < /opt/share/share.key
 
-# setup share
-mkdir -p /data/share
-chmod 777 /data/share
-chown -R nobody:nogroup /data/share
 
 # setup sftp
 echo
