@@ -3,179 +3,156 @@
 ## Details
 
 - Cloud: Oracle
-- OS: Debian 12 / Pxvirt 8
-- IPv4: `79.72.63.98` / `10.0.0.30` / `10.0.10.1`
-
-The server hosts a wireguard server, pihole for blocking domains and unbound for name resolution. Additionally, there is a rathole server for exposing private network services to the public internet from remote systems.
+- OS: Debian 13
+- IPv4: `79.72.63.98`
 
 ```
 root@moci:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
-NAME              FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
-sda                                                                    200G
-├─sda1            vfat        CC5B-D676                                 63M   55.7M /boot/efi
-└─sda2            LVM2_member qNSC1D-XN73-VPZn-Mf6A-QQf5-Prpp-4B3vkI 199.9G
-  ├─vg-root       ext4        fb5fe93d-3636-446f-a455-6f5215e33b26      16G   10.6G /
-  ├─vg-swap       swap        e75e2c54-b64c-4842-a340-d615767f2852       1G         [SWAP]
-  ├─vg-data_tmeta                                                       92M
-  │ └─vg-data                                                        182.8G
-  └─vg-data_tdata                                                    182.8G
-    └─vg-data                                                        182.8G
+NAME   FSTYPE UUID                                   SIZE FSAVAIL MOUNTPOINTS
+sda                                                  200G
+├─sda1 vfat   CC5B-D676                               63M   57.1M /boot/efi
+├─sda2 swap   78ae6219-c2ef-46cc-b1eb-964460b24f1e     1G         [SWAP]
+├─sda3 ext4   01ee89a2-694c-47b8-8254-5ccfa1590870     8G    6.3G /
+└─sda4 ext4   08f42bd2-369f-4e73-9050-4fab74d05a00 190.9G  177.3G /data
 ```
 
 Ports opened:
 
 ```
-root@moci:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    Anywhere
-8006/tcp                   ALLOW IN    Anywhere
-
-Anywhere on enp0s6         ALLOW FWD   10.0.10.0/24 on vmbr0
-10.0.10.15 80/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
-10.0.10.15 443/tcp on vmbr0 ALLOW FWD   Anywhere on enp0s6
-10.0.10.10 61820/udp on vmbr0 ALLOW FWD   Anywhere on enp0s6
 ```
-
-#### To do:
-
-Restrict sensitive services to its own network interface - needed after the mesh network setup is done, (ie. ufw allow from 10.0.0.0/8 to any port 8080).
-Host a storage sharing solution on /mnt/storage. Mining. Git hosting.
-169.254.169.254
 
 ## Initial system setup
 
 ```bash
 
-# setup ssh
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
-echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
-echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
-systemctl restart ssh
-
-# setup netboot
+# downloads netboot
 apt install -y curl
 mkdir -p /boot/efi/EFI/netboot
 curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz-arm64.efi -o /boot/efi/EFI/netboot/netboot.xyz-arm64.efi
 
-# setup fstab
-echo 'UUID=CC5B-D676          /boot/efi       vfat defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2' > /etc/fstab
-echo '/dev/mapper/vg-root     /               ext4 defaults,errors=remount-ro 0 1' >> /etc/fstab
-echo '/dev/mapper/vg-swap     none            swap sw 0 0' >> /etc/fstab
+# sets up ssh server
+cat << 'EOF' > /root/.ssh/authorized_keys
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com
+EOF
+cat << 'EOF' > /etc/ssh/sshd_config.d/sshd.conf
+PasswordAuthentication no
+X11Forwarding no
+EOF
+systemctl restart ssh
 
-# disable ipv6
-echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
-echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-sysctl --system
+# sets up fstab
+cat << 'EOF' > /etc/fstab
+UUID=CC5B-D676                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
+UUID=78ae6219-c2ef-46cc-b1eb-964460b24f1e   none        swap    sw 0 0
+UUID=01ee89a2-694c-47b8-8254-5ccfa1590870   /           ext4    defaults,errors=remount-ro 0 1
+UUID=08f42bd2-369f-4e73-9050-4fab74d05a00   /data       ext4    defaults 0 0
+EOF
 
-# setup grub
+# disables ipv6 networking
+cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
+sysctl --system >/dev/null 2>&1
+
+# sets up grub
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 ipv6.disable=1"/' /etc/default/grub
 update-grub
 
-# setup apt
-apt install -y curl
+# sets up apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
-curl -Lfs https://mirrors.lierfang.com/pxcloud/lierfang.gpg -o /etc/apt/trusted.gpg.d/lierfang.gpg
-echo
-echo 'deb http://deb.debian.org/debian/ bookworm main' > /etc/apt/sources.list.d/debian.list
-echo 'deb http://deb.debian.org/debian/ bookworm-updates main' >> /etc/apt/sources.list.d/debian.list
-echo 'deb http://security.debian.org/debian-security bookworm-security main' >> /etc/apt/sources.list.d/debian.list
-echo
-echo 'deb  https://mirrors.lierfang.com/pxcloud/pxvirt bookworm main' > /etc/apt/sources.list.d/pxvirt-sources.list
-echo
+cat << EOF > /etc/apt/sources.list.d/debian.sources
+Types: deb
+URIs: http://deb.debian.org/debian/
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+$()
+Types: deb
+URIs: http://deb.debian.org/debian/
+Suites: trixie-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+$()
+Types: deb
+URIs: http://security.debian.org/debian-security/
+Suites: trixie-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+cat << EOF > /usr/bin/update
+#!/bin/sh
 apt update
 apt full-upgrade -y
-
-# setup hostname
-echo
-echo '127.0.0.1     localhost' > /etc/hosts
-echo '10.0.0.30     moci' >> /etc/hosts
-echo '' >> /etc/hosts
-echo '# The following lines are desirable for IPv6 capable hosts' >> /etc/hosts
-echo '::1       localhost ip6-localhost ip6-loopback' >> /etc/hosts
-echo 'ff02::1   ip6-allnodes' >> /etc/hosts
-echo 'ff02::2   ip6-allrouters' >> /etc/hosts
-echo
-
-# setup pxvirt dependencies
-apt install -y proxmox-ve pve-manager qemu-server pve-cluster
-# yes
-systemctl reboot
-
-# setup update scripts
-echo
-echo '#!/bin/sh' > /usr/bin/update
-echo 'apt update' >> /usr/bin/update
-echo 'apt full-upgrade -y' >> /usr/bin/update
-echo 'apt autoremove -y' >> /usr/bin/update
-echo
+apt autoremove -y
+EOF
 chmod +x /usr/bin/update
+update
 
-# setup network
-apt install -y ifupdown2
+# installs all required dependencies
+apt install -y podman ufw wireguard
 
-# setup storage
-lvcreate -l 100%FREE --thinpool data vg
+# sets up wireguard
+apt install -y ufw wireguard
+sed -i 's/^#\(net\/ipv4\/ip_forward=1\)/\1/' /etc/ufw/sysctl.conf
+(cd /etc/wireguard; umask 077; cd)
+wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub
+cat << EOF > /etc/wireguard/wg0.conf
+[Interface]
+Address = 10.1.10.1/24
+ListenPort = 61820
+PrivateKey = $(cat /etc/wireguard/server.key)" >> /etc/wireguard/wg0.conf
+' >> /etc/wireguard/wg0.conf
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+' >> /etc/wireguard/wg0.conf
+# neli-tunnel-moci-pihole
+#[Peer]
+#AllowedIPs = 10.1.10.4/32
+#PublicKey = 
+' >> /etc/wireguard/wg0.conf
+# neli-tunnel-moci-wireguard-server
+#[Peer]
+#AllowedIPs = 10.1.10.10/32
+#PublicKey = 
+' >> /etc/wireguard/wg0.conf
+# neli-tunnel-moci-rathole-server
+#[Peer]
+#AllowedIPs = 10.1.10.15/32
+#PublicKey = 
+' >> /etc/wireguard/wg0.conf
+# neli-tunnel-moci-pbs
+#[Peer]
+#AllowedIPs = 10.1.10.23/32
+#PublicKey = 
+' >> /etc/wireguard/wg0.conf
+# neli-tunnel-moci
+#[Peer]
+#AllowedIPs = 10.1.10.33/32
+#PublicKey = 
+' >> /etc/wireguard/wg0.conf
+# nedi-tunnel-moci-sftp
+#[Peer]
+#AllowedIPs = 10.1.10.46/32
+#PublicKey = 
+EOF
 
-# run pxvirt helper scripts
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/tools/pve/post-pve-install.sh)"
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/asylumexp/Proxmox/main/tools/pve/kernel-clean.sh)"
 
-# setup backup-host-to
+
 echo
-echo '#!/bin/bash' > /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo '! /usr/sbin/pvesm status --storage "$1" >/dev/null 2>&1 &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) not found, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_DATASTORE=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*datastore //p")' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_DATASTORE, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_NAMESPACE=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*namespace //p")' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_NAMESPACE, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_SERVER=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*server //p")' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_SERVER, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_USERNAME=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*username //p")' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_USERNAME, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_FINGERPRINT=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*fingerprint //p")' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_FINGERPRINT, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_PASSWORD=$(cat "/etc/pve/priv/storage/$1.pw")' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_PASSWORD, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'PBS_REPOSITORY="$PBS_USERNAME@$PBS_SERVER:$PBS_DATASTORE"' >> /usr/bin/backup-host-to
-echo 'test -z "$PBS_DATASTORE" &&' >> /usr/bin/backup-host-to
-echo '  echo "Storage ($1) configuration PBS_REPOSITORY, skipping backup" &&' >> /usr/bin/backup-host-to
-echo '  exit 1' >> /usr/bin/backup-host-to
-echo '' >> /usr/bin/backup-host-to
-echo 'export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY' >> /usr/bin/backup-host-to
-echo '/usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"' >> /usr/bin/backup-host-to
-echo
-chmod +x /usr/bin/backup-host-to
-(crontab -l 2>/dev/null; echo "0 */3 * * * (sleep 60 && /usr/bin/backup-host-to moci-pbs-local)") | crontab -
+systemctl enable wg-quick@wg0.service
+systemctl daemon-reload
+systemctl start wg-quick@wg0
+
+
+
+
+
+
+
+
 
 # add dependencies
 apt install -y btop neofetch ufw
