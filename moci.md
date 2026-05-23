@@ -94,20 +94,32 @@ update
 # installs all required dependencies
 apt install -y podman ufw wireguard
 
+# sets up podman socket
+apt install -y crun podman
+systemctl enable --now podman-restart.service podman.service podman.socket
+
 # sets up wireguard
 apt install -y ufw wireguard
 sed -i 's/^#\(net\/ipv4\/ip_forward=1\)/\1/' /etc/ufw/sysctl.conf
 (cd /etc/wireguard; umask 077; cd)
 wg genkey | tee /etc/wireguard/server.key | wg pubkey > /etc/wireguard/server.pub
 cat << EOF > /etc/wireguard/wg0.conf
+# server
 [Interface]
-Address = 10.1.10.1/24
+Address = 10.10.10.1/24
 ListenPort = 61820
-PrivateKey = $(cat /etc/wireguard/server.key)" >> /etc/wireguard/wg0.conf
-' >> /etc/wireguard/wg0.conf
-PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
-' >> /etc/wireguard/wg0.conf
+PrivateKey = $(cat /etc/wireguard/server.key)
+$()
+PostUp = iptables -t nat -A POSTROUTING -s 10.10.10.0/24 -o eth0 -j MASQUERADE
+PostUp = iptables -A INPUT -p udp -m udp --dport 61820 -j ACCEPT
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
+PostUp = iptables -A FORWARD -o wg0 -j ACCEPT;
+$()
+PostDown = iptables -t nat -D POSTROUTING -s 10.10.10.0/24 -o eth0 -j MASQUERADE
+PostDown = iptables -D INPUT -p udp -m udp --dport 61820 -j ACCEPT
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+PostDown = iptables -D FORWARD -o wg0 -j ACCEPT;
+$()
 # neli-tunnel-moci-pihole
 #[Peer]
 #AllowedIPs = 10.1.10.4/32
@@ -138,6 +150,12 @@ PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING 
 #AllowedIPs = 10.1.10.46/32
 #PublicKey = 
 EOF
+
+
+
+# WIP
+
+
 
 
 
