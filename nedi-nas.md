@@ -4,7 +4,7 @@
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.42`
+- IPv4: `192.168.0.4`
 
 Ports opened:
 
@@ -17,7 +17,7 @@ Ports opened:
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
 # privileged - mounting, fuse - mergerfs
-pct stop 1042
+pct stop 1004
 
 # add additinal 128gb mountpoint to /local
 # mounts additional disks

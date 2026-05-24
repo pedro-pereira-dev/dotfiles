@@ -12,13 +12,32 @@ NAME   FSTYPE UUID                                   SIZE FSAVAIL MOUNTPOINTS
 sda                                                  200G
 ├─sda1 vfat   CC5B-D676                               63M   57.1M /boot/efi
 ├─sda2 swap   78ae6219-c2ef-46cc-b1eb-964460b24f1e     1G         [SWAP]
-├─sda3 ext4   01ee89a2-694c-47b8-8254-5ccfa1590870     8G    6.3G /
-└─sda4 ext4   08f42bd2-369f-4e73-9050-4fab74d05a00 190.9G  177.3G /data
+├─sda3 ext4   2d5a4244-42ff-486b-a86f-ff650d06b71d     8G    6.3G /
+└─sda4 ext4   8281a591-7765-4b74-b9f4-f6fea2abd4c3 190.9G  177.3G /data
 ```
 
 Ports opened:
 
 ```
+root@moci:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    Anywhere
+445/tcp on wg0             ALLOW IN    10.0.0.0/8
+445/tcp on wg0             ALLOW IN    172.16.0.0/12
+445/tcp on wg0             ALLOW IN    192.168.0.0/16
+2333/tcp on wg0            ALLOW IN    10.0.0.0/8
+2333/tcp on wg0            ALLOW IN    172.16.0.0/12
+2333/tcp on wg0            ALLOW IN    192.168.0.0/16
+2376/tcp on wg0            ALLOW IN    10.0.0.0/8
+2376/tcp on wg0            ALLOW IN    172.16.0.0/12
+2376/tcp on wg0            ALLOW IN    192.168.0.0/16
+61820/udp on enp0s6        ALLOW IN    Anywhere
 ```
 
 ## Initial system setup
@@ -38,14 +57,15 @@ cat << 'EOF' > /etc/ssh/sshd_config.d/sshd.conf
 PasswordAuthentication no
 X11Forwarding no
 EOF
+rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
 
 # sets up fstab
 cat << 'EOF' > /etc/fstab
 UUID=CC5B-D676                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
 UUID=78ae6219-c2ef-46cc-b1eb-964460b24f1e   none        swap    sw 0 0
-UUID=01ee89a2-694c-47b8-8254-5ccfa1590870   /           ext4    defaults,errors=remount-ro 0 1
-UUID=08f42bd2-369f-4e73-9050-4fab74d05a00   /data       ext4    defaults 0 0
+UUID=2d5a4244-42ff-486b-a86f-ff650d06b71d   /           ext4    defaults,errors=remount-ro 0 1
+UUID=8281a591-7765-4b74-b9f4-f6fea2abd4c3   /data       ext4    defaults 0 0
 EOF
 
 # disables ipv6 networking
@@ -82,7 +102,7 @@ Suites: trixie-security
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
-cat << EOF > /usr/bin/update
+cat << 'EOF' > /usr/bin/update
 #!/bin/sh
 apt update
 apt full-upgrade -y
@@ -128,7 +148,7 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 # sets up samba
 mkdir -p /data/share /opt/podman/samba
 chmod -R 777 /data/share
-cat << EOF > /opt/podman/samba/config.yml
+cat << 'EOF' > /opt/podman/samba/config.yml
 share:
   - name: public
     path: /share
