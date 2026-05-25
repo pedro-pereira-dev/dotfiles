@@ -198,11 +198,11 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 
-# setup firewall
+# sets up firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# Wireguard
+# SSH
 ufw allow from 0.0.0.0/0 to any port 22 proto tcp
 # SMB
 ufw allow in on wg0 from 10.0.0.0/8 to any port 445 proto tcp

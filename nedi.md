@@ -4,22 +4,22 @@
 
 - Site: Personal
 - OS: Debian 13 / Proxmox 9
-- IPv4: `192.168.0.32`
+- IPv4: `192.168.0.5`
 
 ```
 root@nedi:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
 NAME        FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
 sda                                                            223.6G
-├─sda1      vfat        DFE9-64DC                                 63M   57.6M /boot/efi
+├─sda1      vfat        DFE9-64DC                                 63M   56.5M /boot/efi
 └─sda2      LVM2_member 16J7Dc-UyEk-5vVZ-3t8I-32mj-gco6-VuzYxP 223.5G
-  ├─vg-swap swap        618b6b8a-c95e-4c75-aa97-30818a8d94a3       1G         [SWAP]
-  └─vg-root ext4        dc9f9ad7-63f2-4ca4-b600-4b0a073018f6       8G    6.4G /
+  ├─vg-swap swap        f2d6d049-19f7-4715-a74e-e5b8a0931d3d       1G         [SWAP]
+  └─vg-root ext4        1044ac8d-4d16-4845-9ac7-db5ab13cdd9f       8G    6.4G /
 sdb                                                            223.6G
-└─sdb1      ext4        acb42cde-524b-4e3a-8fbb-690d705d4b91   223.6G
+└─sdb1      ext4        b21580d7-e52a-4ac2-bb6d-ca8347a33450   223.6G
 sdc                                                            931.5G
-└─sdc1      ext4        a5afbc7b-db11-4912-aa91-fc551d283d1d   931.5G
+└─sdc1      ext4        c7fb6d97-8e2b-4fe7-a454-34ba33ad2ae2   931.5G
 sdd                                                            931.5G
-└─sdd1      ext4        bc7bff6e-aad7-4d88-8a11-19305ed9d329   931.5G
+└─sdd1      ext4        b9fc0940-b26e-4990-90cd-e7b37ddf3884   931.5G
 ```
 
 Ports opened:
@@ -49,6 +49,7 @@ To                         Action      From
 apt install -y curl
 mkdir -p /boot/efi/EFI/netboot
 curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz.efi -o /boot/efi/EFI/netboot/netboot.xyz.efi
+apt remove -y curl
 
 # sets up ssh server
 cat << 'EOF' > /root/.ssh/authorized_keys
@@ -64,8 +65,8 @@ systemctl restart ssh
 # sets up fstab
 cat << 'EOF' > /etc/fstab
 UUID=DFE9-64DC                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
-UUID=618b6b8a-c95e-4c75-aa97-30818a8d94a3   none        swap    sw 0 0
-dc9f9ad7-63f2-4ca4-b600-4b0a073018f6        /           ext4    defaults,errors=remount-ro 0 1
+UUID=f2d6d049-19f7-4715-a74e-e5b8a0931d3d   none        swap    sw 0 0
+UUID=1044ac8d-4d16-4845-9ac7-db5ab13cdd9f   /           ext4    defaults,errors=remount-ro 0 1
 EOF
 
 # disables ipv6 networking
@@ -126,7 +127,7 @@ apt install -y proxmox-default-kernel
 systemctl reboot
 
 # sets up proxmox dependencies
-apt install -y chrony open-iscsi  postfix proxmox-ve
+apt install -y chrony open-iscsi postfix proxmox-ve
 # choose local only and leave the system name as is
 apt remove -y linux-image-amd64 'linux-image-6.12*'
 update-grub
@@ -310,7 +311,7 @@ export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY
 /usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"
 EOF
 chmod +x /usr/bin/backup-host-to
-#(crontab -l 2>/dev/null; echo "0 */3 * * * (sleep 60 && /usr/bin/backup-host-to nedi-pbs-local)") | crontab -
+(crontab -l 2>/dev/null; echo "0 */2 * * * (sleep 60 && /usr/bin/backup-host-to nedi-pbs-local)") | crontab -
 
 # sets up firewall
 apt install -y ufw
