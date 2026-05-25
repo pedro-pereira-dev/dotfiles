@@ -2,92 +2,118 @@
 
 ## Details
 
-- Cloud: Oracle
+- Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.22`
+- IPv4: `192.168.0.6`
 
 Ports opened:
 
 ```
-root@nedi-pbs:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp on eth0             ALLOW IN    10.0.0.0/8
-22/tcp on eth0             ALLOW IN    172.16.0.0/12
-22/tcp on eth0             ALLOW IN    192.168.0.0/16
-2376/tcp on eth0           ALLOW IN    10.0.0.0/8
-2376/tcp on eth0           ALLOW IN    172.16.0.0/12
-2376/tcp on eth0           ALLOW IN    192.168.0.0/16
-8007/tcp on eth0           ALLOW IN    10.0.0.0/8
-8007/tcp on eth0           ALLOW IN    172.16.0.0/12
-8007/tcp on eth0           ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
 
 ```bash
-# setup basic container
+# creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1022
+pct stop 1006
 
-# setup ssh
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
-echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
-echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
+# add additional 64gb mountpoint to /local
+pct start 1006
+pct enter 1006
+
+# sets up ssh server
+cat << 'EOF' > /root/.ssh/authorized_keys
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com
+EOF
+cat << 'EOF' > /etc/ssh/sshd_config.d/sshd.conf
+PasswordAuthentication no
+X11Forwarding no
+EOF
+rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
 
-## disable ipv6
-#echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
-#echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-#echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-#sysctl --system
+# disables ipv6 networking
+cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
+sysctl --system >/dev/null 2>&1
 
-# setup apt
+# sets up apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
-echo
-echo 'Types: deb' > /etc/apt/sources.list.d/debian.sources
-echo 'URIs: http://deb.debian.org/debian/' >> /etc/apt/sources.list.d/debian.sources
-echo 'Suites: trixie' >> /etc/apt/sources.list.d/debian.sources
-echo 'Components: main' >> /etc/apt/sources.list.d/debian.sources
-echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sources.list.d/debian.sources
-echo '' >> /etc/apt/sources.list.d/debian.sources
-echo 'Types: deb' >> /etc/apt/sources.list.d/debian.sources
-echo 'URIs: http://deb.debian.org/debian/' >> /etc/apt/sources.list.d/debian.sources
-echo 'Suites: trixie-updates' >> /etc/apt/sources.list.d/debian.sources
-echo 'Components: main' >> /etc/apt/sources.list.d/debian.sources
-echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sources.list.d/debian.sources
-echo '' >> /etc/apt/sources.list.d/debian.sources
-echo 'Types: deb' >> /etc/apt/sources.list.d/debian.sources
-echo 'URIs: http://security.debian.org/debian-security/' >> /etc/apt/sources.list.d/debian.sources
-echo 'Suites: trixie-security' >> /etc/apt/sources.list.d/debian.sources
-echo 'Components: main' >> /etc/apt/sources.list.d/debian.sources
-echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sources.list.d/debian.sources
-echo
+cat << EOF > /etc/apt/sources.list.d/debian.sources
+Types: deb
+URIs: http://deb.debian.org/debian/
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+$()
+Types: deb
+URIs: http://deb.debian.org/debian/
+Suites: trixie-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+$()
+Types: deb
+URIs: http://security.debian.org/debian-security/
+Suites: trixie-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+cat << 'EOF' > /usr/bin/update
+#!/bin/sh
 apt update
 apt full-upgrade -y
-
-# setup update scripts
-echo
-echo '#!/bin/sh' > /usr/bin/update
-echo 'apt update' >> /usr/bin/update
-echo 'apt full-upgrade -y' >> /usr/bin/update
-echo 'apt autoremove -y' >> /usr/bin/update
-echo
+apt autoremove -y
+EOF
 chmod +x /usr/bin/update
+update
 
-# install dependencies
-apt install -y build-essential crun podman ufw
+# installs all required dependencies
+apt install -y build-essential podman rclone ufw
 
-# setup podman
-apt install -y crun podman
+# sets up rclone user
+mkdir -p /opt/rclone
+echo > /opt/rclone/pbs.key
+
+# sets up rclone
+mkdir -p /data/share
+ln -fs /local /data/local
+cat << EOF > /usr/bin/mount-samba-share
+#!/bin/sh
+rclone mount :smb,encoding=None:pbs /data/share \
+  --smb-host 192.168.0.4 \
+  --smb-user pbs \
+  --smb-pass $(cat /opt/rclone/pbs.key) \
+  --cache-dir /tmp \
+  --daemon \
+  --vfs-cache-mode writes \
+  -v
+EOF
+chmod +x /usr/bin/mount-samba-share
+mount-samba-share
+(crontab -l 2>/dev/null; echo "@reboot mount-samba-share") | crontab -
+
+podman run -d --replace --restart always \
+  --name nedi-pbs-rclone \
+  --cap-add SYS_ADMIN \
+  --device /dev/fuse \
+  -v /data/share:/data/share:shared \
+  docker.io/rclone/rclone:latest \
+    mount :smb,encoding=None:pbs /data/share \
+      --smb-host 192.168.0.4 \
+      --smb-user pbs \
+      --smb-pass 2bb9d97804a9d7b69bbf2c900da3a940fcedf70ccded6ff5d502729c97d13e08b8187858dda8df6107b9e5b9d57333ef454bcc9e26305701acacd98824374693 \
+      --allow-non-empty \
+      --vfs-cache-mode writes -v
+
+# sets up podman socket
+apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# setup libnoipv6
+# builds libnoipv6
 mkdir -p /opt/podman/libnoipv6
 echo
 echo '#define _GNU_SOURCE' > /opt/podman/libnoipv6/libnoipv6.c
@@ -119,9 +145,9 @@ echo '}' >> /opt/podman/libnoipv6/libnoipv6.c
 echo
 gcc -shared -fPIC -ldl /opt/podman/libnoipv6/libnoipv6.c -o /opt/podman/libnoipv6/libnoipv6.so
 
-# setup pbs
+# sets up pbs
 mkdir -p /local /opt/podman/pbs
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-pbs \
   --network host \
   --tmpfs /run \
@@ -132,11 +158,12 @@ podman run -d --restart always \
   --health-cmd='["curl", "-f", "http://127.0.0.1:8007"]' \
   --health-on-failure restart \
   docker.io/ayufan/proxmox-backup-server:latest
+# admin / pbspbs
 
-# setup hawser
+# sets up hawser
 mkdir -p /opt/podman/hawser
 openssl rand -hex 64 > /opt/podman/hawser/token.key
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-pbs-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
@@ -144,24 +171,23 @@ podman run -d --restart always \
   -v /opt/podman/hawser:/etc/hawser \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   ghcr.io/finsys/hawser:latest
-cat /opt/podman/hawser/token.key
 
-# setup firewall
+# sets up firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
-# ssh - 22
-ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
-# hawser - 2376
-ufw allow in on eth0 from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
-# PBS - 8007
-ufw allow in on eth0 from 10.0.0.0/8 to any port 8007 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 8007 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 8007 proto tcp
+# SSH
+ufw allow from 10.0.0.0/8 to any port 22 proto tcp
+ufw allow from 172.16.0.0/12 to any port 22 proto tcp
+ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+# Hawser
+ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
+# PBS
+ufw allow from 10.0.0.0/8 to any port 8007 proto tcp
+ufw allow from 172.16.0.0/12 to any port 8007 proto tcp
+ufw allow from 192.168.0.0/16 to any port 8007 proto tcp
 ufw enable
 
 ```
