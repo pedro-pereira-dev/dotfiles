@@ -109,9 +109,9 @@ mkdir -p /mnt/storage/{fast,slow}
 mkdir -p /data
 ln -fs /local /mnt/disks/fast-01
 cat << EOF > /etc/fstab
-UUID=bc7bff6e-aad7-4d88-8a11-19305ed9d329   /mnt/disks/fast-02      ext4 defaults 0 0
-UUID=acb42cde-524b-4e3a-8fbb-690d705d4b91   /mnt/disks/slow-01      ext4 defaults 0 0
-UUID=a5afbc7b-db11-4912-aa91-fc551d283d1d   /mnt/disks/parity-01    ext4 defaults 0 0
+UUID=b21580d7-e52a-4ac2-bb6d-ca8347a33450   /mnt/disks/fast-02      ext4 defaults 0 0
+UUID=c7fb6d97-8e2b-4fe7-a454-34ba33ad2ae2   /mnt/disks/slow-01      ext4 defaults 0 0
+UUID=b9fc0940-b26e-4990-90cd-e7b37ddf3884   /mnt/disks/parity-01    ext4 defaults 0 0
 $()
 /mnt/disks/fast-*                           /mnt/storage/fast       mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults 0 0
 /mnt/disks/slow-*                           /mnt/storage/slow       mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults 0 0
@@ -154,7 +154,7 @@ log_message 'Completed snapraid maintenance'
 EOF
 chmod +x /usr/bin/snapraid-maintenance
 snapraid-maintenance
-(crontab -l 2>/dev/null; echo "0 2 * * * snapraid-maintenance") | crontab -
+(crontab -l 2>/dev/null; echo "0 4 * * * snapraid-maintenance") | crontab -
 
 # enables hdd spindown
 apt install -y hdparm
@@ -291,19 +291,20 @@ chmod +x /usr/bin/uncache-data
 uncache-data
 (crontab -l 2>/dev/null; echo "@daily uncache-data") | crontab -
 
-# setup podman
+# sets up podman
 apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# setup users
+# sets up samba users
 mkdir -p /opt/podman/samba/users
 openssl rand -hex 64 > /opt/podman/samba/users/admin.key
 openssl rand -hex 64 > /opt/podman/samba/users/pbs.key
 openssl rand -hex 64 > /opt/podman/samba/users/pve.key
 openssl rand -hex 64 > /opt/podman/samba/users/zerobyte.key
 
-# setup samba
-mkdir -p /data/share/{public,pbs,pve}
+# sets up samba
+mkdir -p /data/share/public
+mkdir -p /data/share/pbs/nedi-pbs
 mkdir -p /data/share/pve/nedi
 chmod -R 777 /data/share
 cat << EOF > /opt/podman/samba/config.yml
@@ -363,7 +364,7 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   docker.io/crazymax/samba:latest
 
-# setup hawser
+# sets up hawser
 mkdir -p /opt/podman/hawser
 openssl rand -hex 64 > /opt/podman/hawser/token.key
 podman run -d --replace --restart always \
@@ -376,7 +377,7 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 
-# setup firewall
+# sets up firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
