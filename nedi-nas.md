@@ -9,6 +9,32 @@
 Ports opened:
 
 ```
+root@nedi-nas:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+445/tcp                    ALLOW IN    10.0.0.0/8
+445/tcp                    ALLOW IN    172.16.0.0/12
+445/tcp                    ALLOW IN    192.168.0.0/16
+2376/tcp                   ALLOW IN    10.0.0.0/8
+2376/tcp                   ALLOW IN    172.16.0.0/12
+2376/tcp                   ALLOW IN    192.168.0.0/16
+3702                       ALLOW IN    10.0.0.0/8
+3702                       ALLOW IN    172.16.0.0/12
+3702                       ALLOW IN    192.168.0.0/16
+5353/udp                   ALLOW IN    10.0.0.0/8
+5353/udp                   ALLOW IN    172.16.0.0/12
+5353/udp                   ALLOW IN    192.168.0.0/16
+5355                       ALLOW IN    10.0.0.0/8
+5355                       ALLOW IN    172.16.0.0/12
+5355                       ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -19,31 +45,24 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/Proxmo
 # privileged - mounting, fuse - mergerfs
 pct stop 1004
 
-# add additinal 128gb mountpoint to /local
-# mounts additional disks
-cat << EOF >> /etc/pve/lxc/1042.conf
-mp0: data:vm-1042-disk-1,mp=/local,size=128G
-dev0: /dev/sdb1
-dev1: /dev/sdc1
-dev2: /dev/sdd1
-lxc.cgroup2.devices.allow: b 8:* rwm
-EOF
-
-pct start 1042
-pct enter 1042
+# add additional 128gb mountpoint to /local
+# add additional disks as device passthroughs
+pct start 1004
+pct enter 1004
 
 # sets up ssh server
-cat << EOF > /root/.ssh/authorized_keys
+cat << 'EOF' > /root/.ssh/authorized_keys
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com
 EOF
-cat << EOF > /etc/ssh/sshd_config.d/sshd.conf
+cat << 'EOF' > /etc/ssh/sshd_config.d/sshd.conf
 PasswordAuthentication no
 X11Forwarding no
 EOF
+rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
 
 # disables ipv6 networking
-cat << EOF > /etc/sysctl.d/99-disable-ipv6.conf
+cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
 net.ipv6.conf.lo.disable_ipv6 = 1
@@ -71,7 +90,7 @@ Suites: trixie-security
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
-cat << EOF > /usr/bin/update
+cat << 'EOF' > /usr/bin/update
 #!/bin/sh
 apt update
 apt full-upgrade -y
@@ -90,9 +109,9 @@ mkdir -p /mnt/storage/{fast,slow}
 mkdir -p /data
 ln -fs /local /mnt/disks/fast-01
 cat << EOF > /etc/fstab
-UUID=39a0ece3-e591-4076-b9fa-18623e9441ff   /mnt/disks/fast-02      ext4 defaults 0 0
-UUID=3d2a00d4-0650-4a0c-af1c-30e814922cda   /mnt/disks/slow-01      ext4 defaults 0 0
-UUID=ce94c2e2-b0e7-40c0-89a0-1846bc567155   /mnt/disks/parity-01    ext4 defaults 0 0
+UUID=bc7bff6e-aad7-4d88-8a11-19305ed9d329   /mnt/disks/fast-02      ext4 defaults 0 0
+UUID=acb42cde-524b-4e3a-8fbb-690d705d4b91   /mnt/disks/slow-01      ext4 defaults 0 0
+UUID=a5afbc7b-db11-4912-aa91-fc551d283d1d   /mnt/disks/parity-01    ext4 defaults 0 0
 $()
 /mnt/disks/fast-*                           /mnt/storage/fast       mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults 0 0
 /mnt/disks/slow-*                           /mnt/storage/slow       mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults 0 0
@@ -104,7 +123,7 @@ mount -a
 
 # sets up snapraid
 apt install -y snapraid
-cat << EOF > /etc/snapraid.conf
+cat << 'EOF' > /etc/snapraid.conf
 autosave 64
 disk fast-01 /mnt/disks/fast-01
 disk fast-02 /mnt/disks/fast-02
@@ -115,7 +134,6 @@ content /mnt/disks/fast-02/.snapraid.content
 content /mnt/disks/slow-01/.snapraid.content
 parity  /mnt/disks/parity-01/.snapraid.parity
 EOF
-snapraid sync
 
 # sets up parity maintenance
 cat << 'EOF' > /usr/bin/snapraid-maintenance
@@ -280,12 +298,13 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 # setup users
 mkdir -p /opt/podman/samba/users
 openssl rand -hex 64 > /opt/podman/samba/users/admin.key
-openssl rand -hex 64 > /opt/podman/samba/users/backup.key
 openssl rand -hex 64 > /opt/podman/samba/users/pbs.key
 openssl rand -hex 64 > /opt/podman/samba/users/pve.key
+openssl rand -hex 64 > /opt/podman/samba/users/zerobyte.key
 
 # setup samba
 mkdir -p /data/share/{public,pbs,pve}
+mkdir -p /data/share/pve/nedi
 chmod -R 777 /data/share
 cat << EOF > /opt/podman/samba/config.yml
 auth:
@@ -294,26 +313,26 @@ auth:
     uid: 1000
     gid: 1000
     password: $(cat /opt/podman/samba/users/admin.key)
-  - user: backup
-    group: backup
-    uid: 1001
-    gid: 1001
-    password: $(cat /opt/podman/samba/users/backup.key)
   - user: pbs
     group: pbs
-    uid: 1002
-    gid: 1002
+    uid: 1001
+    gid: 1001
     password: $(cat /opt/podman/samba/users/pbs.key)
   - user: pve
     group: pve
+    uid: 1002
+    gid: 1002
+    password: $(cat /opt/podman/samba/users/pve.key)
+  - user: zerobyte
+    group: zerobyte
     uid: 1003
     gid: 1003
-    password: $(cat /opt/podman/samba/users/pve.key)
+    password: $(cat /opt/podman/samba/users/zerobyte.key)
 share:
   - name: share
     path: /share
     guestok: no
-    validusers: admin backup
+    validusers: admin zerobyte
     writelist: admin
     browsable: no
   - name: public
@@ -332,7 +351,7 @@ share:
     writelist: pve
     browsable: no
 EOF
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-nas \
   --hostname nedi-nas \
   --network host \
@@ -347,7 +366,7 @@ podman run -d --restart always \
 # setup hawser
 mkdir -p /opt/podman/hawser
 openssl rand -hex 64 > /opt/podman/hawser/token.key
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-nas-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
@@ -356,7 +375,6 @@ podman run -d --restart always \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
-cat /opt/podman/hawser/token.key
 
 # setup firewall
 apt install -y ufw

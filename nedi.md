@@ -25,6 +25,20 @@ sdd                                                            931.5G
 Ports opened:
 
 ```
+root@nedi:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), disabled (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+8006/tcp                   ALLOW IN    10.0.0.0/8
+8006/tcp                   ALLOW IN    172.16.0.0/12
+8006/tcp                   ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -88,7 +102,9 @@ Suites: trixie-security
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
+apt install -y curl
 curl -L https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg -o /usr/share/keyrings/proxmox-archive-keyring.gpg
+apt remove -y curl
 cat << 'EOF' > /etc/apt/sources.list.d/pve-install-repo.sources
 Types: deb
 URIs: http://download.proxmox.com/debian/pve
