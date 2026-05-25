@@ -72,42 +72,7 @@ chmod +x /usr/bin/update
 update
 
 # installs all required dependencies
-apt install -y build-essential podman rclone ufw
-
-# sets up rclone user
-mkdir -p /opt/rclone
-echo > /opt/rclone/pbs.key
-
-# sets up rclone
-mkdir -p /data/share
-ln -fs /local /data/local
-cat << EOF > /usr/bin/mount-samba-share
-#!/bin/sh
-rclone mount :smb,encoding=None:pbs /data/share \
-  --smb-host 192.168.0.4 \
-  --smb-user pbs \
-  --smb-pass $(cat /opt/rclone/pbs.key) \
-  --cache-dir /tmp \
-  --daemon \
-  --vfs-cache-mode writes \
-  -v
-EOF
-chmod +x /usr/bin/mount-samba-share
-mount-samba-share
-(crontab -l 2>/dev/null; echo "@reboot mount-samba-share") | crontab -
-
-podman run -d --replace --restart always \
-  --name nedi-pbs-rclone \
-  --cap-add SYS_ADMIN \
-  --device /dev/fuse \
-  -v /data/share:/data/share:shared \
-  docker.io/rclone/rclone:latest \
-    mount :smb,encoding=None:pbs /data/share \
-      --smb-host 192.168.0.4 \
-      --smb-user pbs \
-      --smb-pass 2bb9d97804a9d7b69bbf2c900da3a940fcedf70ccded6ff5d502729c97d13e08b8187858dda8df6107b9e5b9d57333ef454bcc9e26305701acacd98824374693 \
-      --allow-non-empty \
-      --vfs-cache-mode writes -v
+apt install -y build-essential podman ufw
 
 # sets up podman socket
 apt install -y podman
@@ -115,34 +80,34 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 
 # builds libnoipv6
 mkdir -p /opt/podman/libnoipv6
-echo
-echo '#define _GNU_SOURCE' > /opt/podman/libnoipv6/libnoipv6.c
-echo '#include <sys/types.h>' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '#include <sys/socket.h>' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '#include <netinet/in.h>' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '#include <dlfcn.h>' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '#include <errno.h>' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '#include <string.h>' >> /opt/podman/libnoipv6/libnoipv6.c
-echo 'int socket(int domain, int type, int protocol) {' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    if (domain == AF_INET6) {' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        domain = AF_INET; // Force IPv4' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    }' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    int (*orig_socket)(int, int, int) = dlsym(RTLD_NEXT, "socket");' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    return orig_socket(domain, type, protocol);' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '}' >> /opt/podman/libnoipv6/libnoipv6.c
-echo 'int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    int (*orig_bind)(int, const struct sockaddr *, socklen_t) = dlsym(RTLD_NEXT, "bind");' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    if (addr->sa_family == AF_INET6) {' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        struct sockaddr_in v4_addr;' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        memset(&v4_addr, 0, sizeof(v4_addr));' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        v4_addr.sin_family = AF_INET;' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        v4_addr.sin_port = ((struct sockaddr_in6 *)addr)->sin6_port;' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        v4_addr.sin_addr.s_addr = INADDR_ANY; // Translate [::] to 0.0.0.0' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '        return orig_bind(sockfd, (const struct sockaddr *)&v4_addr, sizeof(v4_addr));' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    }' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '    return orig_bind(sockfd, addr, addrlen);' >> /opt/podman/libnoipv6/libnoipv6.c
-echo '}' >> /opt/podman/libnoipv6/libnoipv6.c
-echo
+cat << 'EOF' > /opt/podman/libnoipv6/libnoipv6.c
+#define _GNU_SOURCE
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <dlfcn.h>
+#include <errno.h>
+#include <string.h>
+int socket(int domain, int type, int protocol) {
+    if (domain == AF_INET6) {
+        domain = AF_INET; // Force IPv4
+    }
+    int (*orig_socket)(int, int, int) = dlsym(RTLD_NEXT, "socket");
+    return orig_socket(domain, type, protocol);
+}
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+    int (*orig_bind)(int, const struct sockaddr *, socklen_t) = dlsym(RTLD_NEXT, "bind");
+    if (addr->sa_family == AF_INET6) {
+        struct sockaddr_in v4_addr;
+        memset(&v4_addr, 0, sizeof(v4_addr));
+        v4_addr.sin_family = AF_INET;
+        v4_addr.sin_port = ((struct sockaddr_in6 *)addr)->sin6_port;
+        v4_addr.sin_addr.s_addr = INADDR_ANY; // Translate [::] to 0.0.0.0
+        return orig_bind(sockfd, (const struct sockaddr *)&v4_addr, sizeof(v4_addr));
+    }
+    return orig_bind(sockfd, addr, addrlen);
+}
+EOF
 gcc -shared -fPIC -ldl /opt/podman/libnoipv6/libnoipv6.c -o /opt/podman/libnoipv6/libnoipv6.so
 
 # sets up pbs
@@ -159,6 +124,29 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   docker.io/ayufan/proxmox-backup-server:latest
 # admin / pbspbs
+
+# sets up rclone user
+mkdir -p /opt/rclone
+touch /opt/rclone/pbs.key
+
+# sets up rclone
+mkdir -p /data/share
+ln -fs /local /data/local
+podman run -d --replace --restart always \
+  --name nedi-pbs-rclone \
+  --cap-add SYS_ADMIN \
+  --device /dev/fuse \
+  -e RCLONE_SMB_HOST=192.168.0.4 \
+  -e RCLONE_SMB_PASS=$(podman run --rm docker.io/rclone/rclone:latest obscure $(cat /opt/rclone/pbs.key)) \
+  -e RCLONE_SMB_USER=pbs \
+  -v /data/share:/share:shared \
+  --health-cmd='["stat", "/share/nedi-pbsa"]' \
+  --health-on-failure restart \
+  docker.io/rclone/rclone:latest \
+    mount :smb:pbs /share --allow-non-empty --vfs-cache-mode full
+
+# sets up mount healing
+(crontab -l 2>/dev/null; echo "*/5 * * * * stat /data/share 2>&1 | grep -q 'Transport endpoint is not connected' && fusermount -u /data/share") | crontab -
 
 # sets up hawser
 mkdir -p /opt/podman/hawser
