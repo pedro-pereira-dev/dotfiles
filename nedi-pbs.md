@@ -9,6 +9,23 @@
 Ports opened:
 
 ```
+root@nedi-pbs:~# ufw status verbose
+Status: active
+Logging: on (low)
+Default: deny (incoming), allow (outgoing), deny (routed)
+New profiles: skip
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW IN    10.0.0.0/8
+22/tcp                     ALLOW IN    172.16.0.0/12
+22/tcp                     ALLOW IN    192.168.0.0/16
+2376/tcp                   ALLOW IN    10.0.0.0/8
+2376/tcp                   ALLOW IN    172.16.0.0/12
+2376/tcp                   ALLOW IN    192.168.0.0/16
+8007/tcp                   ALLOW IN    10.0.0.0/8
+8007/tcp                   ALLOW IN    172.16.0.0/12
+8007/tcp                   ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -16,6 +33,7 @@ Ports opened:
 ```bash
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+# fuse - mergerfs
 pct stop 1006
 
 # add additional 64gb mountpoint to /local
@@ -132,21 +150,30 @@ touch /opt/rclone/pbs.key
 # sets up rclone
 mkdir -p /data/share
 ln -fs /local /data/local
+cat << 'EOF' > /opt/rclone/entrypoint.sh
+#!/bin/sh
+fusermount -uz /share 2>/dev/null || true
+exec rclone "$@"
+EOF
+chmod +x /opt/rclone/entrypoint.sh
 podman run -d --replace --restart always \
   --name nedi-pbs-rclone \
   --cap-add SYS_ADMIN \
   --device /dev/fuse \
+  --entrypoint /entrypoint.sh \
+  --network host \
   -e RCLONE_SMB_HOST=192.168.0.4 \
   -e RCLONE_SMB_PASS=$(podman run --rm docker.io/rclone/rclone:latest obscure $(cat /opt/rclone/pbs.key)) \
   -e RCLONE_SMB_USER=pbs \
   -v /data/share:/share:shared \
-  --health-cmd='["stat", "/share/nedi-pbsa"]' \
+  -v /opt/rclone/entrypoint.sh:/entrypoint.sh:ro \
+  --health-cmd='["stat", "/share/nedi-pbs"]' \
   --health-on-failure restart \
   docker.io/rclone/rclone:latest \
     mount :smb:pbs /share --allow-non-empty --vfs-cache-mode full
 
 # sets up mount healing
-(crontab -l 2>/dev/null; echo "*/5 * * * * stat /data/share 2>&1 | grep -q 'Transport endpoint is not connected' && fusermount -u /data/share") | crontab -
+(crontab -l 2>/dev/null; echo '*/5 * * * * stat /data/share 2>&1 | grep -q "Transport endpoint is not connected" && fusermount -u /data/share') | crontab -
 
 # sets up hawser
 mkdir -p /opt/podman/hawser
