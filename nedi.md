@@ -262,7 +262,7 @@ if __name__ == "__main__":
 EOF
 chmod +x /usr/bin/autoaspm
 autoaspm
-(crontab -l 2>/dev/null; echo "@reboot (sleep 60 && /usr/bin/autoaspm)") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot (sleep 60 && autoaspm)") | crontab -
 
 # sets up backup-host-to
 cat << 'EOF' > /usr/bin/backup-host-to
@@ -311,7 +311,7 @@ export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY
 /usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"
 EOF
 chmod +x /usr/bin/backup-host-to
-(crontab -l 2>/dev/null; echo "0 */2 * * * (sleep 60 && /usr/bin/backup-host-to nedi-pbs-local)") | crontab -
+(crontab -l 2>/dev/null; echo "0 2 * * * backup-host-to nedi-pbs-local") | crontab -
 
 # sets up firewall
 apt install -y ufw

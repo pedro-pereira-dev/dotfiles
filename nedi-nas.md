@@ -117,9 +117,16 @@ $()
 /mnt/disks/slow-*                           /mnt/storage/slow       mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults 0 0
 /mnt/disks/fast-*:/mnt/disks/slow-*         /data                   mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults,category.create=ff 0 0
 EOF
-(crontab -l 2>/dev/null; echo "@reboot mount -a") | crontab -
+(crontab -l 2>/dev/null; echo '@reboot awk "$1 !~ /^#/ && $2 {print $2}" /etc/fstab | tac | xargs -I {} umount -l "{}" && mount -a') | crontab -
 systemctl daemon-reload
 mount -a
+
+
+
+awk '$3 ~ /^fuse/ {print $2}' /proc/mounts
+
+
+
 
 # sets up snapraid
 apt install -y snapraid
