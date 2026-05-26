@@ -117,16 +117,9 @@ $()
 /mnt/disks/slow-*                           /mnt/storage/slow       mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults 0 0
 /mnt/disks/fast-*:/mnt/disks/slow-*         /data                   mergerfs x-systemd.requires-mount-for=/mnt/disks,defaults,category.create=ff 0 0
 EOF
-(crontab -l 2>/dev/null; echo '@reboot awk "$1 !~ /^#/ && $2 {print $2}" /etc/fstab | tac | xargs -I {} umount -l "{}" && mount -a') | crontab -
+(crontab -l 2>/dev/null; echo '@reboot mount -a') | crontab -
 systemctl daemon-reload
 mount -a
-
-
-
-awk '$3 ~ /^fuse/ {print $2}' /proc/mounts
-
-
-
 
 # sets up snapraid
 apt install -y snapraid
@@ -161,7 +154,7 @@ log_message 'Completed snapraid maintenance'
 EOF
 chmod +x /usr/bin/snapraid-maintenance
 snapraid-maintenance
-(crontab -l 2>/dev/null; echo "0 4 * * * snapraid-maintenance") | crontab -
+(crontab -l 2>/dev/null; echo '0 4 * * * snapraid-maintenance') | crontab -
 
 # enables hdd spindown
 apt install -y hdparm
@@ -172,7 +165,7 @@ for d in /sys/block/sd*; do
 EOF
 chmod +x /usr/bin/spindown
 spindown
-(crontab -l 2>/dev/null; echo "@reboot spindown") | crontab -
+(crontab -l 2>/dev/null; echo '@reboot spindown') | crontab -
 
 # enables spindown logs
 cat << 'EOF' > /usr/bin/spindown-log
@@ -235,7 +228,7 @@ done
 EOF
 chmod +x /usr/bin/spindown-log
 spindown-log
-(crontab -l 2>/dev/null; echo "*/15 * * * * spindown-log") | crontab -
+(crontab -l 2>/dev/null; echo '*/15 * * * * spindown-log') | crontab -
 
 # enables uncaching
 cat << 'EOF' > /usr/bin/uncache-data
@@ -296,7 +289,7 @@ printf '%s - %s file(s) in %s seconds \n' \
 EOF
 chmod +x /usr/bin/uncache-data
 uncache-data
-(crontab -l 2>/dev/null; echo "@daily uncache-data") | crontab -
+(crontab -l 2>/dev/null; echo '@daily uncache-data') | crontab -
 
 # sets up podman
 apt install -y podman
