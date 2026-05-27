@@ -4,7 +4,7 @@
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.3`
+- IPv4: `192.168.0.2`
 
 Ports opened:
 
@@ -34,92 +34,96 @@ To                         Action      From
 ## Initial system setup
 
 ```bash
-# setup basic container
+# creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1003
+pct enter 1002
 
-# setup ssh
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com' > /root/.ssh/authorized_keys
-echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/sshd.conf
-echo 'X11Forwarding no' >> /etc/ssh/sshd_config.d/sshd.conf
+# sets up ssh server
+cat << 'EOF' > /root/.ssh/authorized_keys
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd 11753516+pedro-pereira-dev@users.noreply.github.com
+EOF
+cat << 'EOF' > /etc/ssh/sshd_config.d/sshd.conf
+PasswordAuthentication no
+X11Forwarding no
+EOF
+rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
 
-# disable ipv6
-echo 'net.ipv6.conf.all.disable_ipv6 = 1' > /etc/sysctl.d/99-disable-ipv6.conf
-echo 'net.ipv6.conf.default.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-echo 'net.ipv6.conf.lo.disable_ipv6 = 1' >> /etc/sysctl.d/99-disable-ipv6.conf
-sysctl --system
+# disables ipv6 networking
+cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+EOF
+sysctl --system >/dev/null 2>&1
 
-# setup apt
+# sets up apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
-echo
-echo 'Types: deb' > /etc/apt/sources.list.d/debian.sources
-echo 'URIs: http://deb.debian.org/debian/' >> /etc/apt/sources.list.d/debian.sources
-echo 'Suites: trixie' >> /etc/apt/sources.list.d/debian.sources
-echo 'Components: main' >> /etc/apt/sources.list.d/debian.sources
-echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sources.list.d/debian.sources
-echo '' >> /etc/apt/sources.list.d/debian.sources
-echo 'Types: deb' >> /etc/apt/sources.list.d/debian.sources
-echo 'URIs: http://deb.debian.org/debian/' >> /etc/apt/sources.list.d/debian.sources
-echo 'Suites: trixie-updates' >> /etc/apt/sources.list.d/debian.sources
-echo 'Components: main' >> /etc/apt/sources.list.d/debian.sources
-echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sources.list.d/debian.sources
-echo '' >> /etc/apt/sources.list.d/debian.sources
-echo 'Types: deb' >> /etc/apt/sources.list.d/debian.sources
-echo 'URIs: http://security.debian.org/debian-security/' >> /etc/apt/sources.list.d/debian.sources
-echo 'Suites: trixie-security' >> /etc/apt/sources.list.d/debian.sources
-echo 'Components: main' >> /etc/apt/sources.list.d/debian.sources
-echo 'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' >> /etc/apt/sources.list.d/debian.sources
-echo
+cat << EOF > /etc/apt/sources.list.d/debian.sources
+Types: deb
+URIs: http://deb.debian.org/debian/
+Suites: trixie
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+$()
+Types: deb
+URIs: http://deb.debian.org/debian/
+Suites: trixie-updates
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+$()
+Types: deb
+URIs: http://security.debian.org/debian-security/
+Suites: trixie-security
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+cat << 'EOF' > /usr/bin/update
+#!/bin/sh
 apt update
 apt full-upgrade -y
-
-# setup update scripts
-echo
-echo '#!/bin/sh' > /usr/bin/update
-echo 'apt update' >> /usr/bin/update
-echo 'apt full-upgrade -y' >> /usr/bin/update
-echo 'apt autoremove -y' >> /usr/bin/update
-echo
+apt autoremove -y
+EOF
 chmod +x /usr/bin/update
+update
 
-# install dependencies
-apt install -y crun podman ufw
+# installs all required dependencies
+apt install -y podman ufw
 
-# setup podman
-apt install -y crun podman
+# sets up podman socket
+apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# setup unbound
+# sets up unbound
 mkdir -p /opt/podman/unbound
-echo
-echo 'server:' > /opt/podman/unbound/unbound.conf
-echo '  access-control: 10.0.0.0/8 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 169.254.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 172.16.0.0/12 allow' >> /opt/podman/unbound/unbound.conf
-echo '  access-control: 192.168.0.0/16 allow' >> /opt/podman/unbound/unbound.conf
-echo '  cache-max-ttl: 14400' >> /opt/podman/unbound/unbound.conf
-echo '  cache-min-ttl: 300' >> /opt/podman/unbound/unbound.conf
-echo '  do-ip6: no' >> /opt/podman/unbound/unbound.conf
-echo '  harden-referral-path: yes' >> /opt/podman/unbound/unbound.conf
-echo '  hide-identity: yes' >> /opt/podman/unbound/unbound.conf
-echo '  hide-version: yes' >> /opt/podman/unbound/unbound.conf
-echo '  interface: 0.0.0.0' >> /opt/podman/unbound/unbound.conf
-echo '  key-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  msg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  neg-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  port: 5353' >> /opt/podman/unbound/unbound.conf
-echo '  prefetch-key: yes' >> /opt/podman/unbound/unbound.conf
-echo '  prefetch: yes' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 10.0.0.0/8' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 169.254.0.0/16' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 172.16.0.0/12' >> /opt/podman/unbound/unbound.conf
-echo '  private-address: 192.168.0.0/16' >> /opt/podman/unbound/unbound.conf
-echo '  rrset-cache-size: 256m' >> /opt/podman/unbound/unbound.conf
-echo '  so-sndbuf: 0' >> /opt/podman/unbound/unbound.conf
-echo '  verbosity: 0' >> /opt/podman/unbound/unbound.conf
-echo
-podman run -d --restart always \
+cat << 'EOF' > /opt/podman/unbound/unbound.conf
+server:
+  access-control: 10.0.0.0/8 allow
+  access-control: 169.254.0.0/16 allow
+  access-control: 172.16.0.0/12 allow
+  access-control: 192.168.0.0/16 allow
+  cache-max-ttl: 14400
+  cache-min-ttl: 300
+  do-ip6: no
+  harden-referral-path: yes
+  hide-identity: yes
+  hide-version: yes
+  interface: 0.0.0.0
+  key-cache-size: 256m
+  msg-cache-size: 256m
+  neg-cache-size: 256m
+  port: 5353
+  prefetch-key: yes
+  prefetch: yes
+  private-address: 10.0.0.0/8
+  private-address: 169.254.0.0/16
+  private-address: 172.16.0.0/12
+  private-address: 192.168.0.0/16
+  rrset-cache-size: 256m
+  so-sndbuf: 0
+  verbosity: 0
+EOF
+podman run -d --replace --restart always \
   --name nedi-pihole-unbound \
   --network host \
   --health-cmd='["unbound-host", "gentoo.org"]' \
@@ -127,9 +131,9 @@ podman run -d --restart always \
   -v /opt/podman/unbound/unbound.conf:/etc/unbound/unbound.conf \
   docker.io/alpinelinux/unbound:latest
 
-# setup pihole
+# sets up pihole
 mkdir -p /opt/podman/pihole
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-pihole \
   --hostname nedi-pihole \
   --network host \
@@ -150,22 +154,10 @@ podman run -d --restart always \
   --health-on-failure restart \
   docker.io/pihole/pihole:latest
 
-# setup nebula-sync
-podman run -d --restart always \
-  --name nedi-pihole-nebula-sync \
-  --network host \
-  -e CRON='0 8 * * *' \
-  -e FULL_SYNC=true \
-  -e PRIMARY='http://192.168.0.2|' \
-  -e REPLICAS='http://127.0.0.1|' \
-  -e RUN_GRAVITY=true \
-  --health-on-failure restart \
-  ghcr.io/lovelaze/nebula-sync:latest
-
-# setup hawser
+# sets up hawser
 mkdir -p /opt/podman/hawser
 openssl rand -hex 64 > /opt/podman/hawser/token.key
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-pihole-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
@@ -174,9 +166,8 @@ podman run -d --restart always \
   -v /run/podman/podman.sock:/var/run/docker.sock \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
-cat /opt/podman/hawser/token.key
 
-# setup firewall
+# sets up firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
