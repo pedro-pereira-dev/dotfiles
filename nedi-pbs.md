@@ -170,7 +170,19 @@ podman run -d --replace --restart always \
   --health-cmd='["stat", "/share/nedi-pbs"]' \
   --health-on-failure restart \
   docker.io/rclone/rclone:latest \
-    mount :smb:pbs /share --allow-non-empty --vfs-cache-mode full
+    mount :smb:pbs /share \
+        --allow-non-empty \
+        --buffer-size 128M \
+        --cache-dir=/media/ssd/hs/cache/ds918 \
+        --dir-cache-time 24h \
+        --no-modtime \
+        --use-mmap \
+        --vfs-cache-max-age 336h \
+        --vfs-cache-max-size 896G \
+        --vfs-cache-mode full \
+        --vfs-fast-fingerprint \
+        --vfs-read-chunk-size-limit 10G \
+        --vfs-refresh \
 
 # sets up mount healing
 (crontab -l 2>/dev/null; echo '*/5 * * * * stat /data/share 2>&1 | grep -q "Transport endpoint is not connected" && fusermount -u /data/share') | crontab -
