@@ -123,7 +123,7 @@ podman run -d --replace --restart always \
   --health-cmd='["ls", "/share/nedi-pbs"]' \
   --health-on-failure restart \
   docker.io/rclone/rclone:latest \
-    mount :smb:pbs /share --allow-non-empty
+    mount :smb:pbs /share --allow-non-empty --vfs-cache-mode full
 
 # builds libnoipv6
 mkdir -p /opt/podman/libnoipv6
