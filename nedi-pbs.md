@@ -96,6 +96,35 @@ apt install -y build-essential podman ufw
 apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
+# sets up rclone user
+mkdir -p /opt/rclone
+touch /opt/rclone/pbs.key
+
+# sets up rclone
+mkdir -p /data/share
+ln -fs /local /data/local
+cat << 'EOF' > /opt/rclone/entrypoint.sh
+#!/bin/sh
+fusermount -uz /share 2>/dev/null || true
+exec rclone "$@"
+EOF
+chmod +x /opt/rclone/entrypoint.sh
+podman run -d --replace --restart always \
+  --name nedi-pbs-rclone \
+  --cap-add SYS_ADMIN \
+  --device /dev/fuse \
+  --entrypoint /entrypoint.sh \
+  --network host \
+  -e RCLONE_SMB_HOST=192.168.0.4 \
+  -e RCLONE_SMB_PASS=$(podman run --rm docker.io/rclone/rclone:latest obscure $(cat /opt/rclone/pbs.key)) \
+  -e RCLONE_SMB_USER=pbs \
+  -v /data/share:/share:shared \
+  -v /opt/rclone/entrypoint.sh:/entrypoint.sh:ro \
+  --health-cmd='["ls", "/share/nedi-pbs"]' \
+  --health-on-failure restart \
+  docker.io/rclone/rclone:latest \
+    mount :smb:pbs /share --allow-non-empty
+
 # builds libnoipv6
 mkdir -p /opt/podman/libnoipv6
 cat << 'EOF' > /opt/podman/libnoipv6/libnoipv6.c
@@ -135,6 +164,8 @@ podman run -d --replace --restart always \
   --network host \
   --tmpfs /run \
   -e LD_PRELOAD=/lib/libnoipv6.so \
+  -e TZ=Europe/Lisbon \
+  -v /data/share/nedi-pbs:/share \
   -v /local:/local \
   -v /opt/podman/libnoipv6/libnoipv6.so:/lib/libnoipv6.so:ro \
   -v /opt/podman/pbs:/etc/proxmox-backup \
@@ -142,39 +173,6 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   docker.io/ayufan/proxmox-backup-server:latest
 # admin / pbspbs
-
-# sets up rclone user
-mkdir -p /opt/rclone
-touch /opt/rclone/pbs.key
-
-# sets up rclone
-mkdir -p /data/share
-ln -fs /local /data/local
-cat << 'EOF' > /opt/rclone/entrypoint.sh
-#!/bin/sh
-fusermount -uz /share 2>/dev/null || true
-exec rclone "$@"
-EOF
-chmod +x /opt/rclone/entrypoint.sh
-podman run -d --replace --restart always \
-  --name nedi-pbs-rclone \
-  --cap-add SYS_ADMIN \
-  --device /dev/fuse \
-  --entrypoint /entrypoint.sh \
-  --network host \
-  -e RCLONE_SMB_HOST=192.168.0.4 \
-  -e RCLONE_SMB_PASS=$(podman run --rm docker.io/rclone/rclone:latest obscure $(cat /opt/rclone/pbs.key)) \
-  -e RCLONE_SMB_USER=pbs \
-  -v /data/share:/share:shared \
-  -v /opt/rclone/entrypoint.sh:/entrypoint.sh:ro \
-  --health-cmd='["ls", "/share/nedi-pbs"]' \
-  --health-on-failure restart \
-  docker.io/rclone/rclone:latest \
-    mount :smb:pbs /share \
-        --allow-non-empty
-
-# sets up mount healing
-(crontab -l 2>/dev/null; echo '*/5 * * * * stat /data/share 2>&1 | grep -q "Transport endpoint is not connected" && fusermount -u /data/share') | crontab -
 
 # sets up hawser
 mkdir -p /opt/podman/hawser

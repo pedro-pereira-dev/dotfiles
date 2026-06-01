@@ -149,6 +149,7 @@ podman run -d --replace --restart always \
   -e FTLCONF_webserver_api_password='' \
   -e FTLCONF_webserver_domain=pihole.nedi.boarede.com \
   -e FTLCONF_webserver_port=80o \
+  -e TZ=Europe/Lisbon \
   -v /opt/podman/pihole:/etc/pihole \
   --health-cmd='["curl", "-f", "http://127.0.0.1/admin"]' \
   --health-on-failure restart \

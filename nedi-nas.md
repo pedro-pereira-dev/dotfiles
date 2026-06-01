@@ -357,6 +357,7 @@ podman run -d --replace --restart always \
   --hostname nedi-nas \
   --network host \
   -e AVAHI_ENABLE=1 \
+  -e TZ=Europe/Lisbon \
   -e WSDD2_ENABLE=1 \
   -v /data/share:/share \
   -v /opt/podman/samba/config.yml:/data/config.yml \

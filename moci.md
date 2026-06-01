@@ -158,6 +158,7 @@ podman run -d --replace --restart always \
   --name moci-samba \
   --hostname moci-samba \
   --network host \
+  -e TZ=Europe/Lisbon \
   -v /data/share:/share \
   -v /opt/podman/samba/config.yml:/data/config.yml \
   --health-cmd='["smbclient", "//127.0.0.1/public", "-N", "-c", "exit"]' \
