@@ -100,7 +100,7 @@ chmod +x /usr/bin/update
 update
 
 # installs all required dependencies
-apt install -y hdparm mergerfs podman snapraid ufw
+apt install -y hdparm mergerfs nfs-kernel-server podman snapraid ufw
 
 # sets up disks
 apt install -y mergerfs
@@ -291,92 +291,18 @@ chmod +x /usr/bin/uncache-data
 uncache-data
 (crontab -l 2>/dev/null; echo '@daily uncache-data') | crontab -
 
-# sets up podman
-apt install -y podman
-systemctl enable --now podman-restart.service podman.service podman.socket
-
-# sets up samba users
-mkdir -p /opt/podman/samba/users
-openssl rand -hex 64 > /opt/podman/samba/users/admin.key
-openssl rand -hex 64 > /opt/podman/samba/users/pbs.key
-openssl rand -hex 64 > /opt/podman/samba/users/pve.key
-openssl rand -hex 64 > /opt/podman/samba/users/zerobyte.key
-
-# sets up samba
-mkdir -p /data/share/public
+# sets up nfs
+apt install -y nfs-kernel-server
 mkdir -p /data/share/pbs/nedi-pbs
 mkdir -p /data/share/pve/nedi
 chmod -R 777 /data/share
-cat << EOF > /opt/podman/samba/config.yml
-auth:
-  - user: admin
-    group: admin
-    uid: 1000
-    gid: 1000
-    password: $(cat /opt/podman/samba/users/admin.key)
-  - user: pbs
-    group: pbs
-    uid: 1001
-    gid: 1001
-    password: $(cat /opt/podman/samba/users/pbs.key)
-  - user: pve
-    group: pve
-    uid: 1002
-    gid: 1002
-    password: $(cat /opt/podman/samba/users/pve.key)
-  - user: zerobyte
-    group: zerobyte
-    uid: 1003
-    gid: 1003
-    password: $(cat /opt/podman/samba/users/zerobyte.key)
-share:
-  - name: share
-    path: /share
-    guestok: no
-    validusers: admin zerobyte
-    writelist: admin
-    browsable: no
-  - name: public
-    path: /share/public
-    readonly: no
-  - name: pbs
-    path: /share/pbs
-    guestok: no
-    validusers: pbs
-    writelist: pbs
-    browsable: no
-  - name: pve
-    path: /share/pve
-    guestok: no
-    validusers: pve
-    writelist: pve
-    browsable: no
+chown -R nobody:nogroup /data/share
+cat << 'EOF' > /etc/exports
+/data/share/pve/nedi 192.168.0.0/24(fsid=1,no_subtree_check,rw,sync)
+/data/share 192.168.0.0/24(fsid=2,no_subtree_check,rw,sync)
 EOF
-podman run -d --replace --restart always \
-  --name nedi-nas \
-  --hostname nedi-nas \
-  --network host \
-  -e AVAHI_ENABLE=1 \
-  -e TZ=Europe/Lisbon \
-  -e WSDD2_ENABLE=1 \
-  -v /data/share:/share \
-  -v /opt/podman/samba/config.yml:/data/config.yml \
-  --health-cmd='["smbclient", "//127.0.0.1/public", "-N", "-c", "exit"]' \
-  --health-on-failure restart \
-  docker.io/crazymax/samba:latest
-
-# sets up hawser
-mkdir -p /opt/podman/hawser
-openssl rand -hex 64 > /opt/podman/hawser/token.key
-podman run -d --replace --restart always \
-  --name nedi-nas-hawser \
-  --network host \
-  -e STACKS_DIR=/etc/hawser \
-  -e TOKEN=$(cat /opt/podman/hawser/token.key) \
-  -v /opt/podman/hawser:/etc/hawser \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
-  --health-on-failure restart \
-  ghcr.io/finsys/hawser:latest
+exportfs -ar
+systemctl restart nfs-kernel-server
 
 # sets up firewall
 apt install -y ufw
@@ -386,26 +312,10 @@ ufw default deny incoming
 ufw allow from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow from 192.168.0.0/16 to any port 22 proto tcp
-# SMB
-ufw allow from 10.0.0.0/8 to any port 445 proto tcp
-ufw allow from 172.16.0.0/12 to any port 445 proto tcp
-ufw allow from 192.168.0.0/16 to any port 445 proto tcp
-# Hawser
-ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
-# WSDD2
-ufw allow from 10.0.0.0/8 to any port 3702
-ufw allow from 172.16.0.0/12 to any port 3702
-ufw allow from 192.168.0.0/16 to any port 3702
-# mDNS
-ufw allow from 10.0.0.0/8 to any port 5353 proto udp
-ufw allow from 172.16.0.0/12 to any port 5353 proto udp
-ufw allow from 192.168.0.0/16 to any port 5353 proto udp
-# LLMNR
-ufw allow from 10.0.0.0/8 to any port 5355
-ufw allow from 172.16.0.0/12 to any port 5355
-ufw allow from 192.168.0.0/16 to any port 5355
+# NFS
+ufw allow from 10.0.0.0/8 to any port 2049 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2049 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2049 proto tcp
 ufw enable
 
 ```

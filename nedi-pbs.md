@@ -123,7 +123,8 @@ podman run -d --replace --restart always \
   --health-cmd='["ls", "/share/nedi-pbs"]' \
   --health-on-failure restart \
   docker.io/rclone/rclone:latest \
-    mount :smb:pbs /share --allow-non-empty --vfs-cache-mode writes
+    mount :smb:pbs /share --allow-non-empty --vfs-cache-mode writes \
+    --attr-timeout 0s --no-modtime
 
 # builds libnoipv6
 mkdir -p /opt/podman/libnoipv6
@@ -165,7 +166,7 @@ podman run -d --replace --restart always \
   --tmpfs /run \
   -e LD_PRELOAD=/lib/libnoipv6.so \
   -e TZ=Europe/Lisbon \
-  -v /data/share/nedi-pbs:/share \
+  -v /data/share:/share \
   -v /local:/local \
   -v /opt/podman/libnoipv6/libnoipv6.so:/lib/libnoipv6.so:ro \
   -v /opt/podman/pbs:/etc/proxmox-backup \
