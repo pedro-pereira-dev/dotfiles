@@ -49,7 +49,6 @@ To                         Action      From
 apt install -y curl
 mkdir -p /boot/efi/EFI/netboot
 curl -Lfs https://boot.netboot.xyz/ipxe/netboot.xyz.efi -o /boot/efi/EFI/netboot/netboot.xyz.efi
-apt remove -y curl
 
 # sets up ssh server
 cat << 'EOF' > /root/.ssh/authorized_keys
@@ -105,7 +104,6 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
 apt install -y curl
 curl -L https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg -o /usr/share/keyrings/proxmox-archive-keyring.gpg
-apt remove -y curl
 cat << 'EOF' > /etc/apt/sources.list.d/pve-install-repo.sources
 Types: deb
 URIs: http://download.proxmox.com/debian/pve
@@ -137,6 +135,7 @@ apt remove -y os-prober
 lvcreate -l 100%FREE --thinpool data vg
 
 # runs proxmox helper scripts
+apt install -y curl
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/microcode.sh)"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/post-pve-install.sh)"
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/kernel-clean.sh)"
@@ -312,6 +311,35 @@ export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY
 EOF
 chmod +x /usr/bin/backup-host-to
 (crontab -l 2>/dev/null; echo "0 2 * * * backup-host-to nedi-pbs-local") | crontab -
+
+# sets up nfs shares
+apt install -y nfs-common
+mkdir -p /mnt/shared/nfs
+cat << 'EOF' > /usr/bin/mount-nfs-share
+#!/bin/sh
+NFS_SERVER="192.168.0.4"
+NFS_PATH="/data/share"
+NFS_MOUNT="/mnt/shared/nfs"
+if ping -c 1 -W 1 "$NFS_SERVER" >/dev/null 2>&1; then
+  # NFS is up
+  if ! mountpoint -q "$NFS_MOUNT" 2>/dev/null; then
+    mount -t nfs "$NFS_SERVER:$NFS_PATH" "$NFS_MOUNT" 2>/dev/null
+  else
+    if ! timeout 5 stat "$NFS_MOUNT" >/dev/null 2>&1; then
+      umount -l "$NFS_MOUNT" 2>/dev/null
+      mount -t nfs "$NFS_SERVER:$NFS_PATH" "$NFS_MOUNT" 2>/dev/null
+    fi
+  fi
+else
+  # NFS is down
+  if mountpoint -q "$NFS_MOUNT" 2>/dev/null; then
+    umount -l "$NFS_MOUNT" 2>/dev/null
+  fi
+fi
+EOF
+chmod +x /usr/bin/mount-nfs-share
+(crontab -l 2>/dev/null; echo "* * * * * mount-nfs-share") | crontab -
+(crontab -l 2>/dev/null; echo "* * * * * ! mountpoint -q /mnt/pve/nedi-nas && umount -fl /mnt/pve/nedi-nas") | crontab -
 
 # sets up firewall
 apt install -y ufw

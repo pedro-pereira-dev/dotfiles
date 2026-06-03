@@ -20,21 +20,18 @@ To                         Action      From
 22/tcp                     ALLOW IN    10.0.0.0/8
 22/tcp                     ALLOW IN    172.16.0.0/12
 22/tcp                     ALLOW IN    192.168.0.0/16
-445/tcp                    ALLOW IN    10.0.0.0/8
-445/tcp                    ALLOW IN    172.16.0.0/12
-445/tcp                    ALLOW IN    192.168.0.0/16
-2376/tcp                   ALLOW IN    10.0.0.0/8
-2376/tcp                   ALLOW IN    172.16.0.0/12
-2376/tcp                   ALLOW IN    192.168.0.0/16
-3702                       ALLOW IN    10.0.0.0/8
-3702                       ALLOW IN    172.16.0.0/12
-3702                       ALLOW IN    192.168.0.0/16
-5353/udp                   ALLOW IN    10.0.0.0/8
-5353/udp                   ALLOW IN    172.16.0.0/12
-5353/udp                   ALLOW IN    192.168.0.0/16
-5355                       ALLOW IN    10.0.0.0/8
-5355                       ALLOW IN    172.16.0.0/12
-5355                       ALLOW IN    192.168.0.0/16
+111                        ALLOW IN    10.0.0.0/8
+111                        ALLOW IN    172.16.0.0/12
+111                        ALLOW IN    192.168.0.0/16
+2049                       ALLOW IN    10.0.0.0/8
+2049                       ALLOW IN    172.16.0.0/12
+2049                       ALLOW IN    192.168.0.0/16
+20048                      ALLOW IN    10.0.0.0/8
+20048                      ALLOW IN    172.16.0.0/12
+20048                      ALLOW IN    192.168.0.0/16
+32765                      ALLOW IN    10.0.0.0/8
+32765                      ALLOW IN    172.16.0.0/12
+32765                      ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -47,6 +44,8 @@ pct stop 1004
 
 # add additional 128gb mountpoint to /local
 # add additional disks as device passthroughs
+# enable protection
+# start / shutdown order 2
 pct start 1004
 pct enter 1004
 
@@ -100,7 +99,7 @@ chmod +x /usr/bin/update
 update
 
 # installs all required dependencies
-apt install -y hdparm mergerfs nfs-kernel-server podman snapraid ufw
+apt install -y hdparm mergerfs nfs-kernel-server snapraid ufw
 
 # sets up disks
 apt install -y mergerfs
@@ -293,15 +292,18 @@ uncache-data
 
 # sets up nfs
 apt install -y nfs-kernel-server
+sed -i '/^\[mountd\]/,/^\[/ s/^#\?\s*port\s*=.*/port=20048/' /etc/nfs.conf
+sed -i '/^\[statd\]/,/^\[/ s/^#\?\s*port\s*=.*/port=32765/' /etc/nfs.conf
+cat << 'EOF' > /etc/exports
+/data/share/pve/nedi 192.168.0.5/32(fsid=1,rw)
+/data/share 192.168.0.5/32(fsid=2,rw)
+EOF
 mkdir -p /data/share/pbs/nedi-pbs
 mkdir -p /data/share/pve/nedi
 chmod -R 777 /data/share
 chown -R nobody:nogroup /data/share
-cat << 'EOF' > /etc/exports
-/data/share/pve/nedi 192.168.0.0/24(fsid=1,no_subtree_check,rw,sync)
-/data/share 192.168.0.0/24(fsid=2,no_subtree_check,rw,sync)
-EOF
 exportfs -ar
+systemctl daemon-reload
 systemctl restart nfs-kernel-server
 
 # sets up firewall
@@ -312,10 +314,22 @@ ufw default deny incoming
 ufw allow from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow from 192.168.0.0/16 to any port 22 proto tcp
+# RCP
+ufw allow from 10.0.0.0/8 to any port 111
+ufw allow from 172.16.0.0/12 to any port 111
+ufw allow from 192.168.0.0/16 to any port 111
 # NFS
-ufw allow from 10.0.0.0/8 to any port 2049 proto tcp
-ufw allow from 172.16.0.0/12 to any port 2049 proto tcp
-ufw allow from 192.168.0.0/16 to any port 2049 proto tcp
+ufw allow from 10.0.0.0/8 to any port 2049
+ufw allow from 172.16.0.0/12 to any port 2049
+ufw allow from 192.168.0.0/16 to any port 2049
+# mountd
+ufw allow from 10.0.0.0/8 to any port 20048
+ufw allow from 172.16.0.0/12 to any port 20048
+ufw allow from 192.168.0.0/16 to any port 20048
+# statd
+ufw allow from 10.0.0.0/8 to any port 32765
+ufw allow from 172.16.0.0/12 to any port 32765
+ufw allow from 192.168.0.0/16 to any port 32765
 ufw enable
 
 ```

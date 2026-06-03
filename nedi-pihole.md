@@ -36,6 +36,7 @@ To                         Action      From
 ```bash
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+# protected
 pct enter 1002
 
 # sets up ssh server
