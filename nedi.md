@@ -310,36 +310,19 @@ export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY
 /usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"
 EOF
 chmod +x /usr/bin/backup-host-to
-(crontab -l 2>/dev/null; echo "0 2 * * * backup-host-to nedi-pbs-local") | crontab -
+(crontab -l 2>/dev/null; echo "0 2 * * * backup-host-to nedi-nas-pbs") | crontab -
+
+# sets up nedi-nas storage remount
+(crontab -l 2>/dev/null; echo "* * * * * ! mountpoint -q /mnt/pve/nedi-nas && umount -fl /mnt/pve/nedi-nas") | crontab -
 
 # sets up nfs shares
-apt install -y nfs-common
+apt install -y autofs nfs-common
 mkdir -p /mnt/shared/nfs
-cat << 'EOF' > /usr/bin/mount-nfs-share
-#!/bin/sh
-NFS_SERVER="192.168.0.4"
-NFS_PATH="/data/share"
-NFS_MOUNT="/mnt/shared/nfs"
-if ping -c 1 -W 1 "$NFS_SERVER" >/dev/null 2>&1; then
-  # NFS is up
-  if ! mountpoint -q "$NFS_MOUNT" 2>/dev/null; then
-    mount -t nfs "$NFS_SERVER:$NFS_PATH" "$NFS_MOUNT" 2>/dev/null
-  else
-    if ! timeout 5 stat "$NFS_MOUNT" >/dev/null 2>&1; then
-      umount -l "$NFS_MOUNT" 2>/dev/null
-      mount -t nfs "$NFS_SERVER:$NFS_PATH" "$NFS_MOUNT" 2>/dev/null
-    fi
-  fi
-else
-  # NFS is down
-  if mountpoint -q "$NFS_MOUNT" 2>/dev/null; then
-    umount -l "$NFS_MOUNT" 2>/dev/null
-  fi
-fi
+echo '/mnt/shared/nfs /etc/auto.nfs --timeout=60' >> /etc/auto.master
+cat << 'EOF' > /etc/auto.nfs
+nfs -fstype=nfs,rw,soft,intr,rsize=4096,wsize=4096 192.168.0.4:/data/share
 EOF
-chmod +x /usr/bin/mount-nfs-share
-(crontab -l 2>/dev/null; echo "* * * * * mount-nfs-share") | crontab -
-(crontab -l 2>/dev/null; echo "* * * * * ! mountpoint -q /mnt/pve/nedi-nas && umount -fl /mnt/pve/nedi-nas") | crontab -
+systemctl enable --now autofs
 
 # sets up firewall
 apt install -y ufw

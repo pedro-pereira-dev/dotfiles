@@ -19,25 +19,6 @@ sda                                                  200G
 Ports opened:
 
 ```
-root@moci:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    Anywhere
-445/tcp on wg0             ALLOW IN    10.0.0.0/8
-445/tcp on wg0             ALLOW IN    172.16.0.0/12
-445/tcp on wg0             ALLOW IN    192.168.0.0/16
-2333/tcp on wg0            ALLOW IN    10.0.0.0/8
-2333/tcp on wg0            ALLOW IN    172.16.0.0/12
-2333/tcp on wg0            ALLOW IN    192.168.0.0/16
-2376/tcp on wg0            ALLOW IN    10.0.0.0/8
-2376/tcp on wg0            ALLOW IN    172.16.0.0/12
-2376/tcp on wg0            ALLOW IN    192.168.0.0/16
-61820/udp on enp0s6        ALLOW IN    Anywhere
 ```
 
 ## Initial system setup
@@ -145,26 +126,6 @@ systemctl start wg-quick@wg0.service
 apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# sets up samba
-mkdir -p /data/share /opt/podman/samba
-chmod -R 777 /data/share
-cat << 'EOF' > /opt/podman/samba/config.yml
-share:
-  - name: public
-    path: /share
-    readonly: no
-EOF
-podman run -d --replace --restart always \
-  --name moci-samba \
-  --hostname moci-samba \
-  --network host \
-  -e TZ=Europe/Lisbon \
-  -v /data/share:/share \
-  -v /opt/podman/samba/config.yml:/data/config.yml \
-  --health-cmd='["smbclient", "//127.0.0.1/public", "-N", "-c", "exit"]' \
-  --health-on-failure restart \
-  docker.io/crazymax/samba:latest
-
 # sets up rathole
 mkdir -p /opt/podman/rathole
 openssl rand -hex 64 > /opt/podman/rathole/token.key
@@ -199,16 +160,34 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 
+# sets up sftp
+mkdir -p /data/.ssh /data/share
+groupadd sftpusers
+useradd -g sftpusers -d /data -s /sbin/nologin sftpuser
+ssh-keygen -t ed25519 -f /data/.ssh/sftp_key -N "" -q
+cat /data/.ssh/sftp_key.pub > /data/.ssh/authorized_keys
+chown root:root /data
+chmod 755 /data
+chown -R sftpuser:sftpusers /data/.ssh
+chmod 700 /data/.ssh
+chmod 600 /data/.ssh/authorized_keys
+chown root:sftpusers /data/share
+chmod 775 /data/share
+cat << 'EOF' > /etc/ssh/sshd_config.d/sftp.conf
+Match User sftpuser
+  AuthorizedKeysFile /data/.ssh/authorized_keys
+  ChrootDirectory /data
+  ForceCommand internal-sftp
+EOF
+systemctl restart ssh
+echo "79.72.63.98 $(ssh-keyscan 127.0.0.1 | grep ssh-ed25519 | cut -d' ' -f2-)"
+
 # sets up firewall
 apt install -y ufw
 ufw default allow outgoing
 ufw default deny incoming
 # SSH
 ufw allow from 0.0.0.0/0 to any port 22 proto tcp
-# SMB
-ufw allow in on wg0 from 10.0.0.0/8 to any port 445 proto tcp
-ufw allow in on wg0 from 172.16.0.0/12 to any port 445 proto tcp
-ufw allow in on wg0 from 192.168.0.0/16 to any port 445 proto tcp
 # Rathole
 ufw allow in on wg0 from 10.0.0.0/8 to any port 2333 proto tcp
 ufw allow in on wg0 from 172.16.0.0/12 to any port 2333 proto tcp

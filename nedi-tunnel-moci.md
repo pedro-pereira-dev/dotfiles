@@ -20,9 +20,9 @@ To                         Action      From
 22/tcp on eth0             ALLOW IN    10.0.0.0/8
 22/tcp on eth0             ALLOW IN    172.16.0.0/12
 22/tcp on eth0             ALLOW IN    192.168.0.0/16
-445/tcp on eth0            ALLOW IN    10.0.0.0/8
-445/tcp on eth0            ALLOW IN    172.16.0.0/12
-445/tcp on eth0            ALLOW IN    192.168.0.0/16
+111 on eth0                ALLOW IN    10.0.0.0/8
+111 on eth0                ALLOW IN    172.16.0.0/12
+111 on eth0                ALLOW IN    192.168.0.0/16
 2222/tcp on eth0           ALLOW IN    10.0.0.0/8
 2222/tcp on eth0           ALLOW IN    172.16.0.0/12
 2222/tcp on eth0           ALLOW IN    192.168.0.0/16
@@ -35,6 +35,15 @@ To                         Action      From
 2377/tcp on eth0           ALLOW IN    10.0.0.0/8
 2377/tcp on eth0           ALLOW IN    172.16.0.0/12
 2377/tcp on eth0           ALLOW IN    192.168.0.0/16
+2049 on eth0               ALLOW IN    10.0.0.0/8
+2049 on eth0               ALLOW IN    172.16.0.0/12
+2049 on eth0               ALLOW IN    192.168.0.0/16
+20048 on eth0              ALLOW IN    10.0.0.0/8
+20048 on eth0              ALLOW IN    172.16.0.0/12
+20048 on eth0              ALLOW IN    192.168.0.0/16
+32765 on eth0              ALLOW IN    10.0.0.0/8
+32765 on eth0              ALLOW IN    172.16.0.0/12
+32765 on eth0              ALLOW IN    192.168.0.0/16
 ```
 
 ## Initial system setup
@@ -140,13 +149,21 @@ podman run -d --replace --restart always \
     tcp-listen:22,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
     tcp:10.10.10.1:22,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
 podman run -d --replace --restart always \
-  --name nedi-tunnel-moci-samba \
+  --name nedi-tunnel-moci-rcp-tcp \
   --network host \
-  --health-cmd='["nc", "-z", "10.10.10.1", "445"]' \
+  --health-cmd='["nc", "-z", "10.10.10.1", "111"]' \
   --health-on-failure restart \
   docker.io/alpine/socat:latest \
-    tcp-listen:445,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
-    tcp:10.10.10.1:445,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
+    tcp-listen:111,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.10.10.1:111,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-rcp-udp \
+  --network host \
+  --health-cmd='["nc", "-z", "-u", "10.10.10.1", "111"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    UDP4-RECVFROM:111,fork \
+    UDP4-SENDTO:10.10.10.1:111
 podman run -d --replace --restart always \
   --name nedi-tunnel-moci-rathole \
   --network host \
@@ -163,6 +180,54 @@ podman run -d --replace --restart always \
   docker.io/alpine/socat:latest \
     tcp-listen:2376,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
     tcp:10.10.10.1:2376,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-nfs-tcp \
+  --network host \
+  --health-cmd='["nc", "-z", "10.10.10.1", "2049"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    tcp-listen:2049,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.10.10.1:2049,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-nfs-udp \
+  --network host \
+  --health-cmd='["nc", "-z", "-u", "10.10.10.1", "2049"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    UDP4-RECVFROM:2049,fork \
+    UDP4-SENDTO:10.10.10.1:2049
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-mountd-tcp \
+  --network host \
+  --health-cmd='["nc", "-z", "10.10.10.1", "20048"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    tcp-listen:20048,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.10.10.1:20048,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-mountd-udp \
+  --network host \
+  --health-cmd='["nc", "-z", "-u", "10.10.10.1", "20048"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    UDP4-RECVFROM:20048,fork \
+    UDP4-SENDTO:10.10.10.1:20048
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-statd-tcp \
+  --network host \
+  --health-cmd='["nc", "-z", "10.10.10.1", "32765"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    tcp-listen:32765,fork,reuseaddr,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3 \
+    tcp:10.10.10.1:32765,tcp-keepidle=10,tcp-keepintvl=5,tcp-keepcnt=3
+podman run -d --replace --restart always \
+  --name nedi-tunnel-moci-statd-udp \
+  --network host \
+  --health-cmd='["nc", "-z", "-u", "10.10.10.1", "32765"]' \
+  --health-on-failure restart \
+  docker.io/alpine/socat:latest \
+    UDP4-RECVFROM:32765,fork \
+    UDP4-SENDTO:10.10.10.1:32765
 
 # sets up hawser
 mkdir -p /opt/podman/hawser
@@ -186,10 +251,10 @@ ufw default deny incoming
 ufw allow in on eth0 from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 22 proto tcp
-# SMB
-ufw allow in on eth0 from 10.0.0.0/8 to any port 445 proto tcp
-ufw allow in on eth0 from 172.16.0.0/12 to any port 445 proto tcp
-ufw allow in on eth0 from 192.168.0.0/16 to any port 445 proto tcp
+# RCP - moci
+ufw allow in on eth0 from 10.0.0.0/8 to any port 111
+ufw allow in on eth0 from 172.16.0.0/12 to any port 111
+ufw allow in on eth0 from 192.168.0.0/16 to any port 111
 # SSH
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2222 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2222 proto tcp
@@ -206,6 +271,18 @@ ufw allow in on eth0 from 192.168.0.0/16 to any port 2376 proto tcp
 ufw allow in on eth0 from 10.0.0.0/8 to any port 2377 proto tcp
 ufw allow in on eth0 from 172.16.0.0/12 to any port 2377 proto tcp
 ufw allow in on eth0 from 192.168.0.0/16 to any port 2377 proto tcp
+# NFS - moci
+ufw allow in on eth0 from 10.0.0.0/8 to any port 2049
+ufw allow in on eth0 from 172.16.0.0/12 to any port 2049
+ufw allow in on eth0 from 192.168.0.0/16 to any port 2049
+# Mountd - moci
+ufw allow in on eth0 from 10.0.0.0/8 to any port 20048
+ufw allow in on eth0 from 172.16.0.0/12 to any port 20048
+ufw allow in on eth0 from 192.168.0.0/16 to any port 20048
+# Statd - moci
+ufw allow in on eth0 from 10.0.0.0/8 to any port 32765
+ufw allow in on eth0 from 172.16.0.0/12 to any port 32765
+ufw allow in on eth0 from 192.168.0.0/16 to any port 32765
 ufw enable
 
 ```

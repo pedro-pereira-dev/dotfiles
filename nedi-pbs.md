@@ -33,7 +33,7 @@ To                         Action      From
 ```bash
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-# fuse - mergerfs
+# fuse - nfs
 pct stop 1006
 
 # add additional 64gb mountpoint to /local
@@ -52,14 +52,6 @@ X11Forwarding no
 EOF
 rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
-
-# disables ipv6 networking
-cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-EOF
-sysctl --system >/dev/null 2>&1
 
 # sets up apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
@@ -82,6 +74,15 @@ Suites: trixie-security
 Components: main
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
+apt install -y curl
+curl -L https://enterprise.proxmox.com/debian/proxmox-archive-keyring-trixie.gpg -o /usr/share/keyrings/proxmox-archive-keyring.gpg
+cat << 'EOF' > /etc/apt/sources.list.d/pve-install-repo.sources
+Types: deb
+URIs: http://download.proxmox.com/debian/pbs
+Suites: trixie
+Components: pbs-no-subscription
+Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+EOF
 cat << 'EOF' > /usr/bin/update
 #!/bin/sh
 apt update
@@ -92,15 +93,11 @@ chmod +x /usr/bin/update
 update
 
 # installs all required dependencies
-apt install -y build-essential podman ufw
-
-# sets up podman socket
-apt install -y podman
-systemctl enable --now podman-restart.service podman.service podman.socket
+apt install -y build-essential proxmox-backup-server ufw
 
 # builds libnoipv6
-mkdir -p /opt/podman/libnoipv6
-cat << 'EOF' > /opt/podman/libnoipv6/libnoipv6.c
+mkdir -p /opt/libnoipv6
+cat << 'EOF' > /opt/libnoipv6/libnoipv6.c
 #define _GNU_SOURCE
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -128,36 +125,17 @@ int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     return orig_bind(sockfd, addr, addrlen);
 }
 EOF
-gcc -shared -fPIC -ldl /opt/podman/libnoipv6/libnoipv6.c -o /opt/podman/libnoipv6/libnoipv6.so
+gcc -shared -fPIC -ldl /opt/libnoipv6/libnoipv6.c -o /opt/libnoipv6/libnoipv6.so
 
-# sets up pbs
-mkdir -p /local /opt/podman/pbs /share
-podman run -d --replace --restart always \
-  --name nedi-pbs \
-  --network host \
-  --tmpfs /run \
-  -e LD_PRELOAD=/lib/libnoipv6.so \
-  -e TZ=Europe/Lisbon \
-  -v /local:/local \
-  -v /opt/podman/libnoipv6/libnoipv6.so:/lib/libnoipv6.so:ro \
-  -v /opt/podman/pbs:/etc/proxmox-backup \
-  -v /share:/share \
-  --health-cmd='["curl", "-f", "http://127.0.0.1:8007"]' \
-  --health-on-failure restart \
-  docker.io/ayufan/proxmox-backup-server:latest
-# admin / pbspbs
-
-# sets up hawser
-mkdir -p /opt/podman/hawser
-openssl rand -hex 64 > /opt/podman/hawser/token.key
-podman run -d --replace --restart always \
-  --name nedi-pbs-hawser \
-  --network host \
-  -e STACKS_DIR=/etc/hawser \
-  -e TOKEN=$(cat /opt/podman/hawser/token.key) \
-  -v /opt/podman/hawser:/etc/hawser \
-  -v /run/podman/podman.sock:/var/run/docker.sock \
-  ghcr.io/finsys/hawser:latest
+# sets up proxmox backup server
+apt install -y proxmox-backup-server
+mkdir -p /etc/systemd/system/proxmox-backup-proxy.service.d
+cat << 'EOF' > /etc/systemd/system/proxmox-backup-proxy.service.d/override.conf
+[Service]
+Environment="LD_PRELOAD=/opt/libnoipv6/libnoipv6.so"
+EOF
+systemctl daemon-reload
+systemctl restart proxmox-backup-proxy.service
 
 # sets up firewall
 apt install -y ufw
@@ -167,10 +145,6 @@ ufw default deny incoming
 ufw allow from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow from 192.168.0.0/16 to any port 22 proto tcp
-# Hawser
-ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
-ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
-ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
 # PBS
 ufw allow from 10.0.0.0/8 to any port 8007 proto tcp
 ufw allow from 172.16.0.0/12 to any port 8007 proto tcp

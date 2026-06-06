@@ -16,6 +16,10 @@ Ports opened:
 ```bash
 # setup basic container
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+pct stop 1047
+
+pct set 1047 -mp0 /mnt/shared/nfs,mp=/share
+pct start 1047
 pct enter 1047
 
 # setup ssh
@@ -73,12 +77,13 @@ systemctl enable --now podman-restart.service podman.service podman.socket
 # setup zerobyte
 mkdir -p /opt/podman/zerobyte
 openssl rand -hex 64 > /opt/podman/zerobyte/secret.key
-podman run -d --restart always \
+podman run -d --replace --restart always \
   --name nedi-zerobyte \
   --network host \
   -e APP_SECRET=$(cat /opt/podman/zerobyte/secret.key) \
   -e BASE_URL=http://192.168.0.47:4096 \
   -v /opt/podman/zerobyte:/var/lib/zerobyte \
+  -v /share:/share \
   --cap-add=SYS_ADMIN \
   --health-cmd='["curl", "-f", "http://127.0.0.1:4096"]' \
   --health-on-failure restart \
