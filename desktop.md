@@ -6,38 +6,7 @@
 - OS: Debian 13 / Proxmox 9
 - IPv4: `192.168.0.5`
 
-```
-root@desktop:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
-NAME                         FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
-sda                                                                             223.6G
-├─sda1                       vfat        130A-8EB0                                 63M   56.4M /boot/efi
-└─sda2                       LVM2_member 7PNOCe-eSrb-cd4V-Re6F-cb09-M3c1-VfoYbm 223.5G
-  ├─vg-root                  ext4        e75056ad-832a-4640-be04-fe5c4ea0c093       8G      3G /
-  ├─vg-swap                  swap        71d17bfa-3a82-4c54-a9cb-fa1824ee509d       1G         [SWAP]
-  ├─vg-baks                  ext4        65cbfc87-db41-49d5-9393-e282c0abf027      16G   14.8G /mnt/baks
-  ├─vg-imgs                  ext4        d70ba9a4-1dc1-495b-a13b-8a661ae5af1e       8G    7.2G /mnt/imgs
-  ├─vg-data_tmeta                                                                  96M
-  │ └─vg-data-tpool                                                             190.3G
-  │   ├─vg-data                                                                 190.3G
-  │   ├─vg-vm--1006--disk--0 ext4        37bd0954-9b3a-4a99-94c6-1743b63f6017       8G
-  │   └─vg-vm--1006--disk--1 ext4        03b35e61-64fc-43c4-ad4c-5401e907c375     128G
-  └─vg-data_tdata                                                               190.3G
-    └─vg-data-tpool                                                             190.3G
-      ├─vg-data                                                                 190.3G
-      ├─vg-vm--1006--disk--0 ext4        37bd0954-9b3a-4a99-94c6-1743b63f6017       8G
-      └─vg-vm--1006--disk--1 ext4        03b35e61-64fc-43c4-ad4c-5401e907c375     128G
-sdb                                                                             223.6G
-sdc                                                                             931.5G
-sdd                                                                             931.5G
-```
-
-Ports opened:
-
-```
-ufw status verbose
-```
-
-## Initial system setup
+## Setup
 
 ```bash
 
