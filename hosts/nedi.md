@@ -1,4 +1,4 @@
-# `nedi`
+# `desktop`
 
 ## Details
 
@@ -6,42 +6,7 @@
 - OS: Debian 13 / Proxmox 9
 - IPv4: `192.168.0.5`
 
-```
-root@nedi:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
-NAME        FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
-sda                                                            223.6G
-├─sda1      vfat        DFE9-64DC                                 63M   56.5M /boot/efi
-└─sda2      LVM2_member 16J7Dc-UyEk-5vVZ-3t8I-32mj-gco6-VuzYxP 223.5G
-  ├─vg-swap swap        f2d6d049-19f7-4715-a74e-e5b8a0931d3d       1G         [SWAP]
-  └─vg-root ext4        1044ac8d-4d16-4845-9ac7-db5ab13cdd9f       8G    6.4G /
-sdb                                                            223.6G
-└─sdb1      ext4        b21580d7-e52a-4ac2-bb6d-ca8347a33450   223.6G
-sdc                                                            931.5G
-└─sdc1      ext4        c7fb6d97-8e2b-4fe7-a454-34ba33ad2ae2   931.5G
-sdd                                                            931.5G
-└─sdd1      ext4        b9fc0940-b26e-4990-90cd-e7b37ddf3884   931.5G
-```
-
-Ports opened:
-
-```
-root@nedi:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    10.0.0.0/8
-22/tcp                     ALLOW IN    172.16.0.0/12
-22/tcp                     ALLOW IN    192.168.0.0/16
-8006/tcp                   ALLOW IN    10.0.0.0/8
-8006/tcp                   ALLOW IN    172.16.0.0/12
-8006/tcp                   ALLOW IN    192.168.0.0/16
-```
-
-## Initial system setup
+## Setup
 
 ```bash
 
@@ -63,22 +28,14 @@ systemctl restart ssh
 
 # sets up fstab
 cat << 'EOF' > /etc/fstab
-UUID=DFE9-64DC                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
-UUID=f2d6d049-19f7-4715-a74e-e5b8a0931d3d   none        swap    sw 0 0
-UUID=1044ac8d-4d16-4845-9ac7-db5ab13cdd9f   /           ext4    defaults,errors=remount-ro 0 1
+UUID=130A-8EB0                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
+UUID=47e7d779-105f-4ad3-8757-2363ee74ebbf   none        swap    sw 0 0
+UUID=c265b42a-221e-4866-a67e-7b54db29584c   /           ext4    defaults,errors=remount-ro 0 1
 EOF
-
-# disables ipv6 networking
-cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-EOF
-sysctl --system >/dev/null 2>&1
 
 # sets up grub
 sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
-sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 ipv6.disable=1"/' /etc/default/grub
+sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=".*"/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/' /etc/default/grub
 update-grub
 
 # sets up apt
@@ -127,12 +84,24 @@ systemctl reboot
 # sets up proxmox dependencies
 apt install -y chrony open-iscsi postfix proxmox-ve
 # choose local only and leave the system name as is
-apt remove -y linux-image-amd64 'linux-image-6.12*'
+apt remove -y linux-image-*
 update-grub
 apt remove -y os-prober
 
 # sets up storage
+lvcreate -L 16G -n baks vg
+lvcreate -L 8G -n imgs vg
+mkfs.ext4 /dev/vg/baks
+mkfs.ext4 /dev/vg/imgs
+mkdir -p /mnt/local/baks /mnt/local/imgs
+cat << EOF >> /etc/fstab
+$()
+UUID=$(blkid -s UUID -o value /dev/vg/baks)   /mnt/local/baks   ext4    defaults 0 0
+UUID=$(blkid -s UUID -o value /dev/vg/imgs)   /mnt/local/imgs   ext4    defaults 0 0
+EOF
 lvcreate -l 100%FREE --thinpool data vg
+systemctl daemon-reload
+mount -a
 
 # runs proxmox helper scripts
 apt install -y curl
@@ -263,67 +232,6 @@ chmod +x /usr/bin/autoaspm
 autoaspm
 (crontab -l 2>/dev/null; echo "@reboot (sleep 60 && autoaspm)") | crontab -
 
-# sets up backup-host-to
-cat << 'EOF' > /usr/bin/backup-host-to
-#!/bin/bash
-#
-! /usr/sbin/pvesm status --storage "$1" >/dev/null 2>&1 &&
-  echo "Storage ($1) not found, skipping backup" &&
-  exit 1
-#
-PBS_DATASTORE=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*datastore //p")
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_DATASTORE, skipping backup" &&
-  exit 1
-#
-PBS_NAMESPACE=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*namespace //p")
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_NAMESPACE, skipping backup" &&
-  exit 1
-#
-PBS_SERVER=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*server //p")
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_SERVER, skipping backup" &&
-  exit 1
-#
-PBS_USERNAME=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*username //p")
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_USERNAME, skipping backup" &&
-  exit 1
-#
-PBS_FINGERPRINT=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*fingerprint //p")
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_FINGERPRINT, skipping backup" &&
-  exit 1
-#
-PBS_PASSWORD=$(cat "/etc/pve/priv/storage/$1.pw")
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_PASSWORD, skipping backup" &&
-  exit 1
-#
-PBS_REPOSITORY="$PBS_USERNAME@$PBS_SERVER:$PBS_DATASTORE"
-test -z "$PBS_DATASTORE" &&
-  echo "Storage ($1) configuration PBS_REPOSITORY, skipping backup" &&
-  exit 1
-#
-export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY
-/usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"
-EOF
-chmod +x /usr/bin/backup-host-to
-(crontab -l 2>/dev/null; echo "0 2 * * * backup-host-to nedi-nas-pbs") | crontab -
-
-# sets up nedi-nas storage remount
-(crontab -l 2>/dev/null; echo "* * * * * ! mountpoint -q /mnt/pve/nedi-nas && umount -fl /mnt/pve/nedi-nas") | crontab -
-
-# sets up nfs shares
-apt install -y autofs nfs-common
-mkdir -p /mnt/shared/nfs
-echo '/mnt/shared/nfs /etc/auto.nfs --timeout=60' >> /etc/auto.master
-cat << 'EOF' > /etc/auto.nfs
-nfs -fstype=nfs,rw,soft,intr,rsize=4096,wsize=4096 192.168.0.4:/data/share
-EOF
-systemctl enable --now autofs
-
 # sets up firewall
 apt install -y ufw
 ufw default allow outgoing
@@ -337,5 +245,10 @@ ufw allow from 10.0.0.0/8 to any port 8006 proto tcp
 ufw allow from 172.16.0.0/12 to any port 8006 proto tcp
 ufw allow from 192.168.0.0/16 to any port 8006 proto tcp
 ufw enable
+
+# deletes useless lxcs
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/lxc-delete.sh)"
+# executes on all lxcs
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/execute.sh)"
 
 ```
