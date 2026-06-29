@@ -4,40 +4,18 @@
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.6`
-
-Ports opened:
-
-```
-root@nedi-pbs:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    10.0.0.0/8
-22/tcp                     ALLOW IN    172.16.0.0/12
-22/tcp                     ALLOW IN    192.168.0.0/16
-2376/tcp                   ALLOW IN    10.0.0.0/8
-2376/tcp                   ALLOW IN    172.16.0.0/12
-2376/tcp                   ALLOW IN    192.168.0.0/16
-8007/tcp                   ALLOW IN    10.0.0.0/8
-8007/tcp                   ALLOW IN    172.16.0.0/12
-8007/tcp                   ALLOW IN    192.168.0.0/16
-```
+- IPv4: `192.168.0.4`
 
 ## Initial system setup
 
 ```bash
+
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-# fuse - nfs
-pct stop 1006
+pct stop 1004
 
 # add additional 64gb mountpoint to /local
-pct set 1006 -mp1 /mnt/shared/nfs/pbs/nedi-pbs,mp=/share
+pct set 1004 -mp1 /mnt/shared/nfs/pbs/nedi-pbs,mp=/share
 # enable protection
 pct start 1006
 pct enter 1006
