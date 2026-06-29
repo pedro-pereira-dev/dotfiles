@@ -6,38 +6,6 @@
 - OS: Debian 13
 - IPv4: `143.47.59.228`
 
-```
-root@moci:~# lsblk -o NAME,FSTYPE,UUID,SIZE,FSAVAIL,MOUNTPOINTS
-NAME        FSTYPE      UUID                                     SIZE FSAVAIL MOUNTPOINTS
-sda                                                              200G
-├─sda1      vfat        B2F4-D178                                 63M   57.1M /boot/efi
-└─sda2      LVM2_member F01T5m-NfKx-5Gwc-XldZ-UQeM-Md8H-8oS601 199.9G
-  ├─vg-root ext4        69900211-9d6b-48d2-a299-b71a05f08bd1       8G    5.7G /var/lib/containers/storage/overlay
-  │                                                                           /
-  └─vg-swap swap        ad322ca4-53ac-40b5-b054-547f374237b0       1G         [SWAP]
-```
-
-Ports opened:
-
-```
-root@moci:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    Anywhere
-2333/tcp on wg0            ALLOW IN    10.0.0.0/8
-2333/tcp on wg0            ALLOW IN    172.16.0.0/12
-2333/tcp on wg0            ALLOW IN    192.168.0.0/16
-2376/tcp on wg0            ALLOW IN    10.0.0.0/8
-2376/tcp on wg0            ALLOW IN    172.16.0.0/12
-2376/tcp on wg0            ALLOW IN    192.168.0.0/16
-61820/udp on enp0s6        ALLOW IN    Anywhere
-```
-
 ## Initial system setup
 
 ```bash
@@ -148,9 +116,9 @@ $()
 #AllowedIPs = 10.10.10.10/32
 #PublicKey = $(cat /etc/wireguard/server.pub)
 EOF
-systemctl enable wg-quick@wg0.service
 systemctl daemon-reload
-systemctl start wg-quick@wg0.service
+systemctl enable --now wg-quick@wg0.service
+#systemctl restart wg-quick@wg0.service
 
 # sets up podman socket
 apt install -y podman
