@@ -4,36 +4,15 @@
 
 - Site: Personal
 - OS: Debian 13
-- IPv4: `192.168.0.7`
-
-Ports opened:
-
-```
-root@nedi-dockhand:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    10.0.0.0/8
-22/tcp                     ALLOW IN    172.16.0.0/12
-22/tcp                     ALLOW IN    192.168.0.0/16
-2377/tcp                   ALLOW IN    10.0.0.0/8
-2377/tcp                   ALLOW IN    172.16.0.0/12
-2377/tcp                   ALLOW IN    192.168.0.0/16
-3000/tcp                   ALLOW IN    10.0.0.0/8
-3000/tcp                   ALLOW IN    172.16.0.0/12
-3000/tcp                   ALLOW IN    192.168.0.0/16
-```
+- IPv4: `192.168.0.6`
 
 ## Initial system setup
 
 ```bash
+
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-pct enter 1007
+pct enter 1006
 
 # sets up ssh server
 cat << 'EOF' > /root/.ssh/authorized_keys
@@ -45,14 +24,6 @@ X11Forwarding no
 EOF
 rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
-
-# disables ipv6 networking
-cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-EOF
-sysctl --system >/dev/null 2>&1
 
 # sets up apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
