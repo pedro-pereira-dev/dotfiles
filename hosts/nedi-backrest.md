@@ -1,4 +1,4 @@
-# `nedi-zerobyte`
+# `nedi-backrest`
 
 ## Details
 
@@ -67,27 +67,10 @@ apt install -y podman ufw
 apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# sets up zerobyte
-mkdir -p /opt/podman/zerobyte
-openssl rand -hex 64 > /opt/podman/zerobyte/secret.key
-podman run -d --replace --restart always \
-  --name nedi-zerobyte \
-  --network host \
-  -e APP_SECRET=$(cat /opt/podman/zerobyte/secret.key) \
-  -e BASE_URL=http://192.168.0.7:4096 \
-  -e TZ=Europe/Lisbon \
-  -v /data:/data \
-  -v /opt/podman/zerobyte:/var/lib/zerobyte \
-  --cap-add=SYS_ADMIN \
-  --device /dev/fuse \
-  --health-cmd='["curl", "-f", "http://127.0.0.1:4096"]' \
-  --health-on-failure restart \
-  ghcr.io/nicotsx/zerobyte:latest
-#cat /opt/podman/zerobyte/secret.key
-
-#-o sftp.args="-i /key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 # sets up backrest
 mkdir -p /opt/podman/backrest/{config,data}
+echo > /opt/podman/backrest/sftp.key
+chmod 600 /opt/podman/backrest/sftp.key
 podman run -d --replace --restart always \
   --name nedi-backrest \
   --network host \
@@ -95,18 +78,18 @@ podman run -d --replace --restart always \
   -e BACKREST_DATA=/configs/data \
   -e TZ=Europe/Lisbon \
   -v /data:/data \
-  -v /key:/key \
-  -v /hosts:/hosts \
+  -v /opt/podman/backrest/sftp.key:/sftp.key \
   -v /opt/podman/backrest:/configs \
   --health-cmd='["curl", "-f", "http://127.0.0.1:9898"]' \
   --health-on-failure restart \
   docker.io/garethgeorge/backrest:latest
+#-o sftp.args='-i /sftp.key -o StrictHostKeyChecking=no' --compression max
 
 # sets up hawser
 mkdir -p /opt/podman/hawser
 openssl rand -hex 64 > /opt/podman/hawser/token.key
 podman run -d --replace --restart always \
-  --name nedi-zerobyte-hawser \
+  --name nedi-backrest-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(cat /opt/podman/hawser/token.key) \
@@ -127,10 +110,10 @@ ufw allow from 192.168.0.0/16 to any port 22 proto tcp
 ufw allow from 10.0.0.0/8 to any port 2377 proto tcp
 ufw allow from 172.16.0.0/12 to any port 2377 proto tcp
 ufw allow from 192.168.0.0/16 to any port 2377 proto tcp
-# Zerobyte
-ufw allow from 10.0.0.0/8 to any port 4096 proto tcp
-ufw allow from 172.16.0.0/12 to any port 4096 proto tcp
-ufw allow from 192.168.0.0/16 to any port 4096 proto tcp
+# Backrest
+ufw allow from 10.0.0.0/8 to any port 9898 proto tcp
+ufw allow from 172.16.0.0/12 to any port 9898 proto tcp
+ufw allow from 192.168.0.0/16 to any port 9898 proto tcp
 ufw enable
 
 ```
