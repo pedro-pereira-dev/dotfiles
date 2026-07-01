@@ -29,8 +29,9 @@ systemctl restart ssh
 # sets up fstab
 cat << 'EOF' > /etc/fstab
 UUID=B2F4-D178                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
-UUID=ad322ca4-53ac-40b5-b054-547f374237b0   none        swap    sw 0 0
-UUID=69900211-9d6b-48d2-a299-b71a05f08bd1   /           ext4    defaults,errors=remount-ro 0 1
+UUID=b2a241d7-e806-4aef-87a6-e3fbf04849fa   none        swap    sw 0 0
+UUID=dcf18ac7-47ae-4429-90b8-9161a1325922   /           ext4    defaults,errors=remount-ro 0 1
+UUID=89a0806a-fb0b-409f-89e5-b7db643f2f5f   /data       ext4    defaults 0 0
 EOF
 
 # sets up grub
@@ -69,26 +70,25 @@ chmod +x /usr/bin/update
 update
 
 # sets up sftp
-mkdir -p /data/.ssh /data/share
-groupadd sftpusers
-useradd -g sftpusers -d /data -s /sbin/nologin sftpuser
+mkdir -p /data/{.ssh,share}
+useradd -d /data -s /sbin/nologin user
 ssh-keygen -t ed25519 -f /data/.ssh/sftp_key -N "" -q
 cat /data/.ssh/sftp_key.pub > /data/.ssh/authorized_keys
+chmod -R 755 /data
 chown root:root /data
-chmod 755 /data
-chown -R sftpuser:sftpusers /data/.ssh
-chmod 700 /data/.ssh
 chmod 600 /data/.ssh/authorized_keys
-chown root:sftpusers /data/share
-chmod 775 /data/share
+chmod 700 /data/.ssh
+chown -R user:user /data/.ssh
+chmod 755 /data/share
+chown -R user:user /data/share
 cat << 'EOF' > /etc/ssh/sshd_config.d/sftp.conf
-Match User sftpuser
+Match User user
   AuthorizedKeysFile /data/.ssh/authorized_keys
   ChrootDirectory /data
   ForceCommand internal-sftp
 EOF
 systemctl restart ssh
-#echo "143.47.59.228 $(ssh-keyscan 127.0.0.1 | grep ssh-ed25519 | cut -d' ' -f2-)"
+#cat /data/.ssh/sftp_key
 
 # installs all required dependencies
 apt install -y podman ufw wireguard
