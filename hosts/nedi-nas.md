@@ -100,7 +100,8 @@ spindown
 apt install -y nfs-kernel-server
 sed -i '/^\[mountd\]/,/^\[/ s/^#\?\s*port\s*=.*/port=20048/' /etc/nfs.conf
 sed -i '/^\[statd\]/,/^\[/ s/^#\?\s*port\s*=.*/port=32765/' /etc/nfs.conf
-mkdir -p /data/storage/nedi/{media,pbs}
+mkdir -p /data/storage/nedi/media/{media,torrents}/{movies,music,tv}
+mkdir -p /data/storage/nedi/pbs
 chmod -R 777 /data
 chown -R nobody:nogroup /data
 cat << 'EOF' > /etc/exports

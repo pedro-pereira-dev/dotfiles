@@ -79,10 +79,28 @@ podman run -d --replace --restart always \
   -v /data:/data \
   -v /opt/podman/zerobyte:/var/lib/zerobyte \
   --cap-add=SYS_ADMIN \
+  --device /dev/fuse \
   --health-cmd='["curl", "-f", "http://127.0.0.1:4096"]' \
   --health-on-failure restart \
   ghcr.io/nicotsx/zerobyte:latest
 #cat /opt/podman/zerobyte/secret.key
+
+#-o sftp.args="-i /key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+# sets up backrest
+mkdir -p /opt/podman/backrest/{config,data}
+podman run -d --replace --restart always \
+  --name nedi-backrest \
+  --network host \
+  -e BACKREST_CONFIG=/configs/config/config.json \
+  -e BACKREST_DATA=/configs/data \
+  -e TZ=Europe/Lisbon \
+  -v /data:/data \
+  -v /key:/key \
+  -v /hosts:/hosts \
+  -v /opt/podman/backrest:/configs \
+  --health-cmd='["curl", "-f", "http://127.0.0.1:9898"]' \
+  --health-on-failure restart \
+  docker.io/garethgeorge/backrest:latest
 
 # sets up hawser
 mkdir -p /opt/podman/hawser

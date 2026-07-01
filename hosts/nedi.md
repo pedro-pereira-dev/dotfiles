@@ -232,6 +232,55 @@ chmod +x /usr/bin/autoaspm
 autoaspm
 (crontab -l 2>/dev/null; echo "@reboot (sleep 60 && autoaspm)") | crontab -
 
+# sets up backup-host-to
+cat << 'EOF' > /usr/bin/backup-host-to
+#!/bin/bash
+#
+! /usr/sbin/pvesm status --storage "$1" >/dev/null 2>&1 &&
+  echo "Storage ($1) not found, skipping backup" &&
+  exit 1
+#
+PBS_DATASTORE=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*datastore //p")
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_DATASTORE, skipping backup" &&
+  exit 1
+#
+PBS_NAMESPACE=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*namespace //p")
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_NAMESPACE, skipping backup" &&
+  exit 1
+#
+PBS_SERVER=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*server //p")
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_SERVER, skipping backup" &&
+  exit 1
+#
+PBS_USERNAME=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*username //p")
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_USERNAME, skipping backup" &&
+  exit 1
+#
+PBS_FINGERPRINT=$(sed -n "/pbs: $1/,/^$/p" /etc/pve/storage.cfg | sed -n "s/\s.*fingerprint //p")
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_FINGERPRINT, skipping backup" &&
+  exit 1
+#
+PBS_PASSWORD=$(cat "/etc/pve/priv/storage/$1.pw")
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_PASSWORD, skipping backup" &&
+  exit 1
+#
+PBS_REPOSITORY="$PBS_USERNAME@$PBS_SERVER:$PBS_DATASTORE"
+test -z "$PBS_DATASTORE" &&
+  echo "Storage ($1) configuration PBS_REPOSITORY, skipping backup" &&
+  exit 1
+#
+export PBS_FINGERPRINT PBS_PASSWORD PBS_REPOSITORY
+/usr/bin/proxmox-backup-client backup root.pxar:/ --ns "$PBS_NAMESPACE"
+EOF
+chmod +x /usr/bin/backup-host-to
+(crontab -l 2>/dev/null; echo "30 1 * * * backup-host-to mnt-pbs") | crontab -
+
 # sets up firewall
 apt install -y ufw
 ufw default allow outgoing
