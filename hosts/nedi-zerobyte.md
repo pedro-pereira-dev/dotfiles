@@ -1,4 +1,4 @@
-# `nedi-backrest`
+# `nedi-zerobyte`
 
 ## Details
 
@@ -12,6 +12,7 @@
 
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
+# fuse - zerobyte
 pct stop 1007
 
 pct set 1007 -mp0 /mnt/pve/mnt-nas/,mp=/data
@@ -67,29 +68,28 @@ apt install -y podman ufw
 apt install -y podman
 systemctl enable --now podman-restart.service podman.service podman.socket
 
-# sets up backrest
-mkdir -p /opt/podman/backrest/{config,data}
-echo > /opt/podman/backrest/sftp.key
-chmod 600 /opt/podman/backrest/sftp.key
+# sets up zerobyte
+mkdir -p /opt/podman/zerobyte
+openssl rand -hex 64 > /opt/podman/zerobyte/secret.key
 podman run -d --replace --restart always \
-  --name nedi-backrest \
+  --name nedi-zerobyte \
   --network host \
-  -e BACKREST_CONFIG=/configs/config/config.json \
-  -e BACKREST_DATA=/configs/data \
+  --cap-add=SYS_ADMIN \
+  --device /dev/fuse \
+  -e APP_SECRET=$(cat /opt/podman/zerobyte/secret.key) \
+  -e BASE_URL=http://192.168.0.7:4096 \
   -e TZ=Europe/Lisbon \
   -v /data:/data \
-  -v /opt/podman/backrest/sftp.key:/sftp.key \
-  -v /opt/podman/backrest:/configs \
-  --health-cmd='["curl", "-f", "http://127.0.0.1:9898"]' \
+  -v /opt/podman/zerobyte:/var/lib/zerobyte \
+  --health-cmd='["node", "-e", "fetch(\"http://192.168.0.7:4096/\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]' \
   --health-on-failure restart \
-  docker.io/garethgeorge/backrest:latest
-#-o sftp.args='-i /sftp.key -o StrictHostKeyChecking=no' --compression max
+  ghcr.io/nicotsx/zerobyte:latest
 
 # sets up hawser
 mkdir -p /opt/podman/hawser
 openssl rand -hex 64 > /opt/podman/hawser/token.key
 podman run -d --replace --restart always \
-  --name nedi-backrest-hawser \
+  --name nedi-zerobyte-hawser \
   --network host \
   -e STACKS_DIR=/etc/hawser \
   -e TOKEN=$(cat /opt/podman/hawser/token.key) \
@@ -107,13 +107,13 @@ ufw allow from 10.0.0.0/8 to any port 22 proto tcp
 ufw allow from 172.16.0.0/12 to any port 22 proto tcp
 ufw allow from 192.168.0.0/16 to any port 22 proto tcp
 # Hawser
-ufw allow from 10.0.0.0/8 to any port 2377 proto tcp
-ufw allow from 172.16.0.0/12 to any port 2377 proto tcp
-ufw allow from 192.168.0.0/16 to any port 2377 proto tcp
-# Backrest
-ufw allow from 10.0.0.0/8 to any port 9898 proto tcp
-ufw allow from 172.16.0.0/12 to any port 9898 proto tcp
-ufw allow from 192.168.0.0/16 to any port 9898 proto tcp
+ufw allow from 10.0.0.0/8 to any port 2376 proto tcp
+ufw allow from 172.16.0.0/12 to any port 2376 proto tcp
+ufw allow from 192.168.0.0/16 to any port 2376 proto tcp
+# Zerobyte
+ufw allow from 10.0.0.0/8 to any port 4096 proto tcp
+ufw allow from 172.16.0.0/12 to any port 4096 proto tcp
+ufw allow from 192.168.0.0/16 to any port 4096 proto tcp
 ufw enable
 
 ```

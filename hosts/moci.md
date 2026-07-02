@@ -70,7 +70,7 @@ chmod +x /usr/bin/update
 update
 
 # sets up sftp
-mkdir -p /data/{.ssh,share}
+mkdir -p /data/.ssh /data/share/nedi-nas
 useradd -d /data -s /sbin/nologin user
 ssh-keygen -t ed25519 -f /data/.ssh/sftp_key -N "" -q
 cat /data/.ssh/sftp_key.pub > /data/.ssh/authorized_keys
