@@ -184,6 +184,8 @@ ufw allow in on wg0 from 192.168.0.0/16 to any port 2333 proto tcp
 ufw allow in on wg0 from 10.0.0.0/8 to any port 2376 proto tcp
 ufw allow in on wg0 from 172.16.0.0/12 to any port 2376 proto tcp
 ufw allow in on wg0 from 192.168.0.0/16 to any port 2376 proto tcp
+# Qbittorrent - torrenting
+ufw allow from 0.0.0.0/0 to any port 6881 proto tcp
 # Wireguard
 ufw allow in on enp0s6 from 0.0.0.0/0 to any port 61820 proto udp
 ufw enable
