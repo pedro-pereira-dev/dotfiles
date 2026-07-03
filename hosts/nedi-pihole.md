@@ -6,37 +6,12 @@
 - OS: Debian 13
 - IPv4: `192.168.0.2`
 
-Ports opened:
-
-```
-root@nedi-pihole:~# ufw status verbose
-Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), disabled (routed)
-New profiles: skip
-
-To                         Action      From
---                         ------      ----
-22/tcp                     ALLOW IN    10.0.0.0/8
-22/tcp                     ALLOW IN    172.16.0.0/12
-22/tcp                     ALLOW IN    192.168.0.0/16
-53                         ALLOW IN    10.0.0.0/8
-53                         ALLOW IN    172.16.0.0/12
-53                         ALLOW IN    192.168.0.0/16
-80/tcp                     ALLOW IN    10.0.0.0/8
-80/tcp                     ALLOW IN    172.16.0.0/12
-80/tcp                     ALLOW IN    192.168.0.0/16
-2376/tcp                   ALLOW IN    10.0.0.0/8
-2376/tcp                   ALLOW IN    172.16.0.0/12
-2376/tcp                   ALLOW IN    192.168.0.0/16
-```
-
 ## Initial system setup
 
 ```bash
+
 # creates debian lxc
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/ct/debian.sh)"
-# protected
 pct enter 1002
 
 # sets up ssh server
@@ -49,14 +24,6 @@ X11Forwarding no
 EOF
 rm -f /etc/ssh/sshd_config.d/test.conf
 systemctl restart ssh
-
-# disables ipv6 networking
-cat << 'EOF' > /etc/sysctl.d/99-disable-ipv6.conf
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-EOF
-sysctl --system >/dev/null 2>&1
 
 # sets up apt
 rm -f /etc/apt/sources.list /etc/apt/sources.list~ /etc/apt/sources.list.bak
@@ -148,7 +115,7 @@ podman run -d --replace --restart always \
   -e FTLCONF_ntp_ipv6_active=false \
   -e FTLCONF_ntp_sync_active=false \
   -e FTLCONF_webserver_api_password='' \
-  -e FTLCONF_webserver_domain=pihole.nedi.boarede.com \
+  -e FTLCONF_webserver_domain=pihole.boarede.com \
   -e FTLCONF_webserver_port=80o \
   -e TZ=Europe/Lisbon \
   -v /opt/podman/pihole:/etc/pihole \
