@@ -111,7 +111,12 @@ $()
 PostDown = iptables -t nat -D POSTROUTING -o enp0s6 -j MASQUERADE
 PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
 $()
-# neli-tunnel-moci-web
+# neli-tunnel-moci
+#[Peer]
+#AllowedIPs = 10.10.10.8/32
+#PublicKey = $(cat /etc/wireguard/server.pub)
+$()
+# neli-qbittorrent
 #[Peer]
 #AllowedIPs = 10.10.10.10/32
 #PublicKey = $(cat /etc/wireguard/server.pub)
