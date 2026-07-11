@@ -81,7 +81,7 @@ podman run -d --replace --restart always \
   -e TZ=Europe/Lisbon \
   -v /data:/data \
   -v /opt/podman/zerobyte:/var/lib/zerobyte \
-  --health-cmd='["node", "-e", "fetch(\"http://192.168.0.7:4096/\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]' \
+  --health-cmd='["node", "-e", "fetch(\"http://127.0.0.1:4096/\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]' \
   --health-on-failure restart \
   ghcr.io/nicotsx/zerobyte:latest
 

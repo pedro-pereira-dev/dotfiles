@@ -70,7 +70,7 @@ podman run -d --replace --restart always \
   --network host \
   -e TZ=Europe/Lisbon \
   -v /opt/podman/seer:/app/config \
-  --health-cmd='["curl", "-f", "http://127.0.0.1:5055"]' \
+  --health-cmd='["node", "-e", "fetch(\"http://127.0.0.1:5055/\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]' \
   --health-on-failure restart \
   ghcr.io/seerr-team/seerr:latest
 
