@@ -281,6 +281,10 @@ EOF
 chmod +x /usr/bin/backup-host-to
 (crontab -l 2>/dev/null; echo "30 1 * * * backup-host-to mnt-pbs") | crontab -
 
+# sets up storage remounts
+(crontab -l 2>/dev/null; echo "*/5 * * * * pvesm status | grep -q 'mnt-nas.*inactive' && pct reboot 1003") | crontab -
+(crontab -l 2>/dev/null; echo "*/5 * * * * pvesm status | grep -q 'mnt-pbs.*inactive' && pct reboot 1004") | crontab -
+
 # sets up firewall
 apt install -y ufw
 ufw default allow outgoing
