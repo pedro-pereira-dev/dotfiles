@@ -73,6 +73,9 @@ update
 apt install -y proxmox-backup-server ufw
 rm -f /etc/apt/sources.list.d/pbs-enterprise.sources
 
+# sets up reboot on stale mount
+(crontab -l 2>/dev/null; echo "* * * * * timeout 5 df -h || poweroff") | crontab -
+
 # sets up firewall
 apt install -y ufw
 ufw default allow outgoing

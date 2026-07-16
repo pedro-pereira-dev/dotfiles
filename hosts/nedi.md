@@ -1,4 +1,4 @@
-# `desktop`
+# `nedi`
 
 ## Details
 
@@ -281,9 +281,33 @@ EOF
 chmod +x /usr/bin/backup-host-to
 (crontab -l 2>/dev/null; echo "30 1 * * * backup-host-to mnt-pbs") | crontab -
 
+# sets up lxc reboot
+cat << 'EOF' > /usr/bin/lxc-reboot
+for id in "$@"; do
+  sleep 60
+  if /usr/sbin/pct status $id | grep -q "running"; then
+    /usr/sbin/pct reboot $id
+  else
+    /usr/sbin/pct start $id
+  fi
+done
+EOF
+chmod +x /usr/bin/lxc-reboot
+
+# sets up lxc check
+cat << 'EOF' > /usr/bin/lxc-check
+for id in $(/usr/sbin/pct list | awk 'NR > 1 {print $1}'); do
+  if /usr/sbin/pct status $id | grep -q "stopped"; then
+    /usr/sbin/pct start $id
+  fi
+done
+EOF
+chmod +x /usr/bin/lxc-check
+
 # sets up storage remounts
-(crontab -l 2>/dev/null; echo "*/5 * * * * pvesm status | grep -q 'mnt-nas.*inactive' && pct reboot 1003") | crontab -
-(crontab -l 2>/dev/null; echo "*/5 * * * * pvesm status | grep -q 'mnt-pbs.*inactive' && pct reboot 1004") | crontab -
+(crontab -l 2>/dev/null; echo "*/15 * * * * /usr/bin/lxc-check") | crontab -
+(crontab -l 2>/dev/null; echo "*/20 * * * * /usr/sbin/pvesm status | grep 'mnt-nas.*inactive' && /usr/bin/lxc-reboot 1003 1004 1007 1010 1011 1012 1013 1014") | crontab -
+(crontab -l 2>/dev/null; echo "*/20 * * * * /usr/sbin/pvesm status | grep 'mnt-pbs.*inactive' && /usr/bin/lxc-reboot 1004") | crontab -
 
 # sets up firewall
 apt install -y ufw
@@ -303,5 +327,9 @@ ufw enable
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/lxc-delete.sh)"
 # executes on all lxcs
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/execute.sh)"
+# cleans logs and caches
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/clean-lxcs.sh)"
+# trims filesystems
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/tools/pve/fstrim.sh)"
 
 ```

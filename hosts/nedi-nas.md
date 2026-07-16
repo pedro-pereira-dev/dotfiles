@@ -68,12 +68,12 @@ apt install -y hdparm mergerfs nfs-kernel-server ufw
 
 # sets up disks
 apt install -y mergerfs
-mkdir -p /mnt/disks/{fast-02,slow-01,slow-02}
+mkdir -p /mnt/disks/{fast-01,slow-01,slow-02}
 mkdir -p /mnt/storage/{fast,slow}
 mkdir -p /data
-ln -fs /local /mnt/disks/fast-01
+ln -fs /local /mnt/disks/fast-99
 cat << EOF > /etc/fstab
-UUID=3ce70563-290e-4fb4-89ec-8054bc0093c6   /mnt/disks/fast-02      ext4 defaults 0 0
+UUID=3ce70563-290e-4fb4-89ec-8054bc0093c6   /mnt/disks/fast-01      ext4 defaults 0 0
 UUID=73481b2e-75bb-43af-85d9-51fc0f237880   /mnt/disks/slow-01      ext4 defaults 0 0
 UUID=b6583ee1-d4aa-42c2-b2ef-15baff9deb46   /mnt/disks/slow-02      ext4 defaults 0 0
 $()

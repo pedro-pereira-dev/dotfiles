@@ -98,6 +98,9 @@ podman run -d --replace --restart always \
   --health-on-failure restart \
   ghcr.io/finsys/hawser:latest
 
+# sets up reboot on stale mount
+(crontab -l 2>/dev/null; echo "* * * * * timeout 5 df -h || poweroff") | crontab -
+
 # sets up firewall
 apt install -y ufw
 ufw default allow outgoing
