@@ -28,10 +28,10 @@ systemctl restart ssh
 
 # sets up fstab
 cat << 'EOF' > /etc/fstab
-UUID=B2F4-D178                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
-UUID=b2a241d7-e806-4aef-87a6-e3fbf04849fa   none        swap    sw 0 0
-UUID=dcf18ac7-47ae-4429-90b8-9161a1325922   /           ext4    defaults,errors=remount-ro 0 1
-UUID=89a0806a-fb0b-409f-89e5-b7db643f2f5f   /data       ext4    defaults 0 0
+UUID=C8DC-3FAA                              /boot/efi   vfat    defaults,noatime,nodev,noexec,nosuid,umask=0077 0 2
+UUID=98984876-a2c1-4164-90cf-e3ac31058d06   none        swap    sw 0 0
+UUID=f4540555-1a2e-42fc-bedf-2be0683ad808   /           ext4    defaults,errors=remount-ro 0 1
+UUID=b72d5e36-bb67-4b8c-bfd8-04bb50a8a03a   /data       ext4    defaults 0 0
 EOF
 
 # sets up grub
@@ -68,6 +68,17 @@ apt autoremove -y
 EOF
 chmod +x /usr/bin/update
 update
+
+# installs docker
+bash -c "$(curl -fsSL https://get.docker.com)"
+
+# installs pangolin
+bash -c "$(curl -fsSL https://static.pangolin.net/get-installer.sh)"
+./installer --crowdsec
+rm -f ./installer
+
+
+### wip
 
 # sets up sftp
 mkdir -p /data/.ssh /data/share/nedi-nas
