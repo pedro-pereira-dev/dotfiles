@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euo pipefail
+
+[[ ${1:-} == "update" ]] && chezmoi update --source "$HOME/workspace/personal/dotfiles"
