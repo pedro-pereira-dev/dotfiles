@@ -1,0 +1,18 @@
+{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "debian") -}}
+#!/usr/bin/bash
+set -euo pipefail
+
+sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*
+cat <<'EOF' | sudo tee /etc/apt/sources.list.d/debian.sources >/dev/null
+Types: deb
+URIs: https://deb.debian.org/debian
+Suites: sid
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+
+sudo apt update
+sudo apt full-upgrade -y
+sudo apt install -y chezmoi
+sudo apt autoremove -y
+{{ end -}}

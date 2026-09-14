@@ -1,7 +1,0 @@
-#!/bin/sh
-
-{{ if eq .chezmoi.os "darwin" -}}
-echo "Hello world from macOS"
-{{ else if eq .chezmoi.os "linux" -}}
-echo "Hello world from Linux"
-{{ end -}}
