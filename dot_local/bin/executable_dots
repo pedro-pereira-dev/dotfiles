@@ -6,8 +6,10 @@ _mise_chezmoi="$(mise which chezmoi 2>/dev/null || true)"
 _install_chezmoi() { bash -c "$(curl -fsSL get.chezmoi.io)" -- -b /tmp "$@"; }
 
 _chezmoi=(_install_chezmoi)
-[[ -z $_mise_chezmoi ]] || _chezmoi=(mise exec chezmoi -- chezmoi)
-[[ -z $_direct_chezmoi ]] || _chezmoi=(chezmoi)
+[[ -z $_mise_chezmoi ]] ||
+  _chezmoi=(mise exec chezmoi -- chezmoi)
+[[ -z $_direct_chezmoi ]] ||
+  _chezmoi=(chezmoi)
 
 _directory="$HOME/workspace/personal/dotfiles"
 mkdir -p "$_directory"

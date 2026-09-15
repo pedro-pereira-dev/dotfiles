@@ -2,5 +2,7 @@
 set -euo pipefail
 
 _dots="$(dirname "$0")/dot_local/bin/executable_dots"
-[[ ! -f $_dots ]] || exec bash "$_dots" bootstrap
+[[ ! -f $_dots ]] ||
+  exec bash "$_dots" bootstrap
+
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/dot_local/bin/executable_dots)" -- bootstrap
