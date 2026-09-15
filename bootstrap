@@ -3,7 +3,7 @@ set -euo pipefail
 
 _direct_chezmoi="$(command -v chezmoi || true)"
 _mise_chezmoi="$(mise which chezmoi 2>/dev/null || true)"
-_install_chezmoi() { bash -c "$(curl -fsSL get.chezmoi.io)" -- "$@"; }
+_install_chezmoi() { bash -c "$(curl -fsSL get.chezmoi.io)" -- -b /tmp "$@"; }
 
 _chezmoi=(_install_chezmoi)
 [[ -z $_mise_chezmoi ]] || _chezmoi=(mise exec chezmoi -- chezmoi)
