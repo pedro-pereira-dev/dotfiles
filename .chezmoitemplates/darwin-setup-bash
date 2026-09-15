@@ -1,10 +1,10 @@
 {{ template "darwin-install-homebrew" . -}}
 
 brew list --formula bash >/dev/null 2>&1 ||
-  brew install bash
+  brew install -y bash
 
 grep -qxF /opt/homebrew/bin/bash /etc/shells ||
   printf '/opt/homebrew/bin/bash\n' | sudo tee -a /etc/shells >/dev/null
 
 dscl . -read "/Users/$USER" UserShell | grep -qxF 'UserShell: /opt/homebrew/bin/bash' ||
-  chsh -s /opt/homebrew/bin/bash
+  sudo chsh -s /opt/homebrew/bin/bash "$USER"
