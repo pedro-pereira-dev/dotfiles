@@ -3,6 +3,7 @@ set -euo pipefail
 
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $installChezmoi := dig "installChezmoi" false $host -}}
+{{ $useBash := dig "useBash" false $host -}}
 
 # -----------------------------------------------------------------------------
 # Debian
@@ -23,6 +24,7 @@ sudo env DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
 command -v chezmoi >/dev/null 2>&1 ||
   sudo env DEBIAN_FRONTEND=noninteractive apt install -y chezmoi
 sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
+
 {{ end -}}
 
 # -----------------------------------------------------------------------------
@@ -40,4 +42,9 @@ sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
 {{ else if $installXcode -}}
 {{ template "darwin-install-xcode" . -}}
 {{ end -}}
+
+{{ if $useBash -}}
+{{ template "darwin-setup-bash" . -}}
+{{ end -}}
+
 {{ end -}}

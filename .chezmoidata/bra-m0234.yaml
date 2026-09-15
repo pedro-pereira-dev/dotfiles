@@ -1,3 +1,6 @@
 hosts:
   bra-m0234:
+    installXcode: true
+    installHomebrew: true
     installChezmoi: true
+    useBash: true

@@ -1,2 +1,6 @@
 README.md
 bootstrap
+{{ $host := index .hosts .chezmoi.hostname | default dict -}}
+{{ if not (and (eq .chezmoi.os "darwin") (dig "useBash" false $host)) }}
+.bash_profile
+{{ end }}
