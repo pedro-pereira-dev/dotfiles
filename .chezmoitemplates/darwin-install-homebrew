@@ -1,0 +1,7 @@
+{{ template "darwin-install-xcode" . -}}
+
+[[ -x /opt/homebrew/bin/brew ]] ||
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+command -v brew >/dev/null 2>&1 ||
+  eval "$(/opt/homebrew/bin/brew shellenv)"

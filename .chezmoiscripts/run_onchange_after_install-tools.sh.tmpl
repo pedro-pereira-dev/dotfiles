@@ -1,11 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-{{ if has .chezmoi.hostname .installChezmoiHosts -}}
+{{ $host := index .hosts .chezmoi.hostname | default dict -}}
+{{ $installChezmoi := dig "installChezmoi" false $host -}}
+
 # -----------------------------------------------------------------------------
 # Debian
 # -----------------------------------------------------------------------------
-{{ if and (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "debian") -}}
+{{ if and $installChezmoi (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "debian") -}}
 
 sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*
 cat <<'EOF' | sudo tee /etc/apt/sources.list.d/debian.sources >/dev/null
@@ -28,16 +30,15 @@ sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
 # -----------------------------------------------------------------------------
 {{ if eq .chezmoi.os "darwin" -}}
 
-xcode-select --print-path >/dev/null 2>&1 ||
-  xcode-select --install
+{{ $installHomebrew := dig "installHomebrew" false $host -}}
+{{ $installXcode := dig "installXcode" false $host -}}
 
-_brew="$(command -v brew || command -v /opt/homebrew/bin/brew || command -v /usr/local/bin/brew || true)"
-if [[ -z $_brew ]]; then
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  _brew="$(command -v /opt/homebrew/bin/brew || command -v /usr/local/bin/brew)"
-fi
-
-command -v chezmoi >/dev/null 2>&1 ||
-  "$_brew" install chezmoi
+{{ if $installChezmoi -}}
+{{ template "darwin-install-chezmoi" . -}}
+{{ else if $installHomebrew -}}
+{{ template "darwin-install-homebrew" . -}}
+{{ else if $installXcode -}}
+{{ template "darwin-install-xcode" . -}}
 {{ end -}}
+
 {{ end -}}

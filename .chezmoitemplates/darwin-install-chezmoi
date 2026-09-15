@@ -1,0 +1,4 @@
+{{ template "darwin-install-homebrew" . -}}
+
+command -v chezmoi >/dev/null 2>&1 ||
+  brew install chezmoi
