@@ -9,5 +9,10 @@ _chezmoi=(_install_chezmoi)
 [[ -z $_mise_chezmoi ]] || _chezmoi=(mise exec chezmoi -- chezmoi)
 [[ -z $_direct_chezmoi ]] || _chezmoi=(chezmoi)
 
-[[ ${1:-} == 'update' ]] &&
-  "${_chezmoi[@]}" update --source "$HOME/workspace/personal/dotfiles"
+_directory="$HOME/workspace/personal/dotfiles"
+mkdir -p "$_directory"
+
+case ${1:-} in
+bootstrap) "${_chezmoi[@]}" init --apply --source "$_directory" pedro-pereira-dev ;;
+update) "${_chezmoi[@]}" update --source "$_directory" ;;
+esac

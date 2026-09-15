@@ -1,14 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-_direct_chezmoi="$(command -v chezmoi || true)"
-_mise_chezmoi="$(mise which chezmoi 2>/dev/null || true)"
-_install_chezmoi() { bash -c "$(curl -fsSL get.chezmoi.io)" -- -b /tmp "$@"; }
-
-_chezmoi=(_install_chezmoi)
-[[ -z $_mise_chezmoi ]] || _chezmoi=(mise exec chezmoi -- chezmoi)
-[[ -z $_direct_chezmoi ]] || _chezmoi=(chezmoi)
-
-_directory="$HOME/workspace/personal/dotfiles"
-mkdir -p "$_directory"
-"${_chezmoi[@]}" init --apply --source "$_directory" pedro-pereira-dev
+_dots="$(dirname "$0")/dot_local/bin/executable_dots"
+[[ ! -f $_dots ]] || exec bash "$_dots" bootstrap
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/dot_local/bin/executable_dots)" -- bootstrap

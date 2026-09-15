@@ -15,3 +15,9 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfil
 ```sh
 dots update
 ```
+
+## Dev Container
+
+```sh
+devcontainer up --workspace-folder . --dotfiles-repository https://github.com/pedro-pereira-dev/dotfiles
+```
