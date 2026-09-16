@@ -11,7 +11,7 @@ _chezmoi=(_install_chezmoi)
 [[ -z $_direct_chezmoi ]] ||
   _chezmoi=(chezmoi)
 
-_directory="$HOME/workspace/personal/dotfiles"
+_directory={{ joinPath .chezmoi.homeDir .sourceDirectory | quote }}
 mkdir -p "$_directory"
 
 case ${1:-} in

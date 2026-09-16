@@ -1,8 +1,37 @@
 #!/bin/bash
 set -euo pipefail
 
-_dots="$(dirname "$0")/dot_local/bin/executable_dots"
-[[ ! -f $_dots ]] ||
-  exec bash "$_dots" bootstrap
+_root=$(dirname "$0")
+_data="$_root/.chezmoidata/config.yaml"
+_source_directory=
 
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/dot_local/bin/executable_dots)" -- bootstrap
+if [[ -f $_data ]]; then
+  _data_command=(cat "$_data")
+else
+  _data_command=(curl -fsSL "https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/.chezmoidata/config.yaml")
+fi
+
+while IFS=: read -r _key _value; do
+  _key=${_key#"${_key%%[![:space:]]*}"}
+  [[ $_key != sourceDirectory ]] || _source_directory=${_value#"${_value%%[![:space:]]*}"}
+done < <("${_data_command[@]}")
+
+if [[ -z $_source_directory ]]; then
+  printf 'sourceDirectory is not defined.\n' >&2
+  exit 1
+fi
+
+_directory="$HOME/$_source_directory"
+mkdir -p "$_directory"
+
+_direct_chezmoi="$(command -v chezmoi || true)"
+_mise_chezmoi="$(mise which chezmoi 2>/dev/null || true)"
+_install_chezmoi() { bash -c "$(curl -fsSL get.chezmoi.io)" -- -b /tmp "$@"; }
+
+_chezmoi=(_install_chezmoi)
+[[ -z $_mise_chezmoi ]] ||
+  _chezmoi=(mise exec chezmoi -- chezmoi)
+[[ -z $_direct_chezmoi ]] ||
+  _chezmoi=(chezmoi)
+
+"${_chezmoi[@]}" init --apply --source "$_directory" pedro-pereira-dev

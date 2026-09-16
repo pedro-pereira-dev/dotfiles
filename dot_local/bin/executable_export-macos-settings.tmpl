@@ -6,15 +6,15 @@ if [[ $(uname -s) != Darwin ]]; then
   exit 1
 fi
 
-if ! command -v chezmoi >/dev/null 2>&1; then
-  printf 'chezmoi is required.\n' >&2
-  exit 1
-fi
-
-source_dir=$(chezmoi source-path)
+source_dir={{ joinPath .chezmoi.homeDir .sourceDirectory | quote }}
 output="$source_dir/.chezmoitemplates/darwin-overwrite-settings"
 temporary=$(mktemp)
 trap 'rm -f "$temporary"' EXIT
+
+if [[ ! -d $source_dir/.chezmoitemplates ]]; then
+  printf 'Chezmoi source directory does not exist: %s\n' "$source_dir" >&2
+  exit 1
+fi
 
 : >"$temporary"
 
