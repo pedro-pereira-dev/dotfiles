@@ -4,3 +4,4 @@ hosts:
     installHomebrew: true
     installChezmoi: true
     useBash: true
+    overwriteSettings: true

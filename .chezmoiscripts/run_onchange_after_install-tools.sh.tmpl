@@ -3,6 +3,7 @@ set -euo pipefail
 
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $installChezmoi := dig "installChezmoi" false $host -}}
+{{ $overwriteSettings := dig "overwriteSettings" false $host -}}
 {{ $useBash := dig "useBash" false $host -}}
 
 # -----------------------------------------------------------------------------
@@ -45,6 +46,10 @@ sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
 
 {{ if $useBash -}}
 {{ template "darwin-setup-bash" . -}}
+{{ end -}}
+
+{{ if $overwriteSettings -}}
+{{ template "darwin-overwrite-settings" . -}}
 {{ end -}}
 
 {{ end -}}

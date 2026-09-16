@@ -4,3 +4,6 @@ bootstrap
 {{ if not (and (eq .chezmoi.os "darwin") (dig "useBash" false $host)) }}
 .bash_profile
 {{ end }}
+{{ if not (and (eq .chezmoi.os "darwin") (dig "overwriteSettings" false $host)) }}
+.local/bin/export-macos-settings
+{{ end }}
