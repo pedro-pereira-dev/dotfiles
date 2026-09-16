@@ -11,8 +11,10 @@ _chezmoi=(_install_chezmoi)
 [[ -z $_direct_chezmoi ]] ||
   _chezmoi=(chezmoi)
 
-_github_user=${DOTS_GITHUB_USER:-{{ .githubUser | quote }}}
-_directory=${DOTS_SOURCE_DIRECTORY:-{{ joinPath .chezmoi.homeDir .sourceDirectory | quote }}}
+_github_user=${DOTS_GITHUB_USER:-}
+_directory=${DOTS_SOURCE_DIRECTORY:-}
+[[ -n $_github_user ]] || _github_user='{{ .githubUser }}'
+[[ -n $_directory ]] || _directory='{{ joinPath .chezmoi.homeDir .sourceDirectory }}'
 mkdir -p "$_directory"
 
 case ${1:-} in
