@@ -3,6 +3,7 @@ macos_settings_failed=0
 {{ if not (or (eq $setting.scope "defaults") (eq $setting.scope "current-host")) -}}
 {{ fail (printf "unsupported macOS setting scope %q for %s/%s" $setting.scope $setting.domain $setting.key) -}}
 {{ end -}}
+{{ if ne $setting.domain "com.apple.universalaccess" -}}
 {{ if hasKey $setting "delete" -}}
 if defaults {{ if eq $setting.scope "current-host" }}-currentHost {{ end }}read {{ shellQuote $setting.domain }} {{ shellQuote $setting.key }} >/dev/null 2>&1 &&
   ! defaults {{ if eq $setting.scope "current-host" }}-currentHost {{ end }}delete {{ shellQuote $setting.domain }} {{ shellQuote $setting.key }}; then
@@ -34,6 +35,7 @@ if ! defaults {{ if eq $setting.scope "current-host" }}-currentHost {{ end }}wri
   printf '%s\n' {{ shellQuote (printf "macOS setting failed: %s/%s/%s" $setting.scope $setting.domain $setting.key) }} >&2
   macos_settings_failed=1
 fi
+{{ end -}}
 {{ end -}}
 {{ end -}}
 

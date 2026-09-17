@@ -144,6 +144,8 @@ def load_filters() -> dict[str, Any]:
         data = json.loads(FILTERS.read_text(encoding="utf-8"))
         if not isinstance(data.get("keyGlobs", []), list):
             raise TypeError("keyGlobs must be a list")
+        if not isinstance(data.get("domainGlobs", []), list):
+            raise TypeError("domainGlobs must be a list")
         if not isinstance(data.get("types", []), list):
             raise TypeError("types must be a list")
         if not isinstance(data.get("settings", []), list):
@@ -166,6 +168,9 @@ def contains_filtered_type(value: Any, filtered: set[str]) -> bool:
 def is_filtered(change: dict[str, Any], filters: dict[str, Any]) -> bool:
     key = change["key"].casefold()
     if any(fnmatch.fnmatchcase(key, pattern.casefold()) for pattern in filters.get("keyGlobs", [])):
+        return True
+    domain = change["domain"].casefold()
+    if any(fnmatch.fnmatchcase(domain, pattern.casefold()) for pattern in filters.get("domainGlobs", [])):
         return True
     filtered_types = set(filters.get("types", []))
     if any(

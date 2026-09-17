@@ -43,9 +43,9 @@ Output identifies added, removed, and changed keys by scope, domain, key, and
 type, followed by pretty JSON old/new values. Differences do not cause a
 nonzero exit. Missing snapshots and invalid usage do.
 
-`filters.json` suppresses volatile key globs, exact settings, and tagged binary
-or date values by default. It never affects captured data. Use `--all` before
-or after the references to bypass filtering:
+`filters.json` suppresses protected domains, volatile key globs, exact settings,
+and tagged binary or date values by default. It never affects captured data.
+Use `--all` before or after the references to bypass filtering:
 
 ```sh
 ./scripts/macos-settings/diff --all
