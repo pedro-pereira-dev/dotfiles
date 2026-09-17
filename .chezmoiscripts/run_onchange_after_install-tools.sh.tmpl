@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+{{ template "logging/setup" . -}}
+
 {{ if eq .chezmoi.os "linux" -}}
 {{ template "install-tools/linux/install" . -}}
 {{ else if eq .chezmoi.os "darwin" -}}

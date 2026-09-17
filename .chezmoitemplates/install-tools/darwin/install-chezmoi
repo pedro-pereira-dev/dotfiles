@@ -1,4 +1,7 @@
 {{ template "install-tools/darwin/install-homebrew" . -}}
 
-command -v chezmoi >/dev/null 2>&1 ||
+if ! command -v chezmoi >/dev/null 2>&1; then
+  _log_start 'installing chezmoi'
   brew install -y chezmoi
+  _log_ok
+fi
