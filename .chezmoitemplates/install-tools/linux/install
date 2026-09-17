@@ -3,7 +3,7 @@
 
 {{ if and $installChezmoi (eq .chezmoi.osRelease.id "debian") -}}
 
-_log_start 'Configuring debian sources'
+_log_start 'Configuring' 'debian sources'
 sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*
 cat <<'EOF' | sudo tee /etc/apt/sources.list.d/debian.sources >/dev/null
 Types: deb
@@ -14,18 +14,18 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
 _log_ok
 
-_log_start 'Updating debian packages'
+_log_start 'Updating' 'debian packages'
 sudo apt update
 sudo env DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
 _log_ok
 
 if ! command -v chezmoi >/dev/null 2>&1; then
-  _log_start 'Installing chezmoi'
+  _log_start 'Installing' 'chezmoi'
   sudo env DEBIAN_FRONTEND=noninteractive apt install -y chezmoi
   _log_ok
 fi
 
-_log_start 'Removing unused debian packages'
+_log_start 'Removing' 'unused debian packages'
 sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
 _log_ok
 

@@ -1,5 +1,5 @@
 if ! xcode-select --print-path >/dev/null 2>&1; then
-  _log_start 'Installing xcode command line tools'
+  _log_start 'Installing' 'xcode command line tools'
   # asynchronous
   xcode-select --install
   # awaits
