@@ -1,9 +1,6 @@
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $installChezmoi := dig "installChezmoi" false $host -}}
 
-# -----------------------------------------------------------------------------
-# Debian
-# -----------------------------------------------------------------------------
 {{ if and $installChezmoi (eq .chezmoi.osRelease.id "debian") -}}
 
 sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*

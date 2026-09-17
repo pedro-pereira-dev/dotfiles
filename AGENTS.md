@@ -12,5 +12,4 @@
 - Keep per-host settings in separate files under `.chezmoidata/`.
 - Never modify the system without the user's explicit consent. Never run bootstrap, apply, update, package-manager, installer, or system-configuration commands while developing or validating unless explicitly requested.
 - Never commit, amend, reset, rebase, or otherwise change Git history without the user's explicit consent.
-- Validate changes with static shell syntax checks and chezmoi template rendering.
 - Do not alter unrelated existing behavior or files.

@@ -4,10 +4,6 @@
 {{ $installHomebrew := dig "installHomebrew" false $host -}}
 {{ $installXcode := dig "installXcode" false $host -}}
 
-# -----------------------------------------------------------------------------
-# macOS
-# -----------------------------------------------------------------------------
-
 {{ if $installChezmoi -}}
 {{ template "install-tools/darwin/install-chezmoi" . -}}
 {{ else if $installHomebrew -}}

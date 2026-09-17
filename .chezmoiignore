@@ -1,6 +1,6 @@
 README.md
 bootstrap
-scripts
+
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $useHomebrew := or (dig "installHomebrew" false $host) (dig "installChezmoi" false $host) (dig "useBash" false $host) -}}
 {{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
