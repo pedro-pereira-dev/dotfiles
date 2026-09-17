@@ -2,6 +2,6 @@
 
 if ! command -v chezmoi >/dev/null 2>&1; then
   _log_start 'Installing chezmoi'
-  brew install -y chezmoi
+  brew install chezmoi
   _log_ok
 fi
