@@ -22,5 +22,5 @@
 {{ end -}}
 
 {{ if $overwriteSettings -}}
-{{ template "install-tools/darwin/overwrite-settings" . -}}
+{{ template "install-tools/darwin/apply-settings" . -}}
 {{ end -}}

@@ -1,0 +1,42 @@
+macos_settings_failed=0
+{{ range $setting := .macosSettings -}}
+{{ if not (or (eq $setting.scope "defaults") (eq $setting.scope "current-host")) -}}
+{{ fail (printf "unsupported macOS setting scope %q for %s/%s" $setting.scope $setting.domain $setting.key) -}}
+{{ end -}}
+{{ if hasKey $setting "delete" -}}
+if defaults {{ if eq $setting.scope "current-host" }}-currentHost {{ end }}read {{ shellQuote $setting.domain }} {{ shellQuote $setting.key }} >/dev/null 2>&1 &&
+  ! defaults {{ if eq $setting.scope "current-host" }}-currentHost {{ end }}delete {{ shellQuote $setting.domain }} {{ shellQuote $setting.key }}; then
+  printf '%s\n' {{ shellQuote (printf "macOS setting failed: %s/%s/%s" $setting.scope $setting.domain $setting.key) }} >&2
+  macos_settings_failed=1
+fi
+{{ else -}}
+if ! defaults {{ if eq $setting.scope "current-host" }}-currentHost {{ end }}write {{ shellQuote $setting.domain }} {{ shellQuote $setting.key }} {{ $type := kindOf $setting.value -}}
+{{ if eq $type "bool" -}}
+-bool {{ $setting.value -}}
+{{ else if or (eq $type "int") (eq $type "int64") (eq $type "uint64") -}}
+-int {{ $setting.value -}}
+{{ else if eq $type "float64" -}}
+-float {{ $setting.value -}}
+{{ else if eq $type "string" -}}
+-string {{ shellQuote $setting.value -}}
+{{ else if eq $type "slice" -}}
+-array{{ range $item := $setting.value }} {{ $itemType := kindOf $item -}}
+{{ if or (eq $itemType "bool") (eq $itemType "int") (eq $itemType "int64") (eq $itemType "uint64") (eq $itemType "float64") (eq $itemType "string") -}}
+{{ shellQuote (printf "%v" $item) -}}
+{{ else -}}
+{{ fail (printf "unsupported macOS array value type %s for %s/%s/%s" $itemType $setting.scope $setting.domain $setting.key) -}}
+{{ end -}}
+{{ end -}}
+{{ else -}}
+{{ fail (printf "unsupported macOS setting value type %s for %s/%s/%s" $type $setting.scope $setting.domain $setting.key) -}}
+{{ end -}}
+; then
+  printf '%s\n' {{ shellQuote (printf "macOS setting failed: %s/%s/%s" $setting.scope $setting.domain $setting.key) }} >&2
+  macos_settings_failed=1
+fi
+{{ end -}}
+{{ end -}}
+
+if [ "$macos_settings_failed" -ne 0 ]; then
+  exit 1
+fi

@@ -1,0 +1,25 @@
+{
+  "keyGlobs": [
+    "*Analytics*",
+    "*Bookmark*",
+    "*Cache*",
+    "*Heartbeat*",
+    "*Histories*",
+    "*History*",
+    "*Migration*",
+    "*Recent*",
+    "*RecentApplications*",
+    "*RecentDocuments*",
+    "*RecentItems*",
+    "*Runtime*State*",
+    "*RuntimeState*",
+    "*Timestamps*",
+    "*Timestamp*",
+    "*UUID*"
+  ],
+  "settings": [],
+  "types": [
+    "bytes",
+    "datetime"
+  ]
+}

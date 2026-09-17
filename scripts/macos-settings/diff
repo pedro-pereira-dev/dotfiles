@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Compare two macOS settings snapshots."""
+
+import argparse
+import sys
+
+sys.dont_write_bytecode = True
+
+from macos_settings import filtered_changes, load_filters, load_snapshot, render_change, resolve_snapshots
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--all", action="store_true", help="include normally filtered settings")
+    parser.add_argument("snapshots", nargs="*", metavar="SNAPSHOT")
+    arguments = parser.parse_args()
+    try:
+        old_path, new_path = resolve_snapshots(arguments.snapshots)
+        old, new = load_snapshot(old_path), load_snapshot(new_path)
+        filters = None if arguments.all else load_filters()
+    except ValueError as error:
+        parser.error(str(error))
+    differences = filtered_changes(old, new, filters)
+    print(f"--- {old_path}")
+    print(f"+++ {new_path}")
+    metadata = [
+        key for key in ("productVersion", "buildVersion", "architecture")
+        if old.get("metadata", {}).get(key) != new.get("metadata", {}).get(key)
+    ]
+    if metadata:
+        print("\nmetadata:")
+        for key in metadata:
+            print(f"  {key}: {old['metadata'].get(key)!r} -> {new['metadata'].get(key)!r}")
+    if differences:
+        print("\n" + "\n\n".join(render_change(change) for change in differences))
+    else:
+        print("\nNo preference differences.")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (OSError, ValueError) as error:
+        print(f"diff: {error}", file=sys.stderr)
+        raise SystemExit(2)

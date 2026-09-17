@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""Capture Apple preference domains as a typed JSON snapshot."""
+
+import datetime as dt
+import json
+import platform
+import plistlib
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+
+from macos_settings import SNAPSHOTS, atomic_text, encode_plist
+
+
+def run(*arguments: str) -> bytes:
+    return subprocess.run(arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+
+
+def domains(current_host: bool) -> list[str]:
+    command = ["defaults"]
+    if current_host:
+        command.append("-currentHost")
+    command.append("domains")
+    discovered = run(*command).decode("utf-8").split(",")
+    return sorted({"NSGlobalDomain", *(item.strip() for item in discovered if item.strip().startswith("com.apple."))})
+
+
+def capture_scope(current_host: bool) -> dict[str, object]:
+    captured = {}
+    for domain in domains(current_host):
+        command = ["defaults"]
+        if current_host:
+            command.append("-currentHost")
+        command.extend(("export", domain, "-"))
+        try:
+            value = plistlib.loads(run(*command))
+        except (subprocess.CalledProcessError, plistlib.InvalidFileException) as error:
+            print(f"warning: could not export {domain}: {error}", file=sys.stderr)
+            continue
+        if not isinstance(value, dict):
+            print(f"warning: ignored non-dictionary domain {domain}", file=sys.stderr)
+            continue
+        captured[domain] = encode_plist(value)
+    return captured
+
+
+def version(flag: str) -> str:
+    return run("sw_vers", flag).decode("utf-8").strip()
+
+
+def main() -> int:
+    if platform.system() != "Darwin":
+        print("capture must run on macOS", file=sys.stderr)
+        return 1
+    now = dt.datetime.now(dt.timezone.utc)
+    timestamp = now.strftime("%Y%m%dT%H%M%S.%fZ")
+    snapshot = {
+        "metadata": {
+            "timestamp": now.isoformat().replace("+00:00", "Z"),
+            "productVersion": version("-productVersion"),
+            "buildVersion": version("-buildVersion"),
+            "architecture": platform.machine(),
+        },
+        "scopes": {
+            "defaults": capture_scope(False),
+            "current-host": capture_scope(True),
+        },
+    }
+    output = SNAPSHOTS / f"{timestamp}.json"
+    if output.exists():
+        raise FileExistsError(f"snapshot already exists: {output}")
+    atomic_text(output, json.dumps(snapshot, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+    print(output)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (OSError, subprocess.CalledProcessError, TypeError) as error:
+        print(f"capture: {error}", file=sys.stderr)
+        raise SystemExit(1)
