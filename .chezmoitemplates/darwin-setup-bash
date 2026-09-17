@@ -3,8 +3,10 @@
 brew list --formula bash >/dev/null 2>&1 ||
   brew install -y bash
 
+# adds up to date bash version
 grep -qxF /opt/homebrew/bin/bash /etc/shells ||
   printf '/opt/homebrew/bin/bash\n' | sudo tee -a /etc/shells >/dev/null
 
+# changes user shell
 dscl . -read "/Users/$USER" UserShell | grep -qxF 'UserShell: /opt/homebrew/bin/bash' ||
   sudo chsh -s /opt/homebrew/bin/bash "$USER"

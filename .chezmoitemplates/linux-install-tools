@@ -1,0 +1,24 @@
+{{ $host := index .hosts .chezmoi.hostname | default dict -}}
+{{ $installChezmoi := dig "installChezmoi" false $host -}}
+
+# -----------------------------------------------------------------------------
+# Debian
+# -----------------------------------------------------------------------------
+{{ if and $installChezmoi (eq .chezmoi.osRelease.id "debian") -}}
+
+sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*
+cat <<'EOF' | sudo tee /etc/apt/sources.list.d/debian.sources >/dev/null
+Types: deb
+URIs: https://deb.debian.org/debian
+Suites: sid
+Components: main
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+
+sudo apt update
+sudo env DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
+command -v chezmoi >/dev/null 2>&1 ||
+  sudo env DEBIAN_FRONTEND=noninteractive apt install -y chezmoi
+sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
+
+{{ end -}}

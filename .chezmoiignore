@@ -1,7 +1,8 @@
 README.md
 bootstrap
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
-{{ if not (and (eq .chezmoi.os "darwin") (dig "useBash" false $host)) }}
+{{ $useHomebrew := or (dig "installHomebrew" false $host) (dig "installChezmoi" false $host) (dig "useBash" false $host) -}}
+{{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
 .bash_profile
 {{ end }}
 {{ if not (and (eq .chezmoi.os "darwin") (dig "overwriteSettings" false $host)) }}

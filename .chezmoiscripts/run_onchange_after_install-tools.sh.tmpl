@@ -1,55 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-{{ $host := index .hosts .chezmoi.hostname | default dict -}}
-{{ $installChezmoi := dig "installChezmoi" false $host -}}
-{{ $overwriteSettings := dig "overwriteSettings" false $host -}}
-{{ $useBash := dig "useBash" false $host -}}
-
-# -----------------------------------------------------------------------------
-# Debian
-# -----------------------------------------------------------------------------
-{{ if and $installChezmoi (eq .chezmoi.os "linux") (eq .chezmoi.osRelease.id "debian") -}}
-
-sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*
-cat <<'EOF' | sudo tee /etc/apt/sources.list.d/debian.sources >/dev/null
-Types: deb
-URIs: https://deb.debian.org/debian
-Suites: sid
-Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-EOF
-
-sudo apt update
-sudo env DEBIAN_FRONTEND=noninteractive apt full-upgrade -y
-command -v chezmoi >/dev/null 2>&1 ||
-  sudo env DEBIAN_FRONTEND=noninteractive apt install -y chezmoi
-sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
-
-{{ end -}}
-
-# -----------------------------------------------------------------------------
-# macOS
-# -----------------------------------------------------------------------------
-{{ if eq .chezmoi.os "darwin" -}}
-
-{{ $installHomebrew := dig "installHomebrew" false $host -}}
-{{ $installXcode := dig "installXcode" false $host -}}
-
-{{ if $installChezmoi -}}
-{{ template "darwin-install-chezmoi" . -}}
-{{ else if $installHomebrew -}}
-{{ template "darwin-install-homebrew" . -}}
-{{ else if $installXcode -}}
-{{ template "darwin-install-xcode" . -}}
-{{ end -}}
-
-{{ if $useBash -}}
-{{ template "darwin-setup-bash" . -}}
-{{ end -}}
-
-{{ if $overwriteSettings -}}
-{{ template "darwin-overwrite-settings" . -}}
-{{ end -}}
-
+{{ if eq .chezmoi.os "linux" -}}
+{{ template "linux-install-tools" . -}}
+{{ else if eq .chezmoi.os "darwin" -}}
+{{ template "darwin-install-tools" . -}}
 {{ end -}}
