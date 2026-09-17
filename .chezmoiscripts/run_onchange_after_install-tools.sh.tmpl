@@ -2,7 +2,7 @@
 set -euo pipefail
 
 {{ if eq .chezmoi.os "linux" -}}
-{{ template "linux-install-tools" . -}}
+{{ template "install-tools/linux/install" . -}}
 {{ else if eq .chezmoi.os "darwin" -}}
-{{ template "darwin-install-tools" . -}}
+{{ template "install-tools/darwin/install" . -}}
 {{ end -}}

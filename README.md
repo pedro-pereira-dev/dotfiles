@@ -25,7 +25,7 @@ chezmoi source:
 ~/.local/bin/export-macos-settings
 ```
 
-The generated `.chezmoitemplates/darwin-overwrite-settings` is replayed when
+The generated `.chezmoitemplates/install-tools/darwin/overwrite-settings` is replayed when
 `overwriteSettings` is enabled for a Darwin host. Review it for private,
 volatile, and machine-specific data before committing it.
 

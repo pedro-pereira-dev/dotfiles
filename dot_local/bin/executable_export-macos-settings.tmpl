@@ -7,7 +7,7 @@ if [[ $(uname -s) != Darwin ]]; then
 fi
 
 source_dir={{ joinPath .chezmoi.homeDir .sourceDirectory | quote }}
-output="$source_dir/.chezmoitemplates/darwin-overwrite-settings"
+output="$source_dir/.chezmoitemplates/install-tools/darwin/overwrite-settings"
 temporary=$(mktemp)
 trap 'rm -f "$temporary"' EXIT
 

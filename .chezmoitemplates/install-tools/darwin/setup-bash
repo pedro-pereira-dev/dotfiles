@@ -1,4 +1,4 @@
-{{ template "darwin-install-homebrew" . -}}
+{{ template "install-tools/darwin/install-homebrew" . -}}
 
 brew list --formula bash >/dev/null 2>&1 ||
   brew install -y bash

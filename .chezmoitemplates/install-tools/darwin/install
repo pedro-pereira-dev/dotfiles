@@ -10,17 +10,17 @@
 # -----------------------------------------------------------------------------
 
 {{ if $installChezmoi -}}
-{{ template "darwin-install-chezmoi" . -}}
+{{ template "install-tools/darwin/install-chezmoi" . -}}
 {{ else if $installHomebrew -}}
-{{ template "darwin-install-homebrew" . -}}
+{{ template "install-tools/darwin/install-homebrew" . -}}
 {{ else if $installXcode -}}
-{{ template "darwin-install-xcode" . -}}
+{{ template "install-tools/darwin/install-xcode" . -}}
 {{ end -}}
 
 {{ if $useBash -}}
-{{ template "darwin-setup-bash" . -}}
+{{ template "install-tools/darwin/setup-bash" . -}}
 {{ end -}}
 
 {{ if $overwriteSettings -}}
-{{ template "darwin-overwrite-settings" . -}}
+{{ template "install-tools/darwin/overwrite-settings" . -}}
 {{ end -}}
