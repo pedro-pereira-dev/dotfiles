@@ -16,19 +16,6 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfil
 dots update
 ```
 
-## Export macOS Settings
-
-On a configured macOS host, run the repository utility to export every readable
-defaults domain into the chezmoi source:
-
-```sh
-./scripts/export-macos-settings
-```
-
-The generated `.chezmoitemplates/install-tools/darwin/overwrite-settings` is replayed when
-`overwriteSettings` is enabled for a Darwin host. Review it for private,
-volatile, and machine-specific data before committing it.
-
 ## Dev Container
 
 ```sh
