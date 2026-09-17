@@ -7,7 +7,7 @@
 - Use `if` blocks when a branch contains multiple commands or is clearer that way.
 - Keep orchestration in `.chezmoiscripts/` and group supporting templates in `.chezmoitemplates/<step>/<platform>/`.
 - Name each platform entry template after its action, such as `.chezmoitemplates/install-tools/darwin/install`, without repeating the parent step name.
-- Start supporting template names with a verb that describes their action, such as `install-homebrew`, `setup-bash`, or `overwrite-settings`.
+- Start supporting template names with a verb that describes their action, such as `install-homebrew`, `install-chezmoi`, or `setup-bash`.
 - Preserve dependency chains: Darwin chezmoi requires Homebrew, and Homebrew requires Xcode Command Line Tools.
 - Keep per-host settings in separate files under `.chezmoidata/`.
 - Never modify the system without the user's explicit consent. Never run bootstrap, apply, update, package-manager, installer, or system-configuration commands while developing or validating unless explicitly requested.

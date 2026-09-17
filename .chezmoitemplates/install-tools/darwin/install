@@ -1,6 +1,5 @@
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $installChezmoi := dig "installChezmoi" false $host -}}
-{{ $overwriteSettings := dig "overwriteSettings" false $host -}}
 {{ $useBash := dig "useBash" false $host -}}
 {{ $installHomebrew := dig "installHomebrew" false $host -}}
 {{ $installXcode := dig "installXcode" false $host -}}
@@ -19,8 +18,4 @@
 
 {{ if $useBash -}}
 {{ template "install-tools/darwin/setup-bash" . -}}
-{{ end -}}
-
-{{ if $overwriteSettings -}}
-{{ template "install-tools/darwin/apply-settings" . -}}
 {{ end -}}
