@@ -1,8 +1,9 @@
-_log_divider='----------------------------------------'
 _log_bold=$'\033[1m'
 _log_cyan_bold=$'\033[1;36m'
-_log_orange=$'\033[33m'
 _log_green_bold=$'\033[1;32m'
+_log_orange=$'\033[33m'
+
+_log_divider='----------------------------------------'
 _log_reset=$'\033[0m'
 
 _log_start() {
@@ -10,7 +11,12 @@ _log_start() {
   _log_subject=$2
   _log_message="${_log_action} ${_log_subject}"
   _log_started_at=$SECONDS
-  printf '\n\n- %s %s%s%s\n%s%s%s\n\n' "$_log_action" "$_log_cyan_bold" "$_log_subject" "$_log_reset" "$_log_bold" "$_log_divider" "$_log_reset"
+
+  printf \
+    '\n\n%s- %s%s %s\n%s%s%s\n\n' \
+    "$_log_cyan_bold" "$_log_action" "$_log_reset" \
+    "$_log_subject" \
+    "$_log_bold" "$_log_divider" "$_log_reset"
 }
 
 _log_ok() {
@@ -20,5 +26,11 @@ _log_ok() {
   else
     _log_duration="${_log_elapsed}s"
   fi
-  printf -- '\n- "%s" (%sexecuted in%s %s) %sOK%s\n\n' "$_log_message" "$_log_orange" "$_log_reset" "$_log_duration" "$_log_green_bold" "$_log_reset"
+
+  printf \
+    -- '\n- "%s%s%s %s" (%sexecuted in%s %s) %sOK%s\n\n' \
+    "$_log_cyan_bold" "$_log_action" "$_log_reset" \
+    "$_log_subject" \
+    "$_log_orange" "$_log_reset" "$_log_duration" \
+    "$_log_green_bold" "$_log_reset"
 }
