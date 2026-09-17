@@ -28,9 +28,10 @@ _log_ok() {
   fi
 
   printf \
-    -- '\n- "%s%s%s %s" (%sexecuted in%s %s) %sOK%s\n\n' \
+    -- '\n- "%s%s%s %s" (%sexecuted in%s %s%s%s) %sOK%s\n\n' \
     "$_log_cyan_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
-    "$_log_orange" "$_log_reset" "$_log_duration" \
+    "$_log_orange" "$_log_reset" \
+    "$_log_bold" "$_log_duration" "$_log_reset" \
     "$_log_green_bold" "$_log_reset"
 }
