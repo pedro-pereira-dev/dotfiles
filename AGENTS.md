@@ -2,6 +2,10 @@
 
 - Prefer the smallest correct change.
 - Keep responses and code concise, readable, and direct.
+- Write comments in lowercase.
+- Do not end comments with punctuation.
+- Comment complex template conditionals with when each branch is applied.
+- Do not comment simple template conditionals when the condition is self-explanatory.
 - Do not add abstractions, helpers, logging, comments, or compatibility logic without a clear need.
 - Prefer one-line shell conditions when each `if`/`else` branch contains only one command, with the condition and each branch on separate lines.
 - Use `if` blocks when a branch contains multiple commands or is clearer that way.

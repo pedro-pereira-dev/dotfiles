@@ -1,6 +1,7 @@
 README.md
 bootstrap
 
+# apply .bash_profile on macos hosts that use homebrew
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $useHomebrew := or (dig "installHomebrew" false $host) (dig "installChezmoi" false $host) (dig "useBash" false $host) -}}
 {{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
