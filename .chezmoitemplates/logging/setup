@@ -1,2 +1,17 @@
-_log_start() { _log_message=$1; printf -- '- %s\n' "$_log_message"; }
-_log_ok() { printf -- '- %s ok\n' "$_log_message"; }
+_log_divider='----------------------------------------'
+
+_log_start() {
+  _log_message=$1
+  _log_started_at=$SECONDS
+  printf "\n\n\033[36m- %s\n${_log_divider}\033[0m\n\n" "$_log_message"
+}
+
+_log_ok() {
+  _log_elapsed=$((SECONDS - _log_started_at))
+  if (( _log_elapsed >= 60 )); then
+    _log_duration="$((_log_elapsed / 60))m $((_log_elapsed % 60))s"
+  else
+    _log_duration="${_log_elapsed}s"
+  fi
+  printf -- '\n- "%s" (executed in %s) OK\n\n' "$_log_message" "$_log_duration"
+}
