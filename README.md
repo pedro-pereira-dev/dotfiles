@@ -18,11 +18,11 @@ dots update
 
 ## Export macOS Settings
 
-On a configured macOS host, export every readable defaults domain into the
-chezmoi source:
+On a configured macOS host, run the repository utility to export every readable
+defaults domain into the chezmoi source:
 
 ```sh
-~/.local/bin/export-macos-settings
+./scripts/export-macos-settings
 ```
 
 The generated `.chezmoitemplates/install-tools/darwin/overwrite-settings` is replayed when
