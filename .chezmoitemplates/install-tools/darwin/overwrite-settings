@@ -26,8 +26,6 @@ defaults write NSGlobalDomain com.apple.trackpad.scrolling -bool true
 
 defaults write com.apple.Accessibility DifferentiateWithoutColor -bool true
 defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
-defaults write com.apple.universalaccess differentiateWithoutColor -bool true
-defaults write com.apple.universalaccess reduceMotion -bool true
 
 defaults write com.apple.AppleMultitouchMouse MouseButtonDivision -int 55
 defaults write com.apple.AppleMultitouchMouse MouseButtonMode -string OneButton
