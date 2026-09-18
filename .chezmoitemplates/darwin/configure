@@ -4,7 +4,7 @@
 {{ $installXcode := dig "installXcode" false $host -}}
 {{ $manageHomebrew := or $useBash (hasKey $host "homebrew") -}}
 
-if "$HOME/.local/bin/mysoftwareupdate" --check; then
+if _log_check 'Checking for macOS updates' "$HOME/.local/bin/mysoftwareupdate" --check; then
   _log_start 'Updating' 'macOS'
   "$HOME/.local/bin/mysoftwareupdate"{{ if eq .chezmoi.command "init" }} --force{{ end }}
   _log_ok

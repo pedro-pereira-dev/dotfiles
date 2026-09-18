@@ -13,10 +13,19 @@ _log_start() {
   _log_started_at=$SECONDS
 
   printf \
-    '\n\n- %s%s%s %s\n%s%s%s\n\n' \
+    '%s%s%s %s\n%s%s%s\n' \
     "$_log_cyan_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
     "$_log_bold" "$_log_divider" "$_log_reset"
+}
+
+_log_check() {
+  printf -- '%s%s%s... ' "$_log_orange" "$1" "$_log_reset"
+  shift
+  "$@" &>/dev/null
+  _log_result=$?
+  printf '%sOK%s\n' "$_log_green_bold" "$_log_reset"
+  return "$_log_result"
 }
 
 _log_ok() {
@@ -28,7 +37,8 @@ _log_ok() {
   fi
 
   printf \
-    -- '\n- "%s%s%s %s" (%sexecuted in%s %s%s%s) %sOK%s\n\n' \
+    -- '%s%s%s\n%s%s%s %s, %sexecuted in%s %s%s%s %sOK%s\n\n' \
+    "$_log_bold" "$_log_divider" "$_log_reset" \
     "$_log_cyan_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
     "$_log_orange" "$_log_reset" \

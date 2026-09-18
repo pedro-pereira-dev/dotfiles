@@ -1,9 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
-_update() {
-  [[ ${1:-} != update ]] || shift
+_check() {
+  brew update &>/dev/null || return
 
+  [[ -n $(brew outdated --quiet) ]] ||
+    ! brew bundle check --file="$HOME/.Brewfile" &>/dev/null ||
+    [[ -n $(brew bundle cleanup --dry-run --file="$HOME/.Brewfile" 2>/dev/null) ]] ||
+    [[ -n $(brew cleanup --dry-run 2>/dev/null) ]]
+}
+
+_update() {
   brew update
   brew bundle install --upgrade --file="$HOME/.Brewfile"
   brew bundle cleanup "$@" --file="$HOME/.Brewfile"
@@ -24,6 +31,8 @@ _list() {
 }
 
 case ${1:-} in
+check) _check ;;
 list) _list ;;
+update) _update "${@:2}" ;;
 *) _update "$@" ;;
 esac
