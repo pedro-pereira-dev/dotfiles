@@ -1,7 +1,7 @@
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $installChezmoi := dig "installChezmoi" false $host -}}
 {{ $useBash := dig "useBash" false $host -}}
-{{ $installHomebrew := dig "installHomebrew" false $host -}}
+{{ $installHomebrew := or (dig "installHomebrew" false $host) (hasKey $host "homebrew") -}}
 {{ $installXcode := dig "installXcode" false $host -}}
 
 {{ if $installChezmoi -}}
@@ -14,4 +14,9 @@
 
 {{ if $useBash -}}
 {{ template "install-tools/darwin/setup-bash" . -}}
+{{ end -}}
+
+{{ if hasKey $host "homebrew" -}}
+HOMEBREW_NO_ASK=1 \
+  "$HOME/.local/bin/mybrew" --force
 {{ end -}}

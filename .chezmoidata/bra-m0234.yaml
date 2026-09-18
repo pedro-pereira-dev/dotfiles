@@ -4,3 +4,8 @@ hosts:
     installHomebrew: true
     installChezmoi: true
     useBash: true
+    homebrew:
+      formulas:
+        - bash
+        - chezmoi
+      casks: []

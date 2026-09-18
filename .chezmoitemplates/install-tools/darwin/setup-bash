@@ -6,7 +6,7 @@ if ! brew list --formula bash >/dev/null 2>&1; then
   _log_ok
 fi
 
-# adds up to date bash version
+# adds latest bash as a shell option
 if ! grep -qxF /opt/homebrew/bin/bash /etc/shells; then
   _log_start 'Adding' 'bash to allowed shells'
   printf '/opt/homebrew/bin/bash\n' | sudo tee -a /etc/shells >/dev/null

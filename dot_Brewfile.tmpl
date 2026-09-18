@@ -1,0 +1,10 @@
+{{ $host := index .hosts .chezmoi.hostname | default dict -}}
+{{ $homebrew := dig "homebrew" dict $host -}}
+
+{{ range (dig "formulas" list $homebrew) -}}
+brew {{ quote . }}
+{{ end -}}
+
+{{ range (dig "casks" list $homebrew) -}}
+cask {{ quote . }}
+{{ end -}}

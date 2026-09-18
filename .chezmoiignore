@@ -3,7 +3,13 @@ bootstrap
 
 # apply .bash_profile on macos hosts that use homebrew
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
-{{ $useHomebrew := or (dig "installHomebrew" false $host) (dig "installChezmoi" false $host) (dig "useBash" false $host) -}}
+{{ $useHomebrew := or (dig "installHomebrew" false $host) (dig "installChezmoi" false $host) (dig "useBash" false $host) (hasKey $host "homebrew") -}}
 {{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
 .bash_profile
+{{ end }}
+
+# apply homebrew wrapper on macos maitained with homebrew
+{{ if not (and (eq .chezmoi.os "darwin") (hasKey $host "homebrew")) }}
+.Brewfile
+.local/bin/mybrew
 {{ end }}
