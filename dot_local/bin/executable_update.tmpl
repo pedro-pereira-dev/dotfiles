@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+printf '\n'
 {{ template "shared/add_logging" . -}}
 
 {{ if eq .chezmoi.os "darwin" -}}

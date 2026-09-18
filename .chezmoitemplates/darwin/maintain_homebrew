@@ -1,6 +1,6 @@
 # brewfile hash: {{ includeTemplate "dot_Brewfile.tmpl" . | sha256sum }}
 
-{{ if eq .chezmoi.command "init" }}
+{{ if eq (env "DOTS_BOOTSTRAP") "1" }}
   export HOMEBREW_NO_ASK=1
   _force=--force
 {{ end }}

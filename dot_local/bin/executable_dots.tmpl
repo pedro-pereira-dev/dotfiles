@@ -16,6 +16,6 @@ _directory=${DOTS_SOURCE_DIRECTORY:-}
 mkdir -p "$_directory"
 
 case ${1:-} in
-bootstrap) "${_chezmoi[@]}" init --apply --source "$_directory" "$_github_user" ;;
+bootstrap) DOTS_BOOTSTRAP=1 "${_chezmoi[@]}" init --apply --source "$_directory" "$_github_user" ;;
 update) "${_chezmoi[@]}" update --source "$_directory" ;;
 esac

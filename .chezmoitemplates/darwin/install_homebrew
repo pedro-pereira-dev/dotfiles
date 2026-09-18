@@ -2,7 +2,7 @@
 
 if [[ ! -x /opt/homebrew/bin/brew ]]; then
   _log_start 'Installing' 'homebrew'
-  NONINTERACTIVE={{ if eq .chezmoi.command "init" }}1{{ end }} \
+  NONINTERACTIVE={{ if eq (env "DOTS_BOOTSTRAP") "1" }}1{{ end }} \
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   _log_ok
 fi
