@@ -4,22 +4,22 @@
 {{ $installXcode := dig "installXcode" false $host -}}
 {{ $manageHomebrew := or $useBash (hasKey $host "homebrew") -}}
 
-if "$HOME/.local/bin/mymacos" --check; then
+if "$HOME/.local/bin/mysoftwareupdate" --check; then
   _log_start 'Updating' 'macOS'
-  "$HOME/.local/bin/mymacos"{{ if eq .chezmoi.command "init" }} --force{{ end }}
+  "$HOME/.local/bin/mysoftwareupdate"{{ if eq .chezmoi.command "init" }} --force{{ end }}
   _log_ok
 fi
 
 {{ if or $installHomebrew $manageHomebrew -}}
-{{ template "install-tools/darwin/install-homebrew" . -}}
+{{ template "darwin/install_homebrew" . -}}
 {{ else if $installXcode -}}
-{{ template "install-tools/darwin/install-xcode" . -}}
+{{ template "darwin/install_xcode" . -}}
 {{ end -}}
 
 {{ if $manageHomebrew -}}
-{{ template "install-tools/darwin/maintain-homebrew" . -}}
+{{ template "darwin/maintain_homebrew" . -}}
 {{ end -}}
 
 {{ if $useBash -}}
-{{ template "install-tools/darwin/setup-bash" . -}}
+{{ template "darwin/configure_bash" . -}}
 {{ end -}}

@@ -1,0 +1,10 @@
+#!/bin/bash
+set -euo pipefail
+
+{{ template "shared/add_logging" . -}}
+
+{{ if eq .chezmoi.os "linux" -}}
+{{ template "linux/configure" . -}}
+{{ else if eq .chezmoi.os "darwin" -}}
+{{ template "darwin/configure" . -}}
+{{ end -}}

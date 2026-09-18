@@ -15,7 +15,7 @@ bootstrap
 {{ end }}
 
 {{ if ne .chezmoi.os "darwin" }}
-.local/bin/mymacos
+.local/bin/mysoftwareupdate
 {{ end }}
 
 # apply homebrew wrapper on macos maitained with homebrew

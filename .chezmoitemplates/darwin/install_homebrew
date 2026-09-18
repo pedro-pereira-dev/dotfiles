@@ -1,4 +1,4 @@
-{{ template "install-tools/darwin/install-xcode" . -}}
+{{ template "darwin/install_xcode" . -}}
 
 if [[ ! -x /opt/homebrew/bin/brew ]]; then
   _log_start 'Installing' 'homebrew'
