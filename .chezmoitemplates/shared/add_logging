@@ -13,7 +13,7 @@ _log_start() {
   _log_started_at=$SECONDS
 
   printf \
-    '%s%s%s %s\n%s%s%s\n' \
+    '\n%s%s%s %s\n%s%s%s\n' \
     "$_log_cyan_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
     "$_log_cyan_bold" "$_log_divider" "$_log_reset"
