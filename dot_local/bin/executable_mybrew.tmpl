@@ -11,34 +11,32 @@ _check() {
 }
 
 _update() {
-  unset HOMEBREW_NO_ASK
-  if [[ ${1:-} == --force ]]; then
-    export HOMEBREW_NO_ASK=1
-  fi
-
   brew update
   brew bundle install --upgrade --file="$HOME/.Brewfile"
-  brew bundle cleanup "$@" --file="$HOME/.Brewfile"
+  brew bundle cleanup --file="$HOME/.Brewfile"
   brew cleanup
 }
 
 _list() {
   _formulae=$(brew list --formula --installed-on-request -1)
   _casks=$(brew list --cask -1)
-  _magenta_bold=$'\033[1;35m'
+  _green_bold=$'\033[1;32m'
   _reset=$'\033[0m'
 
-  printf '\n%sFormulae%s\n' "$_magenta_bold" "$_reset"
-  printf '%s\n' '--------'
+  printf '\n'
+  printf '%sFormulae%s\n' "$_green_bold" "$_reset"
+  printf '%s--------%s\n' "$_green_bold" "$_reset"
   printf '%s\n' "$_formulae"
 
-  printf '\n%sCasks%s\n' "$_magenta_bold" "$_reset"
-  printf '%s\n' '-----'
-  printf '%s\n\n' "$_casks"
+  printf '\n'
+  printf '%sCasks%s\n' "$_green_bold" "$_reset"
+  printf '%s-----%s\n' "$_green_bold" "$_reset"
+  printf '%s\n' "$_casks"
+  printf '\n'
 }
 
 case ${1:-} in
 check) _check ;;
-update) _update "${@:2}" ;;
+update) _update ;;
 *) _list ;;
 esac

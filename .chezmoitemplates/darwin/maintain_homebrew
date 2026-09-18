@@ -1,11 +1,7 @@
 # brewfile hash: {{ includeTemplate "dot_Brewfile.tmpl" . | sha256sum }}
 
-{{ if eq (env "DOTS_BOOTSTRAP") "1" }}
-  _force=--force
-{{ end }}
-
 if _log_check 'Checking homebrew' "$HOME/.local/bin/mybrew" check; then
   _log_start 'Maintaining' 'homebrew'
-  "$HOME/.local/bin/mybrew" update ${_force:+"$_force"}
+  "$HOME/.local/bin/mybrew" update
   _log_ok
 fi
