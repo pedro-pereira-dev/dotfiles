@@ -14,7 +14,7 @@ fi
 if [[ -x "$HOME/.local/bin/mybrew" ]]; then
   if _log_check 'Checking homebrew' "$HOME/.local/bin/mybrew" check; then
     _log_start 'Maintaining' 'homebrew'
-    "$HOME/.local/bin/mybrew"
+    "$HOME/.local/bin/mybrew" update
     _log_ok
   fi
 fi
