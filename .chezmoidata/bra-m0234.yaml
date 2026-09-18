@@ -6,14 +6,12 @@ hosts:
     homebrew:
       taps:
         - pedro-pereira-dev/custom
-        - xcodesorg/made
       formulas:
         - bash
         - chezmoi
         - git
         - lima
         - qemu
-        - xcodesorg/made/xcodes
       casks:
         - alt-tab
         - firefox

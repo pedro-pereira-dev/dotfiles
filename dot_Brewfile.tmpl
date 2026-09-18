@@ -7,15 +7,6 @@
 tap {{ quote . }}, trusted: true
 {{ end -}}
 
-{{ if and (dig "installXcode" false $host) (not (has "xcodesorg/made" $taps)) -}}
-tap "xcodesorg/made", trusted: true
-{{ end -}}
-
-{{/* installXcode implicitly declares xcodes when homebrew is managed */}}
-{{ if and (dig "installXcode" false $host) (not (has "xcodesorg/made/xcodes" $formulas)) -}}
-brew "xcodesorg/made/xcodes"
-{{ end -}}
-
 {{/* useBash implicitly declares bash unless it is already listed */}}
 {{ if and (dig "useBash" false $host) (not (has "bash" $formulas)) -}}
 brew "bash"
