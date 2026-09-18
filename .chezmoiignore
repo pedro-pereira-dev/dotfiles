@@ -6,7 +6,8 @@ bootstrap
 {{ $useBash := dig "useBash" false $host -}}
 {{ $manageHomebrew := or $useBash (hasKey $host "homebrew") -}}
 {{ $useHomebrew := or (dig "installHomebrew" false $host) $manageHomebrew -}}
-{{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
+{{ $manageBash := or (and (eq .chezmoi.os "darwin") $useHomebrew) (and (eq .chezmoi.os "linux") $useBash) -}}
+{{ if not $manageBash }}
 .bash_profile
 .bashrc
 {{ end }}

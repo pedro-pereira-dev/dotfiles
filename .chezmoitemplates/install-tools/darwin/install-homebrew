@@ -8,8 +8,7 @@ if [[ ! -x /opt/homebrew/bin/brew ]]; then
 fi
 
 # configure homebrew when either path is missing
-if [[ ":$PATH:" != *':/opt/homebrew/bin:'* ||
-  ":$PATH:" != *':/opt/homebrew/sbin:'* ]]; then
+if [[ ":$PATH:" != *':/opt/homebrew/bin:'* || ":$PATH:" != *':/opt/homebrew/sbin:'* ]]; then
   _log_start 'Configuring' 'homebrew'
   [[ ":$PATH:" != *':/opt/homebrew/sbin:'* ]] && export PATH="/opt/homebrew/sbin:$PATH"
   [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"

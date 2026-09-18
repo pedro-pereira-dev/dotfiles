@@ -2,7 +2,6 @@
 {{ $installChezmoi := dig "installChezmoi" false $host -}}
 
 {{ if and $installChezmoi (eq .chezmoi.osRelease.id "debian") -}}
-
 _log_start 'Configuring' 'debian sources'
 sudo rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*
 cat <<'EOF' | sudo tee /etc/apt/sources.list.d/debian.sources >/dev/null
@@ -28,5 +27,4 @@ fi
 _log_start 'Removing' 'unused debian packages'
 sudo env DEBIAN_FRONTEND=noninteractive apt autoremove -y
 _log_ok
-
 {{ end -}}

@@ -16,16 +16,13 @@ brew "bash"
 brew {{ quote . }}
 {{ end -}}
 
+{{/* qualified casks inherit trust when their tap is declared */}}
 {{ range $cask := dig "casks" list $homebrew -}}
 {{ $trusted := false -}}
-
-{{/* qualified casks inherit trust when their tap is declared */}}
 {{ range $tap := $taps -}}
 {{ if hasPrefix (printf "%s/" $tap) $cask -}}
 {{ $trusted = true -}}
 {{ end -}}
 {{ end -}}
-
-cask {{ quote $cask }}{{ if $trusted }}, trusted: true{{ end -}}
-
-{{ end -}}
+cask {{ quote $cask }}{{ if $trusted }}, trusted: true{{ end }}
+{{ end }}

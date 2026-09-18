@@ -1,4 +1,5 @@
 # brewfile hash: {{ includeTemplate "dot_Brewfile.tmpl" . | sha256sum }}
+
 _log_start 'Maintaining' 'homebrew'
 HOMEBREW_NO_ASK={{ if eq .chezmoi.command "init" }}1{{ end }} \
   "$HOME/.local/bin/mybrew"{{ if eq .chezmoi.command "init" }} --force{{ end }}
