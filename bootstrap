@@ -3,7 +3,7 @@ set -euo pipefail
 
 _repository=https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main
 _dots=$(dirname "$0")/dot_local/bin/executable_dots.tmpl
-_data=$(dirname "$0")/.chezmoidata/config.yaml
+_data=$(dirname "$0")/.chezmoidata/shared.yaml
 
 if [[ -f $_dots && -f $_data ]]; then
   DOTS_GITHUB_USER=$(awk '$1 == "githubUser:" { print $2 }' "$_data") \
@@ -11,7 +11,7 @@ if [[ -f $_dots && -f $_data ]]; then
     exec bash "$_dots" update
 fi
 
-_data=$(curl -fsSL "$_repository/.chezmoidata/config.yaml")
+_data=$(curl -fsSL "$_repository/.chezmoidata/shared.yaml")
 DOTS_GITHUB_USER=$(awk '$1 == "githubUser:" { print $2 }' <<<"$_data") \
 DOTS_SOURCE_DIRECTORY="$HOME/$(awk '$1 == "sourceDirectory:" { print $2 }' <<<"$_data")" \
   bash -c "$(curl -fsSL "$_repository/dot_local/bin/executable_dots.tmpl")" -- bootstrap
