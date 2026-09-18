@@ -7,8 +7,11 @@ if [[ ! -x /opt/homebrew/bin/brew ]]; then
   _log_ok
 fi
 
-if ! command -v brew >/dev/null 2>&1; then
+# configure homebrew when either path is missing
+if [[ ":$PATH:" != *':/opt/homebrew/bin:'* ||
+  ":$PATH:" != *':/opt/homebrew/sbin:'* ]]; then
   _log_start 'Configuring' 'homebrew'
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+  [[ ":$PATH:" != *':/opt/homebrew/sbin:'* ]] && export PATH="/opt/homebrew/sbin:$PATH"
+  [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"
   _log_ok
 fi

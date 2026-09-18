@@ -1,13 +1,14 @@
 README.md
 bootstrap
 
-# apply .bash_profile on macos hosts that use homebrew
+# apply bash configuration on macos hosts that use homebrew
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $useBash := dig "useBash" false $host -}}
 {{ $manageHomebrew := or $useBash (hasKey $host "homebrew") -}}
 {{ $useHomebrew := or (dig "installHomebrew" false $host) $manageHomebrew -}}
 {{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
 .bash_profile
+.bashrc
 {{ end }}
 
 # apply homebrew wrapper on macos maitained with homebrew
