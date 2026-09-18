@@ -1,10 +1,31 @@
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $homebrew := dig "homebrew" dict $host -}}
+{{ $formulas := dig "formulas" list $homebrew -}}
+{{ $taps := dig "taps" list $homebrew -}}
 
-{{ range (dig "formulas" list $homebrew) -}}
+{{ range $taps -}}
+tap {{ quote . }}, trusted: true
+{{ end -}}
+
+{{/* useBash implicitly declares bash unless it is already listed */}}
+{{ if and (dig "useBash" false $host) (not (has "bash" $formulas)) -}}
+brew "bash"
+{{ end -}}
+
+{{ range $formulas -}}
 brew {{ quote . }}
 {{ end -}}
 
-{{ range (dig "casks" list $homebrew) -}}
-cask {{ quote . }}
+{{ range $cask := dig "casks" list $homebrew -}}
+{{ $trusted := false -}}
+
+{{/* qualified casks inherit trust when their tap is declared */}}
+{{ range $tap := $taps -}}
+{{ if hasPrefix (printf "%s/" $tap) $cask -}}
+{{ $trusted = true -}}
+{{ end -}}
+{{ end -}}
+
+cask {{ quote $cask }}{{ if $trusted }}, trusted: true{{ end -}}
+
 {{ end -}}

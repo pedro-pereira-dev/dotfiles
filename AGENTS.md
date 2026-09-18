@@ -14,7 +14,7 @@
 - Keep orchestration in `.chezmoiscripts/` and group supporting templates in `.chezmoitemplates/<step>/<platform>/`.
 - Extend an existing orchestration flow when behavior belongs to that step instead of creating a separate script.
 - Name each platform entry template after its action, such as `.chezmoitemplates/install-tools/darwin/install`, without repeating the parent step name.
-- Start supporting template names with a verb that describes their action, such as `install-homebrew`, `install-chezmoi`, or `setup-bash`.
+- Start supporting template names with a verb that describes their action, such as `install-homebrew`, `install-xcode`, or `setup-bash`.
 - Preserve dependency chains: Darwin chezmoi requires Homebrew, and Homebrew requires Xcode Command Line Tools.
 - Keep per-host settings in separate files under `.chezmoidata/`.
 - Only implement a request when its intended behavior and integration point are clear; otherwise ask the user before editing.

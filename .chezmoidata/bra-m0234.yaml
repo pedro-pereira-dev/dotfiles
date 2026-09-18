@@ -2,10 +2,25 @@ hosts:
   bra-m0234:
     installXcode: true
     installHomebrew: true
-    installChezmoi: true
     useBash: true
     homebrew:
+      taps:
+        - pedro-pereira-dev/custom
       formulas:
         - bash
         - chezmoi
-      casks: []
+        - git
+        - lima
+        - qemu
+        - fastfetch
+      casks:
+        - alt-tab
+        - firefox
+        - handy
+        - microsoft-outlook
+        - microsoft-teams
+        - pedro-pereira-dev/custom/alacritty
+        - rectangle
+        - stay
+        - tastytrade
+        - tunnelblick
