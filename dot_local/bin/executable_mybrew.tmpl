@@ -1,7 +1,21 @@
 #!/bin/bash
 set -euo pipefail
 
-brew update
-brew bundle install --upgrade --file="$HOME/.Brewfile"
-brew bundle cleanup "$@" --file="$HOME/.Brewfile"
-brew cleanup
+_update() {
+  [[ ${1:-} != update ]] || shift
+
+  brew update
+  brew bundle install --upgrade --file="$HOME/.Brewfile"
+  brew bundle cleanup "$@" --file="$HOME/.Brewfile"
+  brew cleanup
+}
+
+_list() {
+  brew list --formula --installed-on-request
+  brew list --cask
+}
+
+case ${1:-} in
+list) _list ;;
+*) _update "$@" ;;
+esac
