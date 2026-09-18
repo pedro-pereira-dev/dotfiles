@@ -1,7 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
+{{ template "shared/add_logging" . -}}
+
 {{ if eq .chezmoi.os "darwin" -}}
+_log_start 'Updating' 'macOS'
 "$HOME/.local/bin/mysoftwareupdate"
-[[ ! -x "$HOME/.local/bin/mybrew" ]] || "$HOME/.local/bin/mybrew"
+_log_ok
+
+if [[ -x "$HOME/.local/bin/mybrew" ]]; then
+  _log_start 'Maintaining' 'homebrew'
+  "$HOME/.local/bin/mybrew"
+  _log_ok
+fi
 {{ end -}}
