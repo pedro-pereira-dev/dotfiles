@@ -13,6 +13,7 @@ hosts:
         - lima
         - qemu
         - fastfetch
+        - cowsay
       casks:
         - alt-tab
         - firefox
