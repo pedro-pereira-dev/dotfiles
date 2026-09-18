@@ -12,6 +12,7 @@ hosts:
         - git
         - lima
         - qemu
+        - fastfetch
       casks:
         - alt-tab
         - firefox
