@@ -7,11 +7,19 @@ bootstrap
 {{ $manageHomebrew := or $useBash (hasKey $host "homebrew") -}}
 {{ $useHomebrew := or (dig "installHomebrew" false $host) $manageHomebrew -}}
 {{ $manageBash := or (and (eq .chezmoi.os "darwin") $useHomebrew) (and (eq .chezmoi.os "linux") $useBash) -}}
+{{ $manageXcodes := and (dig "installXcode" false $host) $manageHomebrew -}}
 {{ if not $manageBash }}
 .bashrc
 {{ end }}
 {{ if not (and (eq .chezmoi.os "darwin") $useHomebrew) }}
 .bash_profile
+{{ end }}
+
+{{ if ne .chezmoi.os "darwin" }}
+.local/bin/mymacos
+{{ end }}
+{{ if not (and (eq .chezmoi.os "darwin") $manageXcodes) }}
+.local/bin/myxcodes
 {{ end }}
 
 # apply homebrew wrapper on macos maitained with homebrew

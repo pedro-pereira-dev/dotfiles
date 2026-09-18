@@ -1,4 +1,4 @@
-{{/* add homebrew paths only on darwin hosts that use homebrew */ -}}
+{{/* homebrew paths are added only on darwin hosts that use homebrew */ -}}
 {{ $host := index .hosts .chezmoi.hostname | default dict -}}
 {{ $useBash := dig "useBash" false $host -}}
 {{ $manageHomebrew := or $useBash (hasKey $host "homebrew") -}}

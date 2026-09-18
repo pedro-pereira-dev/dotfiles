@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+
+_updates=$(softwareupdate --list 2>&1)
+
+[[ ${1:-} != --check ]] || { [[ $_updates != *'No new software available'* ]]; exit; }
+[[ $_updates != *'No new software available'* ]] || exit 0
+[[ ${1:-} == --force ]] || read -r -p 'Install available macOS updates? [Y/n] ' _answer
+[[ ${1:-} == --force || -z ${_answer:-} || $_answer == [Yy] ]] || exit 0
+
+softwareupdate --install --all --no-scan
