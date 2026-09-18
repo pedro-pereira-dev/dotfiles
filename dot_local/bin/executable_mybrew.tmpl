@@ -1,11 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-{{ template "logging/setup" . -}}
-
-_log_start 'Maintaining' 'homebrew'
 brew update
 brew bundle install --upgrade --file="$HOME/.Brewfile"
 brew bundle cleanup "$@" --file="$HOME/.Brewfile"
 brew cleanup
-_log_ok
