@@ -1,6 +1,6 @@
 _log_bold=$'\033[1m'
-_log_cyan_bold=$'\033[1;36m'
 _log_green_bold=$'\033[1;32m'
+_log_magenta_bold=$'\033[1;35m'
 _log_orange=$'\033[33m'
 
 _log_divider='----------------------------------------'
@@ -14,9 +14,9 @@ _log_start() {
 
   printf \
     '\n%s%s%s %s\n%s%s%s\n' \
-    "$_log_cyan_bold" "$_log_action" "$_log_reset" \
+    "$_log_magenta_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
-    "$_log_cyan_bold" "$_log_divider" "$_log_reset"
+    "$_log_magenta_bold" "$_log_divider" "$_log_reset"
 }
 
 _log_check() {
@@ -38,8 +38,8 @@ _log_ok() {
 
   printf \
     -- '%s%s%s\n%s%s%s %s, %sexecuted in%s %s%s%s %sOK%s\n\n\n' \
-    "$_log_cyan_bold" "$_log_divider" "$_log_reset" \
-    "$_log_cyan_bold" "$_log_action" "$_log_reset" \
+    "$_log_magenta_bold" "$_log_divider" "$_log_reset" \
+    "$_log_magenta_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
     "$_log_orange" "$_log_reset" \
     "$_log_bold" "$_log_duration" "$_log_reset" \
