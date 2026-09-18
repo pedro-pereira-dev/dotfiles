@@ -11,13 +11,16 @@ _update() {
 }
 
 _list() {
-  printf 'Formulae\n'
+  _formulae=$(brew list --formula --installed-on-request -1)
+  _casks=$(brew list --cask -1)
+
+  printf '\nFormulae\n'
   printf '%s\n' '--------'
-  brew list --formula --installed-on-request -1
+  printf '%s\n' "$_formulae"
 
   printf '\nCasks\n'
   printf '%s\n' '-----'
-  brew list --cask -1
+  printf '%s\n\n' "$_casks"
 }
 
 case ${1:-} in
