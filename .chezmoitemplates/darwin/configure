@@ -6,7 +6,7 @@
 
 if _log_check 'Checking for macOS updates' "$HOME/.local/bin/mysoftwareupdate" --check; then
   _log_start 'Updating' 'macOS'
-  "$HOME/.local/bin/mysoftwareupdate"
+  "$HOME/.local/bin/mysoftwareupdate" --force
   _log_ok
 fi
 
