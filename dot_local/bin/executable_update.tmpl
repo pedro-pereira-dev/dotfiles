@@ -4,9 +4,11 @@ set -euo pipefail
 {{ template "shared/add_logging" . -}}
 
 {{ if eq .chezmoi.os "darwin" -}}
-_log_start 'Updating' 'macOS'
-"$HOME/.local/bin/mysoftwareupdate"
-_log_ok
+if "$HOME/.local/bin/mysoftwareupdate" --check; then
+  _log_start 'Updating' 'macOS'
+  "$HOME/.local/bin/mysoftwareupdate"
+  _log_ok
+fi
 
 if [[ -x "$HOME/.local/bin/mybrew" ]]; then
   _log_start 'Maintaining' 'homebrew'
