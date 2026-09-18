@@ -16,7 +16,7 @@ _log_start() {
     '%s%s%s %s\n%s%s%s\n' \
     "$_log_cyan_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
-    "$_log_bold" "$_log_divider" "$_log_reset"
+    "$_log_cyan_bold" "$_log_divider" "$_log_reset"
 }
 
 _log_check() {
@@ -37,8 +37,8 @@ _log_ok() {
   fi
 
   printf \
-    -- '%s%s%s\n%s%s%s %s, %sexecuted in%s %s%s%s %sOK%s\n\n' \
-    "$_log_bold" "$_log_divider" "$_log_reset" \
+    -- '%s%s%s\n%s%s%s %s, %sexecuted in%s %s%s%s %sOK%s\n\n\n' \
+    "$_log_cyan_bold" "$_log_divider" "$_log_reset" \
     "$_log_cyan_bold" "$_log_action" "$_log_reset" \
     "$_log_subject" \
     "$_log_orange" "$_log_reset" \
