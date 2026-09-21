@@ -1,7 +1,0 @@
-# brewfile hash: {{ includeTemplate "dot_Brewfile.tmpl" . | sha256sum }}
-
-if _log_check 'Checking homebrew' "$HOME/.local/bin/mybrew" check; then
-  _log_start 'Maintaining' 'homebrew'
-  "$HOME/.local/bin/mybrew" update
-  _log_ok
-fi

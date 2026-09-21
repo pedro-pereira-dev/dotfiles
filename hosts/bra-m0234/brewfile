@@ -1,0 +1,18 @@
+tap "pedro-pereira-dev/custom", trusted: true
+
+brew "bash"
+brew "chezmoi"
+brew "git"
+brew "lima"
+brew "qemu"
+
+cask "alt-tab"
+cask "firefox"
+cask "handy"
+cask "microsoft-outlook"
+cask "microsoft-teams"
+cask "pedro-pereira-dev/custom/alacritty", trusted: true
+cask "rectangle"
+cask "stay"
+cask "tastytrade"
+cask "tunnelblick"

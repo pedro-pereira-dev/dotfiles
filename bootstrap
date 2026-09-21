@@ -1,17 +1,33 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091
 set -euo pipefail
 
-_repository=https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main
-_dots=$(dirname "$0")/dot_local/bin/executable_dots.tmpl
-_data=$(dirname "$0")/.chezmoidata/shared.yaml
+DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
+DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
+DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
 
-if [[ -f $_dots && -f $_data ]]; then
-  DOTS_GITHUB_USER=$(awk '$1 == "githubUser:" { print $2 }' "$_data") \
-  DOTS_SOURCE_DIRECTORY="$HOME/$(awk '$1 == "sourceDirectory:" { print $2 }' "$_data")" \
-    exec bash "$_dots" update
-fi
+DOTFILES_ARCHIVE_URL=${DOTFILES_ARCHIVE_URL:-${DOTFILES_REPOSITORY_URL%.git}/archive/refs/heads/$DOTFILES_DEFAULT_BRANCH.tar.gz}
+_TMP_WORKSPACE=/tmp/dotfiles
 
-_data=$(curl -fsSL "$_repository/.chezmoidata/shared.yaml")
-DOTS_GITHUB_USER=$(awk '$1 == "githubUser:" { print $2 }' <<<"$_data") \
-DOTS_SOURCE_DIRECTORY="$HOME/$(awk '$1 == "sourceDirectory:" { print $2 }' <<<"$_data")" \
-  bash -c "$(curl -fsSL "$_repository/dot_local/bin/executable_dots.tmpl")" -- bootstrap
+_prepare_temp_workspace() {
+  rm -fr "$_TMP_WORKSPACE"
+  mkdir -p "$_TMP_WORKSPACE"
+  printf 'Downloading the latest dotfiles tarball...\n'
+  if ! curl -fsSL "$DOTFILES_ARCHIVE_URL" |
+    tar -xz --strip-components=1 -C "$_TMP_WORKSPACE"; then
+    rm -fr "$_TMP_WORKSPACE"
+    return 1
+  fi
+}
+
+_bootstrap() {
+  local _workspace=$DOTFILES_WORKSPACE
+  local -x NONINTERACTIVE=1
+  if [[ ! -f $_workspace/dots ]]; then
+    _prepare_temp_workspace || return
+    _workspace=$_TMP_WORKSPACE
+  fi
+  source "$_workspace/dots" update --verbose "$@"
+}
+
+[[ ${BASH_SOURCE[0]-$0} != "$0" ]] || _bootstrap "$@"

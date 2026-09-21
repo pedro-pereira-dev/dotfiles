@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1090,SC2034
+set -euo pipefail
+
+DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
+DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
+DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
+
+DOTS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+for _utils_script in "$DOTS_DIR"/utils/*.sh; do
+  [[ -f $_utils_script ]] && source "$_utils_script"
+done && unset _utils_script
+
+update() {
+  DOTS_VERBOSE=false
+  case ${1-} in -v | --verbose) DOTS_VERBOSE=true ;; esac
+  source_script "hosts/$(hostname)/update.sh"
+}
+
+case ${1-} in
+update) shift && update "$@" ;;
+esac
