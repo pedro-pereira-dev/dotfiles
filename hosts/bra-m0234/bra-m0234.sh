@@ -12,4 +12,5 @@ sync() {
   stow "$DOTFILES_WORKSPACE/$HOST_DIR/brewfile" "$HOME/.Brewfile"
   stow "$DOTFILES_WORKSPACE/hosts/shared/bash_profile.sh" "$HOME/.bash_profile"
   stow "$DOTFILES_WORKSPACE/hosts/shared/bashrc.sh" "$HOME/.bashrc"
+  stow "$DOTFILES_WORKSPACE/hosts/shared/dots_test.txt" "$HOME/.dots_test.txt"
 }
