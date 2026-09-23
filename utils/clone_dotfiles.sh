@@ -9,7 +9,8 @@ _clone_dotfiles_repository() {
 }
 
 _update_dotfiles_repository() {
-  git -C "$DOTFILES_WORKSPACE" fetch origin --prune &>/dev/null || return
+  git -C "$DOTFILES_WORKSPACE" fetch origin --prune &>/dev/null ||
+    { log_fail 'Failed to fetch' 'dotfiles repository' && return 1; }
   if log_check 'Checking if dotfiles repository is up to date' test \
     "$(git -C "$DOTFILES_WORKSPACE" rev-parse HEAD)" = \
     "$(git -C "$DOTFILES_WORKSPACE" rev-parse "origin/$DOTFILES_DEFAULT_BRANCH")"; then

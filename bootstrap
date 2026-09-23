@@ -3,27 +3,19 @@ set -euo pipefail
 
 export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
 export DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
-export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
+export DOTFILES_WORKSPACE="$HOME/workspace/personal/dotfiles"
 
 DOTFILES_ARCHIVE_URL=${DOTFILES_ARCHIVE_URL:-${DOTFILES_REPOSITORY_URL%.git}/archive/refs/heads/$DOTFILES_DEFAULT_BRANCH.tar.gz}
-_TMP_WORKSPACE=/tmp/dotfiles
 
-_use_tmp_workspace() {
-  rm -fr "$_TMP_WORKSPACE"
-  mkdir -p "$_TMP_WORKSPACE"
+if [[ ! -d $DOTFILES_WORKSPACE/.git ]]; then
+  rm -fr "$DOTFILES_WORKSPACE"
+  mkdir -p "$DOTFILES_WORKSPACE"
   printf 'Downloading the latest dotfiles tarball...\n'
   if ! curl -fsSL "$DOTFILES_ARCHIVE_URL" |
-    tar -xz --strip-components=1 -C "$_TMP_WORKSPACE"; then
-    rm -fr "$_TMP_WORKSPACE"
-    return 1
+    tar -xz --strip-components=1 -C "$DOTFILES_WORKSPACE"; then
+    rm -fr "$DOTFILES_WORKSPACE"
+    exit 1
   fi
-}
-
-_workspace=$DOTFILES_WORKSPACE
-if [[ ! -f $_workspace/dots ]]; then
-  _use_tmp_workspace || exit 1
-  _workspace=$_TMP_WORKSPACE
 fi
 
-NONINTERACTIVE=1 \
-  bash "$_workspace/dots" update --verbose "$@"
+NONINTERACTIVE=1 bash "$DOTFILES_WORKSPACE/dots" update "$@"
