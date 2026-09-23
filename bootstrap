@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# defaults mirror dots; exported so dots inherits the same values
 export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
 export DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
 export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
@@ -9,7 +8,7 @@ export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfile
 DOTFILES_ARCHIVE_URL=${DOTFILES_ARCHIVE_URL:-${DOTFILES_REPOSITORY_URL%.git}/archive/refs/heads/$DOTFILES_DEFAULT_BRANCH.tar.gz}
 _TMP_WORKSPACE=/tmp/dotfiles
 
-_prepare_temp_workspace() {
+_use_tmp_workspace() {
   rm -fr "$_TMP_WORKSPACE"
   mkdir -p "$_TMP_WORKSPACE"
   printf 'Downloading the latest dotfiles tarball...\n'
@@ -20,14 +19,11 @@ _prepare_temp_workspace() {
   fi
 }
 
-_bootstrap() {
-  local _workspace=$DOTFILES_WORKSPACE
-  local -x NONINTERACTIVE=1
-  if [[ ! -f $_workspace/dots ]]; then
-    _prepare_temp_workspace || return
-    _workspace=$_TMP_WORKSPACE
-  fi
-  bash "$_workspace/dots" update --verbose "$@"
-}
+_workspace=$DOTFILES_WORKSPACE
+if [[ ! -f $_workspace/dots ]]; then
+  _use_tmp_workspace || exit 1
+  _workspace=$_TMP_WORKSPACE
+fi
 
-[[ ${BASH_SOURCE[0]-$0} != "$0" ]] || _bootstrap "$@"
+NONINTERACTIVE=1 \
+  bash "$_workspace/dots" update --verbose "$@"
