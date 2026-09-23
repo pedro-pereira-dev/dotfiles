@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
-export DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
+export DOTFILES_BRANCH=${DOTFILES_BRANCH:-main}
+export DOTFILES_URL=${DOTFILES_URL:-https://github.com/pedro-pereira-dev/dotfiles}
 export DOTFILES_WORKSPACE="$HOME/workspace/personal/dotfiles"
 
-DOTFILES_ARCHIVE_URL=${DOTFILES_ARCHIVE_URL:-${DOTFILES_REPOSITORY_URL%.git}/archive/refs/heads/$DOTFILES_DEFAULT_BRANCH.tar.gz}
+DOTFILES_ARCHIVE=${DOTFILES_ARCHIVE:-${DOTFILES_URL%.git}/archive/refs/heads/$DOTFILES_BRANCH.tar.gz}
 
 if [[ ! -d $DOTFILES_WORKSPACE/.git ]]; then
   rm -fr "$DOTFILES_WORKSPACE"
   mkdir -p "$DOTFILES_WORKSPACE"
   printf 'Downloading the latest dotfiles tarball...\n'
-  if ! curl -fsSL "$DOTFILES_ARCHIVE_URL" |
+  if ! curl -fsSL "$DOTFILES_ARCHIVE" |
     tar -xz --strip-components=1 -C "$DOTFILES_WORKSPACE"; then
     rm -fr "$DOTFILES_WORKSPACE"
     exit 1

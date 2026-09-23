@@ -2,8 +2,8 @@
 # shellcheck disable=SC1090
 set -euo pipefail
 
-export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
-export DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
+export DOTFILES_BRANCH=${DOTFILES_BRANCH:-main}
+export DOTFILES_URL=${DOTFILES_URL:-https://github.com/pedro-pereira-dev/dotfiles}
 export DOTFILES_WORKSPACE="$HOME/workspace/personal/dotfiles"
 
 for _util in "$DOTFILES_WORKSPACE"/utils/*.sh; do source "$_util"; done
