@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1090,SC2034
+# shellcheck disable=SC1090
 set -euo pipefail
 
 export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
@@ -11,34 +11,72 @@ for _utils_script in "$DOTS_DIR"/utils/*.sh; do
   [[ -f $_utils_script ]] && source "$_utils_script"
 done && unset _utils_script
 
-_load_host() { source_script "hosts/$(hostname)/$(hostname).sh"; }
+_HOST=$(hostname)
+
+_load_host() {
+  if ! source_script "hosts/$_HOST/$_HOST.sh"; then
+    printf 'dots: no host configuration found at hosts/%s/%s.sh\n' "$_HOST" "$_HOST" >&2
+    return 1
+  fi
+}
+
+_require_function() {
+  if ! declare -F "$1" >/dev/null; then
+    printf 'dots: host %s does not define %s()\n' "$_HOST" "$1" >&2
+    return 1
+  fi
+}
 
 dots_pull() {
-  log_info 'Pulling dotfiles for' "$(hostname)"
+  log_info 'Pulling dotfiles for' "$_HOST"
   _load_host
-  pull "$@"
+  _require_function host_pull
+  host_pull "$@"
   clone_dotfiles
 }
 
 dots_sync() {
-  log_info 'Syncing dotfiles for' "$(hostname)"
+  log_info 'Syncing dotfiles for' "$_HOST"
   _load_host
-  sync "$@"
+  _require_function host_sync
+  host_sync "$@"
 }
 
 # exec the pulled dots so sync uses the latest changes
 dots_update() {
   dots_pull "$@"
-  exec "$DOTFILES_WORKSPACE/dots" sync "$@"
+  local _verbose=()
+  [[ $DOTS_VERBOSE != true ]] || _verbose=(--verbose)
+  exec "$DOTFILES_WORKSPACE/dots" sync ${_verbose[@]+"${_verbose[@]}"} "$@"
+}
+
+_usage() {
+  cat <<USAGE
+Usage: dots <command> [-v|--verbose]
+
+Commands:
+  pull     install host prerequisites and clone/update the dotfiles repository
+  sync     symlink the dotfiles for this host
+  update   pull, then sync using the freshly pulled dots
+USAGE
 }
 
 COMMAND=${1-}
 [[ $# -gt 0 ]] && shift
 DOTS_VERBOSE=false
-case ${1-} in -v | --verbose) DOTS_VERBOSE=true ;; esac
+_args=()
+for _arg in "$@"; do
+  case $_arg in
+  -v | --verbose) DOTS_VERBOSE=true ;;
+  *) _args+=("$_arg") ;;
+  esac
+done
+set -- ${_args[@]+"${_args[@]}"} && unset _arg _args
 
 case $COMMAND in
 pull) dots_pull "$@" ;;
 sync) dots_sync "$@" ;;
 update) dots_update "$@" ;;
+-h | --help | help) _usage ;;
+*) _usage >&2 && exit 1 ;;
 esac

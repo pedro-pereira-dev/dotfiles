@@ -9,6 +9,10 @@ fi
 
 if ! log_check 'Checking if brew is in PATH' command -v brew; then
   log_info 'Activating shell environment with' 'homebrew'
-  [[ ":$PATH:" != *':/opt/homebrew/sbin:'* ]] && export PATH="/opt/homebrew/sbin:$PATH"
-  [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]] && export PATH="/opt/homebrew/bin:$PATH"
+  if [[ ":$PATH:" != *':/opt/homebrew/sbin:'* ]]; then
+    export PATH="/opt/homebrew/sbin:$PATH"
+  fi
+  if [[ ":$PATH:" != *':/opt/homebrew/bin:'* ]]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+  fi
 fi

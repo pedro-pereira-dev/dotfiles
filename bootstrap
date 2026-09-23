@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1090,SC1091
 set -euo pipefail
 
-DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
-DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
-DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
+# defaults mirror dots; exported so dots inherits the same values
+export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
+export DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
+export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
 
 DOTFILES_ARCHIVE_URL=${DOTFILES_ARCHIVE_URL:-${DOTFILES_REPOSITORY_URL%.git}/archive/refs/heads/$DOTFILES_DEFAULT_BRANCH.tar.gz}
 _TMP_WORKSPACE=/tmp/dotfiles

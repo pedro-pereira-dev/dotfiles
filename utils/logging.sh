@@ -13,10 +13,26 @@ _log_divider='----------------------------------------------------------------'
 _log_nested_divider='================================================================'
 _log_stack=()
 
+# bullet reflects nesting depth: '*' top level, '**' nested, '***' deeper
+_log_bullet() {
+  local _depth=$(( ${1:-${#_log_stack[@]}} / 3 ))
+  local _bullet='*'
+  while ((_depth-- > 0 && ${#_bullet} < 3)); do _bullet+='*'; done
+  printf '%s' "$_bullet"
+}
+
+_log_divider_for() {
+  if ((${1:-${#_log_stack[@]}} == 0)); then
+    printf '%s' "$_log_divider"
+  else
+    printf '%s' "$_log_nested_divider"
+  fi
+}
+
 # * Checking Git configuration... OK
 log_check() {
-  local _bullet='*'
-  case ${#_log_stack[@]} in 3) _bullet='**' ;; 6) _bullet='***' ;; esac
+  local _bullet
+  _bullet=$(_log_bullet)
   [[ ${DOTS_VERBOSE:-false} != true ]] ||
     printf '%s %s%s...%s ' "$_bullet" "$_log_orange" "$1" "$_log_reset"
   shift
@@ -33,8 +49,8 @@ log_check() {
 
 # * Updating host-one
 log_info() {
-  local _bullet='*'
-  case ${#_log_stack[@]} in 3) _bullet='**' ;; 6) _bullet='***' ;; esac
+  local _bullet
+  _bullet=$(_log_bullet)
   printf '%s %s%s %s%s%s\n' \
     "$_bullet" "$_log_magenta" "$1" "$_log_magenta_bold" "$2" "$_log_reset"
 }
@@ -42,16 +58,19 @@ log_info() {
 # ----------------------------------------
 # * Updating host-one... OK (executed in 4s)
 log_ok() {
+  if ((${#_log_stack[@]} < 3)); then
+    printf 'log_ok: called without a matching log_start\n' >&2
+    return 1
+  fi
   local _index=$((${#_log_stack[@]} - 3))
   local _action=${_log_stack[_index]}
   local _subject=${_log_stack[_index + 1]}
   local _elapsed=$((SECONDS - _log_stack[_index + 2]))
   local _duration="${_elapsed}s"
-  local _bullet='*'
-  ((_index == 0)) || _bullet='**'
+  local _bullet _divider
+  _bullet=$(_log_bullet "$_index")
   _log_stack=("${_log_stack[@]:0:_index}")
-  local _divider=$_log_divider
-  ((${#_log_stack[@]} == 0)) || _divider=$_log_nested_divider
+  _divider=$(_log_divider_for)
   if ((_elapsed >= 60)); then
     _duration="$((_elapsed / 60))m $((_elapsed % 60))s"
   fi
@@ -67,12 +86,9 @@ log_ok() {
 # * Updating host-one
 # ----------------------------------------
 log_start() {
-  local _divider=$_log_divider
-  local _bullet='*'
-  ((${#_log_stack[@]} == 0)) || _divider=$_log_nested_divider
-  if ((${#_log_stack[@]} > 0)); then
-    _bullet='**'
-  fi
+  local _bullet _divider
+  _bullet=$(_log_bullet)
+  _divider=$(_log_divider_for)
   _log_stack+=("$1" "$2" "$SECONDS")
   printf '\n%s %s%s %s%s%s\n' "$_bullet" "$_log_magenta" "$1" "$_log_magenta_bold" "$2" "$_log_reset"
   printf '%s%s\n' "$_log_reset" "$_divider"
