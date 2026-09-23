@@ -27,7 +27,7 @@ _bootstrap() {
     _prepare_temp_workspace || return
     _workspace=$_TMP_WORKSPACE
   fi
-  source "$_workspace/dots" update --verbose "$@"
+  bash "$_workspace/dots" update --verbose "$@"
 }
 
 [[ ${BASH_SOURCE[0]-$0} != "$0" ]] || _bootstrap "$@"

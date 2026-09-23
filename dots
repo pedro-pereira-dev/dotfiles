@@ -2,21 +2,43 @@
 # shellcheck disable=SC1090,SC2034
 set -euo pipefail
 
-DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
-DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
-DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
+export DOTFILES_DEFAULT_BRANCH=${DOTFILES_DEFAULT_BRANCH:-main}
+export DOTFILES_REPOSITORY_URL=${DOTFILES_REPOSITORY_URL:-https://github.com/pedro-pereira-dev/dotfiles}
+export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
 
 DOTS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 for _utils_script in "$DOTS_DIR"/utils/*.sh; do
   [[ -f $_utils_script ]] && source "$_utils_script"
 done && unset _utils_script
 
-update() {
-  DOTS_VERBOSE=false
-  case ${1-} in -v | --verbose) DOTS_VERBOSE=true ;; esac
-  source_script "hosts/$(hostname)/update.sh"
+_load_host() { source_script "hosts/$(hostname)/$(hostname).sh"; }
+
+dots_pull() {
+  log_info 'Pulling dotfiles for' "$(hostname)"
+  _load_host
+  pull "$@"
+  clone_dotfiles
 }
 
-case ${1-} in
-update) shift && update "$@" ;;
+dots_sync() {
+  log_info 'Syncing dotfiles for' "$(hostname)"
+  _load_host
+  sync "$@"
+}
+
+# exec the pulled dots so sync uses the latest changes
+dots_update() {
+  dots_pull "$@"
+  exec "$DOTFILES_WORKSPACE/dots" sync "$@"
+}
+
+COMMAND=${1-}
+[[ $# -gt 0 ]] && shift
+DOTS_VERBOSE=false
+case ${1-} in -v | --verbose) DOTS_VERBOSE=true ;; esac
+
+case $COMMAND in
+pull) dots_pull "$@" ;;
+sync) dots_sync "$@" ;;
+update) dots_update "$@" ;;
 esac
