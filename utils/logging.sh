@@ -10,22 +10,26 @@ _log_red=$'\033[0;31m'
 _log_red_bold=$'\033[1;31m'
 _log_reset=$'\033[0m'
 
-# nesting depth: '*' and '-' top level, '**' and '=' nested, '***' and '#' deeper
-_log_bullets=('*' '**' '***')
+# nesting depth: '*' and '-' top level, '**' and '~' nested, '***' and '=' deeper, '****' and '#' deepest
+_log_bullets=('*' '**' '***' '****')
 _log_dividers=(
-  '----------------------------------------------------------------'
-  '================================================================'
-  '################################################################'
+  '--------------------------------------------------------------------------------'
+  '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+  '================================================================================'
+  '################################################################################'
 )
 
 _log_actions=()
 _log_starts=()
 _log_subjects=()
 export _log_after_ok=${_log_after_ok:-0}
+export _log_level=${_log_level:-0}
+_log_base=$_log_level
 
 _log_depth() {
-  _log_d=${#_log_actions[@]}
-  ((_log_d <= 2)) || _log_d=2
+  _log_level=$((_log_base + ${#_log_actions[@]}))
+  _log_d=$_log_level
+  ((_log_d <= 3)) || _log_d=3
 }
 
 _log_line() {
@@ -67,12 +71,14 @@ log_question() {
 # * Updating host-one
 # ----------------------------------------
 log_start() {
-  ((${#_log_actions[@]} > 0 || _log_after_ok)) || printf '\n'
+  _log_depth
+  ((_log_level > 0 || _log_after_ok)) || printf '\n'
   _log_line "$_log_magenta" "$_log_magenta_bold" "$1" "$2"
   printf '%s\n' "${_log_dividers[_log_d]}"
   _log_actions+=("$1")
   _log_subjects+=("$2")
   _log_starts+=("$SECONDS")
+  _log_depth
 }
 
 # ----------------------------------------
@@ -87,5 +93,5 @@ log_ok() {
   printf '%s\n' "${_log_dividers[_log_d]}"
   _log_line "$_log_magenta" "$_log_magenta_bold" "$_action" "$_subject" \
     "... ${_log_green_bold}OK${_log_reset} (executed in ${_log_orange_bold}${_elapsed}s${_log_reset})"
-  ((${#_log_actions[@]} > 0)) || { printf '\n' && _log_after_ok=1; }
+  ((_log_level > 0)) || { printf '\n' && _log_after_ok=1; }
 }
