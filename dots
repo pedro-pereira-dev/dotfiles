@@ -15,7 +15,8 @@ dots_update() { dots_pull && exec "$DOTFILES_WORKSPACE/dots" sync; }
 source "$DOTFILES_WORKSPACE/hosts/$(hostname -s)/$(hostname -s).sh"
 
 case ${1-} in
+pull) dots_pull ;;
 sync) dots_sync "${@:2}" ;;
 update) dots_update ;;
-*) log_fail 'Usage: dots' '[sync|update]' && exit 1 ;;
+*) log_fail 'Usage: dots' '[pull|sync|update]' && exit 1 ;;
 esac
