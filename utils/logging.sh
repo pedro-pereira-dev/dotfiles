@@ -55,6 +55,15 @@ log_info() { _log_line "$_log_magenta" "$_log_magenta_bold" "$1" "$2"; }
 # * No host configuration found for host-one
 log_fail() { _log_line "$_log_red" "$_log_light_red_bold" "$1" "$2" >&2; }
 
+# * Install packages? [Y/n]
+log_question() {
+  _log_after_ok=0
+  _log_depth
+  local _answer
+  read -rp "${_log_bullets[_log_d]} ${_log_orange}$1 ${_log_orange_bold}$2${_log_reset} [Y/n] " _answer
+  [[ -z $_answer || $_answer == [yY]* ]]
+}
+
 # * Updating host-one
 # ----------------------------------------
 log_start() {
