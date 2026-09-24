@@ -5,5 +5,5 @@ stow() {
     { log_fail 'Cannot symlink' "$1 -> $2" && return 1; }
   mkdir -p "$(dirname "$2")" || return
   rm -f "$2" || return
-  log_check "Symlinking $1 to $2" ln -s "$1" "$2"
+  log_check "Symlinking $2 to $1" ln -s "$1" "$2"
 }
