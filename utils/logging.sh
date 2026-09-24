@@ -9,14 +9,13 @@ _log_orange_bold=$'\033[1;33m'
 _log_red=$'\033[0;31m'
 _log_red_bold=$'\033[1;31m'
 _log_reset=$'\033[0m'
+_log_dim=$'\033[2;37m'
 
-# nesting depth: '*' and '-' top level, '**' and '~' nested, '***' and '=' deeper, '****' and '#' deepest
-_log_bullets=('*' '**' '***' '****')
-_log_dividers=(
-  '--------------------------------------------------------------------------------'
-  '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-  '================================================================================'
-  '################################################################################'
+_log_bullets=(
+  "${_log_dim}•${_log_reset}"
+  "${_log_dim}├─ •${_log_reset}"
+  "${_log_dim}┊   ├─ •${_log_reset}"
+  "${_log_dim}┊   ┊   ├─ •${_log_reset}"
 )
 
 _log_actions=()
@@ -69,19 +68,16 @@ log_question() {
 }
 
 # * Updating host-one
-# ----------------------------------------
 log_start() {
   _log_depth
   ((_log_level > 0 || _log_after_ok)) || printf '\n'
   _log_line "$_log_magenta" "$_log_magenta_bold" "$1" "$2"
-  printf '%s\n' "${_log_dividers[_log_d]}"
   _log_actions+=("$1")
   _log_subjects+=("$2")
   _log_starts+=("$SECONDS")
   _log_depth
 }
 
-# ----------------------------------------
 # * Updating host-one... OK (executed in 4s)
 log_ok() {
   local _i=$((${#_log_actions[@]} - 1))
@@ -90,7 +86,6 @@ log_ok() {
   local _elapsed=$((SECONDS - _log_starts[_i]))
   unset "_log_actions[_i]" "_log_subjects[_i]" "_log_starts[_i]"
   _log_depth
-  printf '%s\n' "${_log_dividers[_log_d]}"
   _log_line "$_log_magenta" "$_log_magenta_bold" "$_action" "$_subject" \
     "... ${_log_green_bold}OK${_log_reset} (executed in ${_log_orange_bold}${_elapsed}s${_log_reset})"
   ((_log_level > 0)) || { printf '\n' && _log_after_ok=1; }
