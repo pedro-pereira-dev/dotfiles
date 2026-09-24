@@ -1,6 +1,7 @@
 tap "pedro-pereira-dev/custom", trusted: true
 
 brew "bash"
+brew "fd"
 brew "git"
 brew "lima"
 brew "qemu"
