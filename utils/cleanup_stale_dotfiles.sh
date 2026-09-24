@@ -1,27 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2154
 
-_find_dotfiles_symlinks_find() {
+_find_dotfiles_symlinks() {
   find "$HOME" -xdev \
     \( -path "$DOTFILES_WORKSPACE" -o -name .git \) -prune -o \
     -type l -lname "$DOTFILES_WORKSPACE/*" -print 2>/dev/null || true
-}
-
-_find_dotfiles_symlinks_fd() {
-  local _link && while IFS= read -r _link; do
-    _link=${_link%/}
-    [[ $_link == "$DOTFILES_WORKSPACE"/* ]] && continue
-    [[ $(readlink "$_link") == "$DOTFILES_WORKSPACE"/* ]] && printf '%s\n' "$_link"
-  done < <(fd --type symlink --hidden --no-ignore --one-file-system \
-    --exclude .git --absolute-path . "$HOME" 2>/dev/null || true)
-}
-
-_find_dotfiles_symlinks() {
-  if command -v fd &>/dev/null; then
-    _find_dotfiles_symlinks_fd
-  else
-    _find_dotfiles_symlinks_find
-  fi
 }
 
 _is_stowed() {
@@ -46,8 +29,7 @@ _remove_empty_parents() {
 }
 
 cleanup_stale_dotfiles() {
-  ((${#_stow_targets[@]} > 0)) ||
-    { log_fail 'Skipping stale symlinks cleanup' 'no executed stow calls' && return 0; }
+  ((_stow_changed || ${DOTFILES_UPDATED:-0})) || return 0
   local _stale && _stale=$(_find_stale_symlinks)
   [[ -n $_stale ]] || return 0
   log_start 'Cleaning up' 'stale symlinks'

@@ -16,6 +16,7 @@ _update_dotfiles() {
     "$(git -C "$DOTFILES_WORKSPACE" rev-parse "origin/$DOTFILES_BRANCH")"; then
     return
   fi
+  export DOTFILES_UPDATED=1
   log_start 'Updating' 'dotfiles repository'
   git -C "$DOTFILES_WORKSPACE" reset --hard HEAD
   git -C "$DOTFILES_WORKSPACE" clean -fdx
