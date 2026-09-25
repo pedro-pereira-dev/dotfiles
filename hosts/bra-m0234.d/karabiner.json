@@ -9,7 +9,7 @@
       "complex_modifications": {
         "rules": [
           {
-            "description": "(Keyboard) AltGr + 7,0 >> { }",
+            "description": "(Native MacOS Keyboard Override) AltGr + 7,0 >> { }",
             "manipulators": [
               {
                 "conditions": [
@@ -36,7 +36,7 @@
             ]
           },
           {
-            "description": "(Keyboard) Keypad . >> .",
+            "description": "(Native MacOS Keyboard Override) Keypad . >> .",
             "manipulators": [
               {
                 "conditions": [
@@ -52,7 +52,7 @@
             ]
           },
           {
-            "description": "(Keyboard) AltGr + 4 >> §",
+            "description": "(Native MacOS Keyboard Override) AltGr + 4 >> §",
             "manipulators": [
               {
                 "conditions": [
@@ -63,6 +63,22 @@
                 ],
                 "from": { "key_code": "4", "modifiers": { "mandatory": ["right_option"] } },
                 "to": [{ "key_code": "grave_accent_and_tilde" }],
+                "type": "basic"
+              }
+            ]
+          },
+          {
+            "description": "(Native MacOS Keyboard Override) AltGr + 3 >> £",
+            "manipulators": [
+              {
+                "conditions": [
+                  {
+                    "identifiers": [{ "product_id": 6975, "vendor_id": 6940 }],
+                    "type": "device_if"
+                  }
+                ],
+                "from": { "key_code": "3", "modifiers": { "mandatory": ["right_option"] } },
+                "to": [{ "key_code": "4", "modifiers": ["right_option"] }],
                 "type": "basic"
               }
             ]
