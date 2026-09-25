@@ -3,7 +3,6 @@
 set -euo pipefail
 
 export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
-source "$DOTFILES_WORKSPACE/utils/logging.sh"
 [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 export HOMEBREW_NO_ENV_HINTS=1
 
@@ -44,28 +43,25 @@ _apply_install() { brew bundle install --global --upgrade; }
 _apply_remove() { brew bundle cleanup --global --force; }
 
 _step() {
-  local _preview
+  local _preview _answer
   _preview=$("_preview_$4" 2>&1)
   [[ -n $_preview ]] || return 0
   if ! ((_force)); then
-    log_start 'Previewing' "$3"
+    printf '\n%s\n' "Previewing $3"
     printf '%s\n' "$_preview"
-    log_ok
-    log_question "$1" "$2?" || return 0
+    read -rp "$1 $2? [Y/n] " _answer
+    [[ -z $_answer || $_answer == [yY]* ]] || return 0
   fi
-  log_start "$1" "$2"
+  printf '\n%s\n' "$1 $2"
   "_apply_$4"
-  log_ok
 }
 
-log_start 'Maintaining' 'homebrew'
-log_start 'Updating' 'homebrew'
+printf '\n%s\n' 'Updating homebrew'
 brew update || true
-log_ok
-if log_check 'Checking homebrew packages' _is_in_sync; then log_ok && exit; fi
-((_check)) && log_ok && exit 1
+printf '\n%s\n' 'Checking homebrew packages'
+_is_in_sync && exit
+((_check)) && exit 1
 
 _step 'Installing' 'homebrew packages' 'homebrew packages to install' install
 _step 'Removing' 'homebrew packages' 'homebrew packages to remove' remove
 _step 'Cleaning up' 'homebrew packages and artifacts' 'homebrew packages and artifacts' clean
-log_ok

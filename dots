@@ -8,12 +8,12 @@ export DOTFILES_WORKSPACE="$HOME/workspace/personal/dotfiles"
 
 for _util in "$DOTFILES_WORKSPACE"/utils/*.sh; do source "$_util"; done
 [[ -f $DOTFILES_WORKSPACE/hosts/$(hostname -s).sh ]] ||
-  { log_fail 'No configuration found for host' "$(hostname -s)" && exit 1; }
+  { printf "No configuration found for host '%s'" "$(hostname -s)" && exit 1; }
 source "$DOTFILES_WORKSPACE/hosts/$(hostname -s).sh"
 
 case ${1-} in
 pull) dots_pull ;;
 sync) dots_sync ;;
 update) dots_pull && "$DOTFILES_WORKSPACE/dots" sync ;;
-*) log_fail 'Usage: dots' '[pull|sync|update]' && exit 1 ;;
+*) printf 'Usage: dots [pull|sync|update]\n' >&2 && exit 1 ;;
 esac

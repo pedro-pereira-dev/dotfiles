@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
-if ! log_check 'Checking if brew is installed' test -x /opt/homebrew/bin/brew; then
-  log_start 'Installing' 'homebrew'
+if [[ ! -x /opt/homebrew/bin/brew ]]; then
+  printf '\n%s\n' 'Installing homebrew'
   NONINTERACTIVE=1 \
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  log_ok
 fi
 
-if ! log_check 'Checking if brew is in PATH' command -v brew; then
-  log_info 'Activating shell environment with' 'homebrew'
+if ! command -v brew >/dev/null; then
+  printf '\n%s\n' 'Activating shell environment with homebrew'
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
