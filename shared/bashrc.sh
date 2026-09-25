@@ -1,21 +1,16 @@
 #!/usr/bin/env bash
 
-if [[ -x /opt/homebrew/bin/brew ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-  export PATH="$HOME/.local/bin:$PATH"
-fi
+_prepend_path() { if [[ -d $1 && ":$PATH:" != *":$1:"* ]]; then export PATH="$1:$PATH"; fi; }
+if [[ -x /opt/homebrew/bin/brew ]]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
+_prepend_path "$HOME/.local/bin"
 
 # fnm
-if [[ -d $HOME/.local/share/fnm ]]; then
-  export PATH="$HOME/.local/share/fnm:$PATH"
-fi
+_prepend_path "$HOME/.local/share/fnm"
 if command -v fnm >/dev/null; then
   eval "$(fnm env --use-on-cd --shell bash)"
 fi
 
 # opencode
-if [[ -d $HOME/.opencode/bin ]]; then
-  export PATH="$HOME/.opencode/bin:$PATH"
-fi
+_prepend_path "$HOME/.opencode/bin"
+
+unset -f _prepend_path

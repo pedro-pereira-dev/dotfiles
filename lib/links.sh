@@ -27,7 +27,7 @@ _find_workspace_links() {
 
 _is_linked() {
   local _target
-  for _target in "${_linked_targets[@]}"; do
+  for _target in ${_linked_targets[@]+"${_linked_targets[@]}"}; do
     if [[ $1 == "$_target" ]]; then return 0; fi
   done
   return 1

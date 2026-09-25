@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
 [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 export HOMEBREW_NO_ENV_HINTS=1
 
@@ -18,8 +17,8 @@ _cleanup_dry() { brew bundle cleanup --global </dev/null 2>&1; }
 _is_in_sync() { _bundle_check && [[ -z $(brew outdated) && $(_cleanup_dry) != *'Would uninstall'* ]]; }
 
 _preview_clean() {
-  brew autoremove --dry-run
-  brew cleanup --prune=all -s --dry-run
+  brew autoremove --dry-run || true
+  brew cleanup --prune=all -s --dry-run || true
 }
 _preview_install() {
   _bundle_check --verbose 2>&1 | sed -n 's/^→ [A-Za-z]* \([^ ]*\) needs.*/\1/p' || true
