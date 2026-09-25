@@ -44,21 +44,20 @@ _apply_remove() { brew bundle cleanup --global --force; }
 
 _step() {
   local _preview _answer
-  _preview=$("_preview_$4" 2>&1)
+  _preview=$("_preview_$3" 2>&1)
   [[ -n $_preview ]] || return 0
   if ! ((_force)); then
-    printf '\n%s\n' "Previewing $3"
     printf '%s\n' "$_preview"
     read -rp "$1 $2? [Y/n] " _answer
     [[ -z $_answer || $_answer == [yY]* ]] || return 0
   fi
-  "_apply_$4"
+  "_apply_$3"
 }
 
 brew update || true
 _is_in_sync && exit
 ((_check)) && exit 1
 
-_step 'Installing' 'homebrew packages' 'homebrew packages to install' install
-_step 'Removing' 'homebrew packages' 'homebrew packages to remove' remove
-_step 'Cleaning up' 'homebrew packages and artifacts' 'homebrew packages and artifacts' clean
+_step 'Install' 'homebrew packages' install
+_step 'Remove' 'homebrew packages' remove
+_step 'Clean up' 'homebrew packages and artifacts' clean
