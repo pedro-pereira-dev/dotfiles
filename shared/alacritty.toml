@@ -100,3 +100,33 @@ action = "ScrollPageDown"
 key = "N"
 mods = "Control|Shift"
 action = "CreateNewWindow"
+
+# delete word backward -- ctrl + backspace
+[[keyboard.bindings]]
+key = "Back"
+mods = "Control"
+chars = "\u0017"
+
+# delete word forward -- ctrl + delete
+[[keyboard.bindings]]
+key = "Delete"
+mods = "Control"
+chars = "\u001bd"
+
+# clear to start of line -- command + backspace
+[[keyboard.bindings]]
+key = "Back"
+mods = "Command"
+chars = "\u0015"
+
+# move word backward -- ctrl + left
+[[keyboard.bindings]]
+key = "Left"
+mods = "Control"
+chars = "\u001bb"
+
+# move word forward -- ctrl + right
+[[keyboard.bindings]]
+key = "Right"
+mods = "Control"
+chars = "\u001bf"

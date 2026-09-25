@@ -147,22 +147,6 @@
             ]
           },
           {
-            "description": "(Finder) Super + q >> Super + w (Closes)",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^com\\.apple\\.finder$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": { "key_code": "q", "modifiers": { "mandatory": ["command"] } },
-                "to": [{ "key_code": "w", "modifiers": ["right_command"] }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
             "description": "(Browsers) Ctrl + t >> Super + t (New Tab)",
             "manipulators": [
               {
@@ -316,109 +300,17 @@
             ]
           },
           {
-            "description": "(Terminal) Ctrl + Shift + v >> Super + v (Paste)",
+            "description": "(Finder) Super + q >> Super + w (Closes)",
             "manipulators": [
               {
                 "conditions": [
                   {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
+                    "bundle_identifiers": ["^com\\.apple\\.finder$"],
                     "type": "frontmost_application_if"
                   }
                 ],
-                "from": { "key_code": "v", "modifiers": { "mandatory": ["control", "shift"] } },
-                "to": [{ "key_code": "v", "modifiers": ["right_command"] }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
-            "description": "(Terminal) Ctrl + Shift + c >> Super + c (Copy)",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": { "key_code": "c", "modifiers": { "mandatory": ["control", "shift"] } },
-                "to": [{ "key_code": "c", "modifiers": ["right_command"] }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
-            "description": "(Terminal) Ctrl + backspace,delete >> Ctrl + w, Alt + d",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": {
-                  "key_code": "delete_or_backspace",
-                  "modifiers": { "mandatory": ["control"] }
-                },
-                "to": [{ "key_code": "w", "modifiers": ["control"] }],
-                "type": "basic"
-              },
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": { "key_code": "delete_forward", "modifiers": { "mandatory": ["control"] } },
-                "to": [{ "key_code": "d", "modifiers": ["left_option"] }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
-            "description": "(Terminal) Super + backspace >> Ctrl + u (Clear to Start of Line)",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": {
-                  "key_code": "delete_or_backspace",
-                  "modifiers": { "mandatory": ["command"] }
-                },
-                "to": [{ "key_code": "u", "modifiers": ["control"] }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
-            "description": "(Terminal) Ctrl + left,right >> Alt + b,f",
-            "manipulators": [
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": { "key_code": "left_arrow", "modifiers": { "mandatory": ["control"] } },
-                "to": [{ "key_code": "b", "modifiers": ["left_option"] }],
-                "type": "basic"
-              },
-              {
-                "conditions": [
-                  {
-                    "bundle_identifiers": ["^io\\.alacritty$", "^org\\.alacritty$"],
-                    "type": "frontmost_application_if"
-                  }
-                ],
-                "from": { "key_code": "right_arrow", "modifiers": { "mandatory": ["control"] } },
-                "to": [{ "key_code": "f", "modifiers": ["left_option"] }],
+                "from": { "key_code": "q", "modifiers": { "mandatory": ["command"] } },
+                "to": [{ "key_code": "w", "modifiers": ["right_command"] }],
                 "type": "basic"
               }
             ]
