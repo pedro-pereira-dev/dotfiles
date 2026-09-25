@@ -8,7 +8,6 @@ _clone_dotfiles() {
 }
 
 _update_dotfiles() {
-  printf '\n%s\n' 'Fetching dotfiles repository'
   git -C "$DOTFILES_WORKSPACE" fetch origin --prune
   local _local _remote
   _local=$(git -C "$DOTFILES_WORKSPACE" rev-parse HEAD)

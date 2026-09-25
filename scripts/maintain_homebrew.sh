@@ -52,13 +52,10 @@ _step() {
     read -rp "$1 $2? [Y/n] " _answer
     [[ -z $_answer || $_answer == [yY]* ]] || return 0
   fi
-  printf '\n%s\n' "$1 $2"
   "_apply_$4"
 }
 
-printf '\n%s\n' 'Updating homebrew'
 brew update || true
-printf '\n%s\n' 'Checking homebrew packages'
 _is_in_sync && exit
 ((_check)) && exit 1
 
