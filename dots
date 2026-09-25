@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1090
 set -euo pipefail
 
 export DOTFILES_BRANCH=${DOTFILES_BRANCH:-main}
 export DOTFILES_URL=${DOTFILES_URL:-https://github.com/pedro-pereira-dev/dotfiles}
 export DOTFILES_WORKSPACE="$HOME/workspace/personal/dotfiles"
 
-for _util in "$DOTFILES_WORKSPACE"/utils/*.sh; do source "$_util"; done
-[[ -f $DOTFILES_WORKSPACE/hosts/$(hostname -s).sh ]] ||
-  { printf "No configuration found for host '%s'" "$(hostname -s)" && exit 1; }
-source "$DOTFILES_WORKSPACE/hosts/$(hostname -s).sh"
+for _lib in "$DOTFILES_WORKSPACE"/lib/*.sh; do source "$_lib"; done
+
+_host=$(hostname -s)
+_host_config="$DOTFILES_WORKSPACE/hosts/$_host.sh"
+if [[ ! -f $_host_config ]]; then
+  printf "No configuration found for host '%s'\n" "$_host" >&2
+  exit 1
+fi
+
+source "$_host_config"
 
 case ${1-} in
 pull) dots_pull ;;

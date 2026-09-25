@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC1091
 set -euo pipefail
 
 export DOTFILES_WORKSPACE=${DOTFILES_WORKSPACE:-$HOME/workspace/personal/dotfiles}
@@ -43,15 +42,16 @@ _apply_install() { brew bundle install --global --upgrade; }
 _apply_remove() { brew bundle cleanup --global --force; }
 
 _step() {
+  local _verb=$1 _subject=$2 _action=$3
   local _preview _answer
-  _preview=$("_preview_$3" 2>&1)
+  _preview=$("_preview_$_action" 2>&1)
   [[ -n $_preview ]] || return 0
   if ! ((_force)); then
     printf '%s\n' "$_preview"
-    read -rp "$1 $2? [Y/n] " _answer
+    read -rp "$_verb $_subject? [Y/n] " _answer
     [[ -z $_answer || $_answer == [yY]* ]] || return 0
   fi
-  "_apply_$3"
+  "_apply_$_action"
 }
 
 brew update || true

@@ -7,14 +7,15 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   export PATH="$HOME/.local/bin:$PATH"
 fi
 
-command -v fnm >/dev/null && eval "$(fnm env --use-on-cd --shell bash)" || true
-
 # fnm
-FNM_PATH="/home/chuck/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "$(fnm env --shell bash)"
+if [[ -d $HOME/.local/share/fnm ]]; then
+  export PATH="$HOME/.local/share/fnm:$PATH"
+fi
+if command -v fnm >/dev/null; then
+  eval "$(fnm env --use-on-cd --shell bash)"
 fi
 
 # opencode
-export PATH=/home/chuck/.opencode/bin:$PATH
+if [[ -d $HOME/.opencode/bin ]]; then
+  export PATH="$HOME/.opencode/bin:$PATH"
+fi
