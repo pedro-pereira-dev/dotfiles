@@ -4,6 +4,8 @@ brew "bash"
 brew "git"
 brew "lima"
 brew "qemu"
+brew "fastfetch"
+brew "cmatrix"
 
 cask "alt-tab"
 cask "firefox"
