@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 if [[ ! -x /opt/homebrew/bin/brew ]]; then
   NONINTERACTIVE=1 \

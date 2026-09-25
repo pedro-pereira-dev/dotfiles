@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 if ! xcode-select --print-path >/dev/null; then
   xcode-select --install || true

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2154
+set -euo pipefail
 
 _find_dotfiles_symlinks() {
   find "$HOME" -xdev \

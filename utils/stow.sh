@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 _stow_targets=()
 _stow_changed=0

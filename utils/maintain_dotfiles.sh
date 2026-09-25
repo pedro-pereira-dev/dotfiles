@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 _clone_dotfiles() {
   rm -fr "$DOTFILES_WORKSPACE"
