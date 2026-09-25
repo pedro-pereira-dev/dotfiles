@@ -32,7 +32,6 @@ cleanup_stale_dotfiles() {
   ((_stow_changed || ${DOTFILES_UPDATED:-0})) || return 0
   local _stale && _stale=$(_find_stale_symlinks)
   [[ -n $_stale ]] || return 0
-  printf '\n%s\n' 'Cleaning up stale symlinks'
   local _link && while IFS= read -r _link; do
     rm -fv "$_link"
     _remove_empty_parents "$(dirname "$_link")"
