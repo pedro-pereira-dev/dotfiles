@@ -9,16 +9,6 @@
       "complex_modifications": {
         "rules": [
           {
-            "description": "(Apps) Super + 5 >> Focus Discord",
-            "manipulators": [
-              {
-                "from": { "key_code": "5", "modifiers": { "mandatory": ["command"] } },
-                "to": [{ "shell_command": "open -a 'Discord.app'" }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
             "description": "(Apps) Super + Return >> Opens Alacritty",
             "manipulators": [
               {
@@ -27,16 +17,6 @@
                   "modifiers": { "mandatory": ["command"] }
                 },
                 "to": [{ "shell_command": "open -n /Applications/Alacritty.app" }],
-                "type": "basic"
-              }
-            ]
-          },
-          {
-            "description": "(Apps) Super + E >> Opens Finder",
-            "manipulators": [
-              {
-                "from": { "key_code": "e", "modifiers": { "mandatory": ["command"] } },
-                "to": [{ "shell_command": "open -a 'Finder.app'" }],
                 "type": "basic"
               }
             ]
@@ -82,11 +62,11 @@
             ]
           },
           {
-            "description": "(Apps) Super + 6 >> Focus Notes",
+            "description": "(Apps) Super + E >> Opens Finder in Downloads",
             "manipulators": [
               {
-                "from": { "key_code": "6", "modifiers": { "mandatory": ["command"] } },
-                "to": [{ "shell_command": "open -a 'Notes.app'" }],
+                "from": { "key_code": "e", "modifiers": { "mandatory": ["command"] } },
+                "to": [{ "shell_command": "open ~/Downloads" }],
                 "type": "basic"
               }
             ]
@@ -664,7 +644,16 @@
       "devices": [
         {
           "identifiers": { "is_keyboard": true, "product_id": 6975, "vendor_id": 6940 },
-          "ignore_vendor_events": true
+          "ignore_vendor_events": true,
+          "simple_modifications": [
+            {
+              "from": { "key_code": "grave_accent_and_tilde" },
+              "to": [{ "key_code": "non_us_pound" }]
+            },
+            { "from": { "key_code": "open_bracket" }, "to": [{ "key_code": "equal_sign" }] },
+            { "from": { "key_code": "quote" }, "to": [{ "key_code": "open_bracket" }] },
+            { "from": { "key_code": "non_us_pound" }, "to": [{ "key_code": "quote" }] }
+          ]
         },
         {
           "identifiers": { "is_pointing_device": true, "product_id": 45108, "vendor_id": 1133 },
