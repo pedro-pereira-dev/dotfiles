@@ -188,7 +188,7 @@
             ]
           },
           {
-            "description": "(Browsers) Ctrl + r >> Super + Shift + r (Reload)",
+            "description": "(Browsers) Ctrl (+ Shift) + r >> Super + Shift + r (Reload)",
             "manipulators": [
               {
                 "conditions": [
@@ -206,7 +206,10 @@
                     "type": "frontmost_application_if"
                   }
                 ],
-                "from": { "key_code": "r", "modifiers": { "mandatory": ["control"] } },
+                "from": {
+                  "key_code": "r",
+                  "modifiers": { "mandatory": ["control"], "optional": ["shift"] }
+                },
                 "to": [{ "key_code": "r", "modifiers": ["right_command", "shift"] }],
                 "type": "basic"
               }
