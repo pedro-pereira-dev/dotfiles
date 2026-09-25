@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-install_xcode() {
+install_darwin_xcode() {
   if ! xcode-select --print-path >/dev/null 2>&1; then
     xcode-select --install || true
     until xcode-select --print-path >/dev/null 2>&1; do sleep 60; done
   fi
 }
 
-install_homebrew() {
+install_darwin_homebrew() {
   if [[ ! -x /opt/homebrew/bin/brew ]]; then
     NONINTERACTIVE=1 \
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -17,7 +17,7 @@ install_homebrew() {
   fi
 }
 
-install_git() {
+install_darwin_git() {
   if ! brew list --formula git >/dev/null 2>&1; then
     brew install git
   fi

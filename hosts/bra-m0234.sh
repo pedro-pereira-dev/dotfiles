@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 dots_pull() {
-  install_xcode
-  install_homebrew
-  install_git
+  install_darwin_xcode
+  install_darwin_homebrew
+  install_darwin_git
   maintain_dotfiles
 }
 
