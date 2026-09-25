@@ -7,6 +7,7 @@ brew "qemu"
 
 cask "alt-tab"
 cask "firefox"
+cask "font-code-new-roman-nerd-font"
 cask "handy"
 cask "microsoft-outlook"
 cask "microsoft-teams"
