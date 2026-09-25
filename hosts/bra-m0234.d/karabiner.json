@@ -1,0 +1,106 @@
+{
+  "global": {
+    "check_for_updates": false,
+    "enable_notification_window": false,
+    "show_in_menu_bar": true
+  },
+  "profiles": [
+    {
+      "devices": [
+        {
+          "identifiers": {
+            "is_keyboard": true,
+            "product_id": 6975,
+            "vendor_id": 6940
+          },
+          "ignore_vendor_events": true
+        },
+        {
+          "identifiers": {
+            "is_pointing_device": true,
+            "product_id": 45108,
+            "vendor_id": 1133
+          },
+          "ignore": true
+        }
+      ],
+      "fn_function_keys": [
+        {
+          "from": {
+            "key_code": "f3"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        },
+        {
+          "from": {
+            "key_code": "f4"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        },
+        {
+          "from": {
+            "key_code": "f5"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        },
+        {
+          "from": {
+            "key_code": "f6"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        },
+        {
+          "from": {
+            "key_code": "f7"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        },
+        {
+          "from": {
+            "key_code": "f8"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        },
+        {
+          "from": {
+            "key_code": "f9"
+          },
+          "to": [
+            {
+              "key_code": "vk_none"
+            }
+          ]
+        }
+      ],
+      "name": "Default profile",
+      "selected": true,
+      "virtual_hid_keyboard": {
+        "keyboard_type_v2": "iso"
+      }
+    }
+  ]
+}

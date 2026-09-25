@@ -9,6 +9,7 @@ cask "alt-tab"
 cask "firefox"
 cask "font-code-new-roman-nerd-font"
 cask "handy"
+cask "karabiner-elements"
 cask "microsoft-outlook"
 cask "microsoft-teams"
 cask "pedro-pereira-dev/custom/alacritty", trusted: true

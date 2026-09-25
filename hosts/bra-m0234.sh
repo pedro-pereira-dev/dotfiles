@@ -11,6 +11,7 @@ dots_sync() {
   link_file "$DOTFILES_WORKSPACE/dots" "$HOME/.local/bin/dots"
 
   link_file "$DOTFILES_WORKSPACE/hosts/bra-m0234.d/brewfile" "$HOME/.Brewfile"
+  link_file "$DOTFILES_WORKSPACE/hosts/bra-m0234.d/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
   link_file "$DOTFILES_WORKSPACE/shared/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
   link_file "$DOTFILES_WORKSPACE/shared/bash_profile.sh" "$HOME/.bash_profile"
   link_file "$DOTFILES_WORKSPACE/shared/bashrc.sh" "$HOME/.bashrc"
