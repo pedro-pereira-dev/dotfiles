@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if command -v maintain-macos >/dev/null; then maintain-macos "$@"; fi
+if command -v maintain-homebrew >/dev/null; then maintain-homebrew "$@"; fi

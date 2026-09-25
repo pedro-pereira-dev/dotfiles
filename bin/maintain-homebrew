@@ -8,7 +8,7 @@ _check=0 _force=0
 for _arg; do
   case $_arg in
   --check) _check=1 ;;
-  --force) _force=1 && export HOMEBREW_NO_ASK=1 ;;
+  -f | --force) _force=1 && export HOMEBREW_NO_ASK=1 ;;
   esac
 done
 
