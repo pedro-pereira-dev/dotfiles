@@ -1,0 +1,101 @@
+# https://alacritty.org/config-alacritty.html
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+padding = { x = 16, y = 16 }
+dynamic_padding = true
+decorations = "None"
+option_as_alt = "OnlyLeft"
+
+[font]
+normal.family = "Jetbrainsmono Nerd Font"
+
+[colors.primary]
+foreground = "#d2d1e6"
+background = "#000000"
+[colors.normal]
+black = "#2e3440"
+red = "#ff3242"
+green = "#44bc44"
+yellow = "#ff9400"
+blue = "#0883ff"
+magenta = "#d930d9"
+cyan = "#00d8eb"
+white = "#d8dee9"
+[colors.bright]
+black = "#4c566a"
+red = "#ff6e6e"
+green = "#9ec875"
+yellow = "#ffaf00"
+blue = "#47bfe6"
+magenta = "#d294ff"
+cyan = "#8ae2f0"
+white = "#eceff4"
+
+[selection]
+save_to_clipboard = true
+
+[cursor]
+style.blinking = "Always"
+blink_interval = 250
+
+# paste -- right click
+[[mouse.bindings]]
+mouse = "Right"
+action = "Paste"
+
+# paste -- ctrl + shift + v
+[[keyboard.bindings]]
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+
+# copy -- ctrl + shift + c
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+action = "Copy"
+
+# increase font size -- ctrl + equals
+[[keyboard.bindings]]
+key = "Equals"
+mods = "Control"
+action = "IncreaseFontSize"
+
+# decrease font size -- ctrl + minus
+[[keyboard.bindings]]
+key = "Minus"
+mods = "Control"
+action = "DecreaseFontSize"
+
+# reset font size -- ctrl + 0
+[[keyboard.bindings]]
+key = "Key0"
+mods = "Control"
+action = "ResetFontSize"
+
+# search forward -- ctrl + shift + f
+[[keyboard.bindings]]
+key = "F"
+mods = "Control|Shift"
+action = "SearchForward"
+
+# scroll page up -- shift + pageup
+[[keyboard.bindings]]
+key = "PageUp"
+mods = "Shift"
+action = "ScrollPageUp"
+
+# scroll page down -- shift + pagedown
+[[keyboard.bindings]]
+key = "PageDown"
+mods = "Shift"
+action = "ScrollPageDown"
+
+# new window -- ctrl + shift + n
+[[keyboard.bindings]]
+key = "N"
+mods = "Control|Shift"
+action = "CreateNewWindow"
