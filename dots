@@ -7,32 +7,13 @@ export DOTFILES_URL=${DOTFILES_URL:-https://github.com/pedro-pereira-dev/dotfile
 export DOTFILES_WORKSPACE="$HOME/workspace/personal/dotfiles"
 
 for _util in "$DOTFILES_WORKSPACE"/utils/*.sh; do source "$_util"; done
-_dots_pull() {
-  log_start 'Pulling' 'dotfiles'
-  dots_pull
-  log_ok
-}
-_dots_sync() {
-  log_start 'Syncing' 'dotfiles'
-  dots_sync "$@"
-  log_ok
-}
-_dots_update() {
-  log_start 'Updating' 'dotfiles'
-  _dots_pull
-  "$DOTFILES_WORKSPACE/dots" sync
-  log_ok
-  exit
-}
-
-[[ -f $DOTFILES_WORKSPACE/hosts/$(hostname -s)/$(hostname -s).sh ]] ||
+[[ -f $DOTFILES_WORKSPACE/hosts/$(hostname -s).sh ]] ||
   { log_fail 'No configuration found for host' "$(hostname -s)" && exit 1; }
-
-source "$DOTFILES_WORKSPACE/hosts/$(hostname -s)/$(hostname -s).sh"
+source "$DOTFILES_WORKSPACE/hosts/$(hostname -s).sh"
 
 case ${1-} in
-pull) _dots_pull ;;
-sync) _dots_sync "${@:2}" ;;
-update) _dots_update ;;
+pull) dots_pull ;;
+sync) dots_sync ;;
+update) dots_pull && "$DOTFILES_WORKSPACE/dots" sync ;;
 *) log_fail 'Usage: dots' '[pull|sync|update]' && exit 1 ;;
 esac

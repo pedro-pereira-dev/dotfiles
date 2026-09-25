@@ -2,7 +2,8 @@
 
 if ! log_check 'Checking if brew is installed' test -x /opt/homebrew/bin/brew; then
   log_start 'Installing' 'homebrew'
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  NONINTERACTIVE=1 \
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
   log_ok
 fi
 

@@ -18,4 +18,4 @@ if [[ ! -d $DOTFILES_WORKSPACE/.git ]]; then
   fi
 fi
 
-NONINTERACTIVE=1 bash "$DOTFILES_WORKSPACE/dots" update "$@"
+"$DOTFILES_WORKSPACE/dots" update "$@"
