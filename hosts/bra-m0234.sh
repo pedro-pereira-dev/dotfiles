@@ -15,4 +15,6 @@ dots_sync() {
   link_file "$DOTFILES_WORKSPACE/shared/bashrc.sh" "$HOME/.bashrc"
   prune_stale_links
   "$HOME/.local/bin/maintain-homebrew" --force
+  install_darwin_bash
+  set_darwin_bash_shell
 }
