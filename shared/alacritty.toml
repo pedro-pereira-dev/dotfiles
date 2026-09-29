@@ -6,7 +6,6 @@ TERM = "xterm-256color"
 [window]
 padding = { x = 8, y = 4 }
 dynamic_padding = true
-decorations = "None"
 option_as_alt = "OnlyLeft"
 
 [font]
@@ -41,6 +40,7 @@ save_to_clipboard = true
 [cursor]
 style.blinking = "Always"
 blink_interval = 250
+blink_timeout = 0
 
 # reset font size -- ctrl + shift + 0
 [[keyboard.bindings]]
