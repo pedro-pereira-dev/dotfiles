@@ -18,16 +18,18 @@ dots sync     # run the host's dots_sync (e.g. link files, prune stale links)
 dots update   # pull, then re-run dots so sync uses the freshly pulled code
 ```
 
-`dots` expects the repository at `~/workspace/personal/dotfiles`. Once cloned, the local repository is forced to match `origin/$DOTFILES_BRANCH` on every pull.
+`dots` expects the repository at `~/workspace/personal/dotfiles`.
+Once cloned, the local repository is forced to match `origin/$DOTFILES_BRANCH` on every pull.
 
 ## Adding a host
 
-Create `hosts/<hostname -s>.sh` defining `dots_pull` and `dots_sync`. Host-specific files go in `hosts/<hostname -s>.d/`. `hosts/example.sh` is a minimal template for a tarball-only host. Unknown hosts fail.
+Create `hosts/<hostname -s>.sh` defining `dots_pull` and `dots_sync`.
+Host-specific files go in `hosts/<hostname -s>.d/`.
+`hosts/example.sh` is a minimal template for a tarball-only host.
 
 ## Layout
 
 - `bootstrap`, `dots` – entry points
-- `bin/` – executables linked into `~/.local/bin`
 - `lib/` – function libraries sourced by `dots`
 - `hosts/` – per-host configuration
 - `shared/` – files linked on multiple hosts

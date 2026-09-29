@@ -42,61 +42,100 @@ save_to_clipboard = true
 style.blinking = "Always"
 blink_interval = 250
 
-# paste -- right click
-[[mouse.bindings]]
-mouse = "Right"
-action = "Paste"
-
-# paste -- ctrl + shift + v
+# reset font size -- ctrl + shift + 0
 [[keyboard.bindings]]
-key = "V"
+key = "0"
 mods = "Control|Shift"
-action = "Paste"
+action = "ResetFontSize"
+[[keyboard.bindings]]
+key = "="
+mods = "Control|Shift"
+action = "ResetFontSize"
+# decrease font size -- ctrl + shift + -
+[[keyboard.bindings]]
+key = "_"
+mods = "Control|Shift"
+action = "DecreaseFontSize"
+[[keyboard.bindings]]
+key = "-"
+mods = "Control|Shift"
+action = "DecreaseFontSize"
+# increase font size -- ctrl + shift + +
+[[keyboard.bindings]]
+key = "*"
+mods = "Control|Shift"
+action = "IncreaseFontSize"
+[[keyboard.bindings]]
+key = "+"
+mods = "Control|Shift"
+action = "IncreaseFontSize"
 
 # copy -- ctrl + shift + c
 [[keyboard.bindings]]
 key = "C"
 mods = "Control|Shift"
 action = "Copy"
-
-# increase font size -- ctrl + equals
+# paste -- ctrl + shift + v
 [[keyboard.bindings]]
-key = "Equals"
-mods = "Control"
-action = "IncreaseFontSize"
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+# paste -- right click
+[[mouse.bindings]]
+mouse = "Right"
+action = "Paste"
 
-# decrease font size -- ctrl + minus
+# scroll page up -- ctrl + shift + pageup
 [[keyboard.bindings]]
-key = "Minus"
-mods = "Control"
-action = "DecreaseFontSize"
-
-# reset font size -- ctrl + 0
+key = "PageUp"
+mods = "Control|Shift"
+action = "ScrollPageUp"
+# scroll page down -- ctrl + shift + pagedown
 [[keyboard.bindings]]
-key = "Key0"
-mods = "Control"
-action = "ResetFontSize"
+key = "PageDown"
+mods = "Control|Shift"
+action = "ScrollPageDown"
 
-# search forward -- ctrl + shift + f
+# delete word backward -- ctrl + backspace
+[[keyboard.bindings]]
+key = "Back"
+mods = "Control"
+chars = "\u0017"
+# delete word forward -- ctrl + delete
+[[keyboard.bindings]]
+key = "Delete"
+mods = "Control"
+chars = "\u001bd"
+
+# move word backward -- ctrl + left
+[[keyboard.bindings]]
+key = "Left"
+mods = "Control"
+chars = "\u001bb"
+# move word forward -- ctrl + right
+[[keyboard.bindings]]
+key = "Right"
+mods = "Control"
+chars = "\u001bf"
+
+# search -- ctrl + shift + f
 [[keyboard.bindings]]
 key = "F"
 mods = "Control|Shift"
-action = "SearchForward"
-
-# scroll page up -- shift + pageup
+mode = "~Search"
+action = "SearchBackward"
+# next occurrence -- ctrl + shift + f -- search mode
 [[keyboard.bindings]]
-key = "PageUp"
-mods = "Shift"
-action = "ScrollPageUp"
-
-# scroll page down -- shift + pagedown
-[[keyboard.bindings]]
-key = "PageDown"
-mods = "Shift"
-action = "ScrollPageDown"
-
-# new window -- ctrl + shift + n
-[[keyboard.bindings]]
-key = "N"
+key = "F"
 mods = "Control|Shift"
-action = "CreateNewWindow"
+mode = "Search"
+action = "SearchFocusNext"
+# stay at occurrence -- esc -- search mode
+[[keyboard.bindings]]
+key = "Escape"
+mode = "Search|~Vi"
+action = "ToggleViMode"
+[[keyboard.bindings]]
+key = "Escape"
+mode = "Search"
+action = "SearchConfirm"
