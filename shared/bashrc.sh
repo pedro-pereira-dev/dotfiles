@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 _prepend_path() { if [[ -d $1 && ":$PATH:" != *":$1:"* ]]; then export PATH="$1:$PATH"; fi; }
-if [[ -x /opt/homebrew/bin/brew ]]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
+_prepend_path /opt/homebrew/sbin
+_prepend_path /opt/homebrew/bin
 _prepend_path "$HOME/.local/bin"
 
 # fnm

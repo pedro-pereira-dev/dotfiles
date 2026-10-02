@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-[[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-export HOMEBREW_NO_ENV_HINTS=1
-
 _check=0 _force=0
 for _arg; do
   case $_arg in
@@ -15,6 +12,10 @@ done
 _bundle_check() { brew bundle check --global --no-upgrade "$@"; }
 _cleanup_dry() { brew bundle cleanup --global </dev/null 2>&1; }
 _is_in_sync() { _bundle_check && [[ -z $(brew outdated) && $(_cleanup_dry) != *'Would uninstall'* ]]; }
+
+_apply_clean() { { brew autoremove || true; } && brew cleanup --prune=all -s; }
+_apply_install() { brew bundle install --global --upgrade; }
+_apply_remove() { brew bundle cleanup --global --force; }
 
 _preview_clean() {
   brew autoremove --dry-run || true
@@ -33,16 +34,9 @@ _preview_remove() {
     ) || true
 }
 
-_apply_clean() {
-  brew autoremove
-  brew cleanup --prune=all -s
-}
-_apply_install() { brew bundle install --global --upgrade; }
-_apply_remove() { brew bundle cleanup --global --force; }
-
 _step() {
-  local _verb=$1 _subject=$2 _action=$3
-  local _preview _answer
+  local _action=$3 _subject=$2 _verb=$1
+  local _answer _preview
   _preview=$("_preview_$_action" 2>&1)
   [[ -n $_preview ]] || return 0
   if ! ((_force)); then
@@ -52,6 +46,11 @@ _step() {
   fi
   "_apply_$_action"
 }
+
+_prepend_path() { if [[ -d $1 && ":$PATH:" != *":$1:"* ]]; then export PATH="$1:$PATH"; fi; }
+_prepend_path /opt/homebrew/sbin
+_prepend_path /opt/homebrew/bin
+export HOMEBREW_NO_ENV_HINTS=1
 
 brew update || true
 _is_in_sync && exit

@@ -8,17 +8,15 @@ install_darwin_xcode() {
 }
 
 install_darwin_homebrew() {
-  if [[ ! -x /opt/homebrew/bin/brew ]]; then NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; fi
-  if ! command -v brew >/dev/null; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
+  if [[ ! -x /opt/homebrew/bin/brew ]]; then NONINTERACTIVE=1 \
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; fi
+  _prepend_path() { if [[ -d $1 && ":$PATH:" != *":$1:"* ]]; then export PATH="$1:$PATH"; fi; }
+  _prepend_path /opt/homebrew/sbin
+  _prepend_path /opt/homebrew/bin
 }
 
-install_darwin_git() {
-  if ! brew list --formula git >/dev/null 2>&1; then brew install git; fi
-}
-
-install_darwin_bash() {
-  if ! brew list --formula bash >/dev/null 2>&1; then brew install bash; fi
-}
+install_darwin_git() { if ! brew list --formula git >/dev/null 2>&1; then brew install git; fi; }
+install_darwin_bash() { if ! brew list --formula bash >/dev/null 2>&1; then brew install bash; fi; }
 
 set_darwin_bash_shell() {
   local _bash=/opt/homebrew/bin/bash
