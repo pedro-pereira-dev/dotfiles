@@ -10,6 +10,7 @@ dots_pull() {
 dots_sync() {
   link_file "$DOTFILES_WORKSPACE/dots" "$HOME/.local/bin/dots"
 
+  link_file "$DOTFILES_WORKSPACE/hosts/bra-m0234.d/bordersrc" "$HOME/.config/borders/bordersrc"
   link_file "$DOTFILES_WORKSPACE/hosts/bra-m0234.d/brewfile" "$HOME/.Brewfile"
   link_file "$DOTFILES_WORKSPACE/hosts/bra-m0234.d/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
   link_file "$DOTFILES_WORKSPACE/shared/alacritty.toml" "$HOME/.config/alacritty/alacritty.toml"
