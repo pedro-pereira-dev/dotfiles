@@ -2,7 +2,6 @@ tap "felixkratz/formulae", trusted: true
 tap "pedro-pereira-dev/custom", trusted: true
 
 brew "bash"
-brew "felixkratz/formulae/borders", trusted: true
 brew "felixkratz/formulae/sketchybar", trusted: true
 brew "git"
 brew "lima"

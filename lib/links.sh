@@ -7,8 +7,8 @@ link_file() {
   if [[ $# -ne 2 ]]; then return 1; fi
 
   local _source=$1 _target=$2
-  if [[ ! -f $_source ]]; then return 1; fi
-  if [[ -d $_target && ! -L $_target ]]; then return 1; fi
+  if [[ ! -f $_source && ! -d $_source ]]; then return 1; fi
+  if [[ -f $_source && -d $_target && ! -L $_target ]]; then return 1; fi
 
   _linked_targets+=("$_target")
   if [[ -L $_target && $(readlink "$_target") == "$_source" ]]; then return 0; fi

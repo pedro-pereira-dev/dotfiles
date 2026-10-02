@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+FONT="Menlo"
+
+bar=(
+	position=bottom
+	height=36
+	display=all
+	color=0xff1e1f22
+)
+
+defaults=(
+	icon.drawing=off
+	label.color=0xffe2e2e3
+	label.font="$FONT:Regular:13.0"
+	padding_left=4
+	padding_right=4
+)
+
+sketchybar --bar "${bar[@]}" --default "${defaults[@]}"
+
+# Left: pinned dock apps (subtle when closed, strong when open, red dot on badge)
+while IFS= read -r _id; do
+	sketchybar --add item "dock.$_id" left \
+		--set "dock.$_id" \
+		icon.drawing=off \
+		background.drawing=on \
+		background.image="app.$_id" \
+		background.image.scale=0.55 \
+		background.color=0x00000000 \
+		background.height=30 \
+		background.corner_radius=8 \
+		width=34 \
+		label="●" \
+		label.drawing=off \
+		label.color=0xffff5555 \
+		label.font="$FONT:Bold:9.0" \
+		label.y_offset=10 \
+		label.padding_left=24 \
+		click_script="open -b '$_id'"
+done < <("$PLUGIN_DIR/dock.sh" pinned)
+
+sketchybar --add item dock_watcher left \
+	--set dock_watcher drawing=off update_freq=3 script="$PLUGIN_DIR/dock.sh" \
+	--subscribe dock_watcher front_app_switched system_woke
+
+# Right: added right-to-left, so the clock ends up at the far right
+sketchybar --add item clock right \
+	--set clock update_freq=30 script="$PLUGIN_DIR/clock.sh" \
+	--add item battery right \
+	--set battery update_freq=120 script="$PLUGIN_DIR/battery.sh" \
+	click_script="open 'x-apple.systempreferences:com.apple.Battery-Settings.extension'" \
+	--subscribe battery power_source_change system_woke \
+	--add item wifi right \
+	--set wifi update_freq=30 script="$PLUGIN_DIR/wifi.sh" \
+	click_script="open 'x-apple.systempreferences:com.apple.wifi-settings-extension'" \
+	--subscribe wifi wifi_change system_woke \
+	--add item volume right \
+	--set volume script="$PLUGIN_DIR/volume.sh" \
+	click_script="open 'x-apple.systempreferences:com.apple.Sound-Settings.extension'" \
+	--subscribe volume volume_change
+
+sketchybar --update
