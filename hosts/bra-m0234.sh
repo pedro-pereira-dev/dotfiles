@@ -23,8 +23,9 @@ dots_sync() {
   link_file "$DOTFILES_WORKSPACE/bin/update" "$HOME/.local/bin/update"
 
   prune_stale_links
-  "$HOME/.local/bin/update" --force
 
   install_darwin_bash
   set_darwin_bash_shell
+
+  "$HOME/.local/bin/update" --force
 }
