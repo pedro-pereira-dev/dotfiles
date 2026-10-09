@@ -28,4 +28,5 @@ dots_sync() {
   set_darwin_bash_shell
 
   "$HOME/.local/bin/update" --force
+  install_darwin_lima_vm
 }

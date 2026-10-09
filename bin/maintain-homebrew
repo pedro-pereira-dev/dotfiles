@@ -14,7 +14,7 @@ _cleanup_dry() { brew bundle cleanup --global </dev/null 2>&1; }
 _is_in_sync() { _bundle_check && [[ -z $(brew outdated) && $(_cleanup_dry) != *'Would uninstall'* ]]; }
 
 _apply_clean() { { brew autoremove || true; } && brew cleanup --prune=all -s; }
-_apply_install() { brew bundle install --global --upgrade; }
+_apply_install() { brew bundle install --global --upgrade && brew upgrade; }
 _apply_remove() { brew bundle cleanup --global --force; }
 
 _preview_clean() {
