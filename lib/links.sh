@@ -4,6 +4,8 @@ _linked_targets=()
 _links_changed=0
 
 link_file() {
+  local _sudo=()
+  if [[ ${1-} == --root ]]; then _sudo=(sudo) && shift; fi
   if [[ $# -ne 2 ]]; then return 1; fi
 
   local _source=$1 _target=$2
@@ -14,9 +16,9 @@ link_file() {
   if [[ -L $_target && $(readlink "$_target") == "$_source" ]]; then return 0; fi
 
   _links_changed=1
-  mkdir -p "$(dirname "$_target")"
-  rm -fr "$_target"
-  ln -fsv "$_source" "$_target"
+  "${_sudo[@]+"${_sudo[@]}"}" mkdir -p "$(dirname "$_target")"
+  "${_sudo[@]+"${_sudo[@]}"}" rm -fr "$_target"
+  "${_sudo[@]+"${_sudo[@]}"}" ln -fsv "$_source" "$_target"
 }
 
 _find_workspace_links() {
