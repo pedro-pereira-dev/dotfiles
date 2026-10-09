@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eou pipefail
+
+if [ ! -d /var/db/repos/gentoo/.git ]; then sudo rm -fr /var/db/repos/gentoo; fi
+sudo emaint sync -A
+exit 0

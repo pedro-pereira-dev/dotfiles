@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eou pipefail
+
+_ask=--ask=y
+case ${1-} in -f | --force) _ask=--ask=n ;; esac
+sudo emerge -DNquv $_ask --backtrack=30 --with-bdeps=y @world
+exit 0

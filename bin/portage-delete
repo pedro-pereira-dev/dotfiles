@@ -1,0 +1,9 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+set -eou pipefail
+
+_ask_portage=--ask=y _ask_eclean_kernel=-A
+case ${1-} in -f | --force) _ask_portage=--ask=n _ask_eclean_kernel='' ;; esac
+sudo emerge -cqv $_ask_portage
+if command -v eclean-kernel >/dev/null; then sudo eclean-kernel -n 1 -s mtime $_ask_eclean_kernel; fi
+exit 0

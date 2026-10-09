@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eou pipefail
+
+_check=0
+for _arg; do
+  case $_arg in
+  --check) _check=1 ;;
+  esac
+done
+
+_rc=0
+portage-update "$@"
+if [ "$_check" -eq 0 ]; then portage-upgrade "$@" || _rc=1; fi
+portage-declare "$@" || _rc=1
+portage-delete "$@" || _rc=1
+exit "$_rc"

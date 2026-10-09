@@ -34,5 +34,7 @@ install_gentoo_portage_config() {
     echo "EMERGE_DEFAULT_OPTS=\"-aqv --jobs $_make_jobs --load-average $_make_jobs\""
     echo 'FEATURES="$FEATURES binpkg-request-signature getbinpkg"'
     echo "MAKEOPTS=\"--jobs $_make_jobs --load-average $_make_jobs\""
+    echo ''
+    echo 'USE="dist-kernel systemd systemd-boot uki ukify"'
   } | sudo tee /etc/portage/env/dots-make.conf >/dev/null
 }

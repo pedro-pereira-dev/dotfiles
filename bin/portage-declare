@@ -1,0 +1,21 @@
+#!/bin/sh
+# shellcheck disable=SC2046
+set -eou pipefail
+
+_ask=--ask=y
+case ${1-} in -f | --force) _ask=--ask=n ;; esac
+
+_declared=$(mktemp)
+sed -E -e '/^[[:space:]]*([#]|$)/d' -e 's/([[:space:]])+#.*$//' /etc/portage/package.declare | sort -u >"$_declared"
+_installed=$(mktemp)
+sort -u /var/lib/portage/world >"$_installed"
+
+_install=$(mktemp)
+comm -23 "$_declared" "$_installed" >"$_install"
+_remove=$(mktemp)
+comm -23 "$_installed" "$_declared" >"$_remove"
+
+if [ -s "$_install" ]; then sudo emerge -qv $_ask $(paste -sd ' ' "$_install"); fi
+if [ -s "$_remove" ]; then sudo emerge -Wqv $_ask $(paste -sd ' ' "$_remove"); fi
+rm -f "$_declared" "$_install" "$_installed" "$_remove"
+exit 0
