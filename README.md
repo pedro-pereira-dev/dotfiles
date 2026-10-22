@@ -1,35 +1,50 @@
 # dotfiles
 
+Declarative configuration for my systems: NixOS hosts, a nix-darwin Mac and home-manager for user files.
+
 ## Bootstrap
 
-On a fresh machine (no git required):
-
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/bootstrap)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/bootstrap)" -- <command>
 ```
 
-`bootstrap` downloads the repository tarball into `~/workspace/personal/dotfiles` and runs `dots update`.
+`bootstrap` downloads the repository tarball into a temporary directory and runs `dots <command>`.
+Managed hosts have a `dots` command that runs `~/workspace/personal/dotfiles/dots` when cloned, otherwise `bootstrap`.
 
 ## Usage
 
 ```
-dots pull     # run the host's dots_pull (e.g. install tooling, clone/sync the repo)
-dots sync     # run the host's dots_sync (e.g. link files, prune stale links)
-dots update   # pull, then re-run dots so sync uses the freshly pulled code
+dots pull                                   git pull the clone, or download the tarball to a temp dir
+dots sync [--host NAME] [--target U@HOST]   switch the local or remote host to its configuration
+dots update [sync options]                  pull, then sync with the pulled code
+dots install --self|--target U@HOST [--host NAME]
 ```
 
-`dots` expects the repository at `~/workspace/personal/dotfiles`.
-Once cloned, the local repository is forced to match `origin/$DOTFILES_BRANCH` on every pull.
+`install` runs nixos-anywhere and erases the target disk according to the host's `disko.nix`.
 
-## Adding a host
+## Hosts
 
-Create `hosts/<hostname -s>.sh` defining `dots_pull` and `dots_sync`.
-Host-specific files go in `hosts/<hostname -s>.d/`.
-`hosts/example.sh` is a minimal template for a tarball-only host.
+- `bra-m0234` – MacBook Pro M2, work, nix-darwin + Homebrew
+- `nixos-desktop` – AMD workstation
+- `nixos-dell` – Intel laptop
+
+## NixOS user passwords
+
+Root is a tmpfs; password hashes live in `/persistent/secrets/<user>`:
+
+```bash
+user=chuck
+mkdir -p /persistent/secrets && chmod 700 /persistent/secrets
+mkpasswd -m yescrypt > "/persistent/secrets/$user"
+chmod 600 "/persistent/secrets/$user"
+```
+
+`~/workspace` is persisted in `/persistent`.
 
 ## Layout
 
 - `bootstrap`, `dots` – entry points
-- `lib/` – function libraries sourced by `dots`
-- `hosts/` – per-host configuration
-- `shared/` – files linked on multiple hosts
+- `lib/` – shell functions used by `dots`
+- `hosts/<name>/` – per-host configuration
+- `modules/` – reusable Nix modules, `modules/home/` user files
+- `bin/` – macOS maintenance scripts

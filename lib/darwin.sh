@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+install_darwin_xcode() {
+  if ! xcode-select --print-path >/dev/null 2>&1; then
+    xcode-select --install || true
+    until xcode-select --print-path >/dev/null 2>&1; do sleep 60; done
+  fi
+}
+
+install_darwin_homebrew() {
+  if [[ ! -x /opt/homebrew/bin/brew ]]; then NONINTERACTIVE=1 \
+    bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; fi
+  if [[ ":$PATH:" != *":/opt/homebrew/bin:"* ]]; then export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"; fi
+}
