@@ -45,6 +45,6 @@ chmod 600 "/persistent/secrets/$user"
 
 - `bootstrap`, `dots` – entry points
 - `lib/` – shell functions used by `dots`
-- `hosts/<name>/` – per-host configuration
+- `hosts/<name>.d/` – per-host configuration
 - `modules/` – reusable Nix modules, `modules/home/` user files
 - `bin/` – macOS maintenance scripts

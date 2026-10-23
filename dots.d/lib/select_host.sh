@@ -9,11 +9,11 @@ select_host() {
     host=$(hostname)
     if [[ -n $target ]]; then host=$(ssh "$target" hostname) || host=""; fi
   fi
-  if [[ ! -f $DOTS_ROOT/hosts/$host/default.nix ]]; then
-    host=$(find "$DOTS_ROOT/hosts" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
-      "${nix[@]}" run nixpkgs#fzf)
+  if [[ ! -f $DOTS_ROOT/hosts/$host.d/$host.nix ]]; then
+  host=$(find "$DOTS_ROOT/hosts" -mindepth 1 -maxdepth 1 -type d -name '*.d' -printf '%f\n' |
+      "${nix[@]}" run nixpkgs#fzf | sed 's/\.d$//')
   fi
-  if [[ ! -f $DOTS_ROOT/hosts/$host/default.nix ]]; then
+  if [[ ! -f $DOTS_ROOT/hosts/$host.d/$host.nix ]]; then
     printf '%s - no dotfiles configuration\n' "$host"
     return 1
   fi

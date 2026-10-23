@@ -8,7 +8,7 @@ dots_bootstrap() {
   target=$(select_target "$@")
   host=$(select_host "$@")
 
-  if is_darwin "$host"; then
+  if is_nix_darwin "$host"; then
     printf '"install" is not supported on darwin\n'
     exit 1
   fi
@@ -29,7 +29,7 @@ dots_bootstrap() {
 
   "${sudo[@]}" "${nix[@]}" run \
     github:nix-community/nixos-anywhere -- \
-    --generate-hardware-config nixos-generate-config "$DOTS_ROOT/hosts/$host/hardware-configuration.nix" \
+    --generate-hardware-config nixos-generate-config "$DOTS_ROOT/hosts/$host.d/hardware-configuration.nix" \
     --flake "path:$DOTS_ROOT#$host" \
     "${target_args[@]}"
 }

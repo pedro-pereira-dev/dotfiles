@@ -8,13 +8,13 @@ dots_setup() {
   target=$(select_target "$@")
   host=$(select_host "$@")
 
-  if is_darwin "$host" && [[ -n $target ]]; then
+  if is_nix_darwin "$host" && [[ -n $target ]]; then
     printf '"setup" --target is not supported on darwin\n'
     exit 1
   fi
 
-  if [[ -f $DOTS_ROOT/hosts/$host/dots_setup.sh ]]; then
-    source "$DOTS_ROOT/hosts/$host/dots_setup_$host.sh"
+  if [[ -f $DOTS_ROOT/hosts/$host.d/dots_setup.sh ]]; then
+    source "$DOTS_ROOT/hosts/$host.d/dots_setup.sh"
     "dots_setup_$host" "$@"
   fi
 
@@ -24,7 +24,7 @@ dots_setup() {
   sudo=(sudo)
   target_args=()
 
-  if is_darwin "$host"; then
+  if is_nix_darwin "$host"; then
     sudo=(sudo -H)
     nix_cmd=(nix-darwin)
   fi

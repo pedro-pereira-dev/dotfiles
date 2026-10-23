@@ -16,19 +16,19 @@
       # bra-m0234
       darwinConfigurations.bra-m0234 = nix-darwin.lib.darwinSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/bra-m0234 ];
+        modules = [ ./hosts/bra-m0234.d/bra-m0234.nix ];
       };
 
       # nixos-dell
       nixosConfigurations.nixos-dell = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/nixos-dell ];
+        modules = [ ./hosts/nixos-dell.d/nixos-dell.nix ];
       };
 
       # nixos-desktop
       nixosConfigurations.nixos-desktop = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/nixos-desktop ];
+        modules = [ ./hosts/nixos-desktop.d/nixos-desktop.nix ];
       };
 
       formatter = nixpkgs.lib.genAttrs [
