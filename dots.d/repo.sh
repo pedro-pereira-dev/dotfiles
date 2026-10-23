@@ -10,3 +10,8 @@ dots_pull() {
   fi
   printf '%s\n' "$path"
 }
+
+dots_update() {
+  dots_pull >/dev/null
+  exec "$DOTS_ROOT/dots" setup "$@"
+}

@@ -11,14 +11,5 @@ export DOTS_ROOT
 _command=${1-}
 shift || true
 
-for _lib in "$DOTS_ROOT"/lib/*.sh; do source "$_lib"; done
-if [[ -f $DOTS_ROOT/dots.d/dots_$_command.sh ]]; then
-  source "$DOTS_ROOT/dots.d/dots_$_command.sh"
-  "dots_$_command" "$@"
-  exit
-fi
-
-case $_command in
-pull) dots_pull ;;
-update) dots_pull && exec "$DOTS_ROOT/dots" setup "$@" ;;
-esac
+for _script in "$DOTS_ROOT"/dots.d/*.sh; do source "$_script"; done
+"dots_$_command" "$@"

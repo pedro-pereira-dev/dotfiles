@@ -7,5 +7,6 @@ DOTFILES_URL=${DOTFILES_URL:-https://github.com/pedro-pereira-dev/dotfiles}
 rm -fr /tmp/dotfiles
 mkdir -p /tmp/dotfiles
 printf 'Downloading the latest dotfiles tarball...\n'
-curl -fsSL "$DOTFILES_URL/archive/refs/heads/$DOTFILES_BRANCH.tar.gz" | tar -xz --strip-components=1 -C /tmp/dotfiles
+curl -fsSL "$DOTFILES_URL/archive/refs/heads/$DOTFILES_BRANCH.tar.gz" |
+  tar -xz --strip-components=1 -C /tmp/dotfiles
 exec /tmp/dotfiles/dots setup --self "$@"
