@@ -4,8 +4,8 @@
     inputs.disko.nixosModules.disko
     inputs.preservation.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
-    ./disko.nix
-    ./hardware-configuration.nix
+    ./nixos-desktop-disko.nix
+    ./nixos-desktop-hardware-configuration.nix
     ../../flakes.d/profiles/nixos.nix
   ];
 

@@ -20,7 +20,7 @@ dots update [sync options]                  pull, then sync with the pulled code
 dots install --self|--target U@HOST [--host NAME]
 ```
 
-`install` runs nixos-anywhere and erases the target disk according to the host's `disko.nix`.
+`install` runs nixos-anywhere and erases the target disk according to the host's `<hostname>-disko.nix`.
 
 ## Hosts
 
