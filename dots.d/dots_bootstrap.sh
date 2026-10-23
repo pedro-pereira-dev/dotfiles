@@ -5,8 +5,8 @@ dots_bootstrap() {
   local host target
   local -a sudo target_args
 
-  host=$(select_host "$@")
   target=$(select_target "$@")
+  host=$(select_host "$@")
 
   if is_darwin "$host"; then
     printf '"install" is not supported on darwin\n'

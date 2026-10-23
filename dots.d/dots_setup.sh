@@ -5,8 +5,8 @@ dots_setup() {
   local flake host target
   local -a nix_cmd sudo target_args
 
-  host=$(select_host "$@")
   target=$(select_target "$@")
+  host=$(select_host "$@")
 
   if is_darwin "$host" && [[ -n $target ]]; then
     printf '"setup" --target is not supported on darwin\n'
