@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2154
 
-is_darwin() {
-  grep -q darwinModules "$DOTS_ROOT/hosts/$1/default.nix"
-}
-
 select_host() {
   local host target
   if ! target=$(select_target "$@"); then return 1; fi
@@ -22,21 +18,4 @@ select_host() {
     return 1
   fi
   printf '%s\n' "$host"
-}
-
-select_target() {
-  local self="" target=""
-  if get_parameter --self "$@" >/dev/null; then self=1; fi
-  if get_parameter --target "$@" >/dev/null; then
-    target=$(get_parameter --target "$@")
-    if [[ -z $target ]]; then
-      printf '"--target" requires a host\n'
-      return 1
-    fi
-  fi
-  if [[ -z $self && -z $target || -n $self && -n $target ]]; then
-    printf '"--self" and "--target" are exclusive\n'
-    return 1
-  fi
-  printf '%s\n' "$target"
 }

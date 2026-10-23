@@ -11,5 +11,5 @@ export DOTS_ROOT
 _command=${1-}
 shift || true
 
-for _script in "$DOTS_ROOT"/dots.d/*.sh; do source "$_script"; done
+for _script in "$DOTS_ROOT"/dots.d/*.sh "$DOTS_ROOT"/dots.d/lib/*.sh; do source "$_script"; done
 "dots_$_command" "$@"
