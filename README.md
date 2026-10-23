@@ -44,7 +44,9 @@ chmod 600 "/persistent/secrets/$user"
 ## Layout
 
 - `bootstrap`, `dots` – entry points
-- `lib/` – shell functions used by `dots`
+- `dots.d/lib/` – shell functions used by `dots`
 - `hosts/<name>.d/` – per-host configuration
-- `modules/` – reusable Nix modules, `modules/home/` user files
+- `flakes.d/profiles/` – shared imports organized by system role
+- `flakes.d/lib/` – reusable Nix functions
+- `flakes.d/modules/` – system modules and home configuration files
 - `bin/` – macOS maintenance scripts

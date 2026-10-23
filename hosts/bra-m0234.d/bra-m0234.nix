@@ -2,7 +2,7 @@
 {
   imports = [
     inputs.home-manager.darwinModules.home-manager
-    ../../modules/dots.nix
+    ../../flakes.d/modules/dots.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -54,15 +54,15 @@
   home-manager.useUserPackages = true;
   home-manager.users.pereiped = {
     home.stateVersion = "25.05";
-    home.file.".bashrc".source = ../../modules/home/bashrc.sh;
-    home.file.".bash_profile".source = ../../modules/home/bash_profile.sh;
+    home.file.".bashrc".source = ../../flakes.d/modules/home/bashrc.sh;
+    home.file.".bash_profile".source = ../../flakes.d/modules/home/bash_profile.sh;
     home.file.".local/bin/update".source = ../../bin/update;
     home.file.".local/bin/maintain-macos".source = ../../bin/maintain-macos;
     home.file.".local/bin/maintain-homebrew".source = ../../bin/maintain-homebrew;
     home.file.".librewolf/librewolf.overrides.cfg".text = ''
       pref("browser.tabs.inTitlebar", 0);
     '';
-    xdg.configFile."alacritty/alacritty.toml".source = ../../modules/home/alacritty.toml;
+    xdg.configFile."alacritty/alacritty.toml".source = ../../flakes.d/modules/home/alacritty.toml;
     xdg.configFile."borders/bordersrc".source = ./files/bordersrc;
     xdg.configFile."karabiner/karabiner.json".source = ./files/karabiner.json;
     xdg.configFile."sketchybar".source = ./files/sketchybar;

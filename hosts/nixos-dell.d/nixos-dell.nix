@@ -4,19 +4,9 @@
     inputs.disko.nixosModules.disko
     inputs.preservation.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
-    ./disko.nix
     ./hardware-configuration.nix
-    ../../modules/bluetooth.nix
-    ../../modules/bootloader.nix
-    ../../modules/code.nix
-    ../../modules/display-manager-ly.nix
-    ../../modules/dots.nix
-    ../../modules/librewolf.nix
-    ../../modules/locale.nix
-    ../../modules/preservation.nix
-    ../../modules/sshd.nix
-    ../../modules/user-chuck.nix
-    ../../modules/window-manager-labwc.nix
+    ./disko.nix
+    ../../flakes.d/profiles/nixos-laptop.nix
   ];
 
   nixpkgs.hostPlatform = "x86_64-linux";
