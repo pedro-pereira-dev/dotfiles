@@ -5,7 +5,7 @@ Declarative configuration for my systems: NixOS hosts, a nix-darwin Mac and home
 ## Bootstrap
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/bootstrap)" -- <command>
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/bootstrap)"
 ```
 
 `bootstrap` downloads the repository tarball into a temporary directory and runs `dots <command>`.
