@@ -34,7 +34,7 @@ dots_setup() {
   fi
 
   if [[ -f $DOTS_ROOT/hosts/$host.d/dots_setup.sh ]]; then
-    source "$DOTS_ROOT/hosts/$host.d/dots_setup.sh"
+    source "$DOTS_ROOT/hosts/$host.d/dots_setup_$host.sh"
     "dots_setup_$host" "$@"
   fi
 

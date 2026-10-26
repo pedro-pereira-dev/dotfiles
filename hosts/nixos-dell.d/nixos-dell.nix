@@ -8,12 +8,10 @@
     ./nixos-dell-disko.nix
   ];
 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
   nixpkgs.hostPlatform = "x86_64-linux";
   networking.hostName = "nixos-dell";
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
 
   boot.kernelParams = [ "quiet" ];
   boot.loader.efi.canTouchEfiVariables = true;
