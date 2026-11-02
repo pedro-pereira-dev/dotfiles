@@ -20,6 +20,10 @@ dots_setup() {
   local NIX_SSHOPTS="${ssh_opts[*]}${NIX_SSHOPTS:+ $NIX_SSHOPTS}"
   export NIX_SSHOPTS
 
+  if ! get_parameter --self "$@" >/dev/null && ! get_parameter --target "$@" >/dev/null; then
+    printf 'Usage: dots setup --self|--target U@HOST [--host NAME]\n' >&2
+    return 2
+  fi
   target=$(select_target "$@")
   # starts ssh connection so ssh password prompt only happens here
   if [[ -n $target ]] && ! ssh "${ssh_opts[@]}" "$target" true; then exit 1; fi

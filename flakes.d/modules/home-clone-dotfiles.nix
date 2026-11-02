@@ -2,14 +2,9 @@
 {
   home.activation.cloneDotfiles = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     if [ ! -d "$HOME/workspace/personal/dotfiles/.git" ]; then
-      export PATH=${
-        lib.makeBinPath [
-          pkgs.curl
-          pkgs.gnutar
-          pkgs.gzip
-        ]
-      }:$PATH
-      run bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/pull)" || true
+      export PATH=${lib.makeBinPath [ pkgs.git ]}:$PATH
+      mkdir -p "$HOME/workspace/personal"
+      git clone --branch main https://github.com/pedro-pereira-dev/dotfiles.git "$HOME/workspace/personal/dotfiles"
     fi
   '';
 }

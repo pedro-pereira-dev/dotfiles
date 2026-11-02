@@ -2,31 +2,28 @@
 
 Declarative configuration for my systems: NixOS hosts, a nix-darwin Mac and home-manager for user files.
 
-## Bootstrap
+## Scripts
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/bootstrap)"
+curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/dots | bash -s -- bootstrap --self
 ```
 
-`bootstrap` downloads the repository tarball into a temporary directory and runs `dots <command>`.
-Managed hosts have a `dots` command that runs `~/workspace/personal/dotfiles/dots` when cloned, otherwise `bootstrap`.
+```bash
+curl -fsSL https://raw.githubusercontent.com/pedro-pereira-dev/dotfiles/main/dots | bash -s -- setup --self
+```
+
+Without a clone in `~/workspace/personal/dotfiles` it downloads the latest tarball to `/tmp/dotfiles` and runs from there.
+With a clone it runs the clone as is, so local changes are kept. Run `dots pull --self` to update it.
 
 ## Usage
 
 ```
-dots pull                                   git pull the clone, or download the tarball to a temp dir
-dots sync [--host NAME] [--target U@HOST]   switch the local or remote host to its configuration
-dots update [sync options]                  pull, then sync with the pulled code
-dots install --self|--target U@HOST [--host NAME]
+dots bootstrap --self|--target U@HOST [--host NAME]   install NixOS with nixos-anywhere
+dots setup     --self|--target U@HOST [--host NAME]   switch to the host configuration
+
+dots pull      --self|--target U@HOST [--force]       clone or fast-forward the workspace
+dots update    --self|--target U@HOST [--host NAME]   pull, then setup with the pulled code
 ```
-
-`install` runs nixos-anywhere and erases the target disk according to the host's `<hostname>-disko.nix`.
-
-## Hosts
-
-- `bra-m0234` – MacBook Pro M2, work, nix-darwin + Homebrew
-- `nixos-desktop` – AMD workstation
-- `nixos-dell` – Intel laptop
 
 ## NixOS user passwords
 
@@ -39,11 +36,9 @@ mkpasswd -m yescrypt > "/persistent/secrets/$user"
 chmod 600 "/persistent/secrets/$user"
 ```
 
-`~/workspace` is persisted in `/persistent`.
-
 ## Layout
 
-- `bootstrap`, `dots` – entry points
+- `dots` – entry point
 - `dots.d/lib/` – shell functions used by `dots`
 - `hosts/<name>.d/` – per-host configuration
 - `flakes.d/profiles/` – shared imports organized by system role

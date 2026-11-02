@@ -11,6 +11,11 @@ dots_bootstrap() {
     -o UserKnownHostsFile=/dev/null
   )
 
+  if ! get_parameter --self "$@" >/dev/null && ! get_parameter --target "$@" >/dev/null; then
+    printf 'Usage: dots bootstrap --self|--target U@HOST [--host NAME]\n' >&2
+    return 2
+  fi
+
   target=$(select_target "$@")
   # kexec would kill this process, self only works from an installer
   if [[ -z $target ]] && ! grep -Eq 'VARIANT_ID="?installer"?' /etc/os-release; then
