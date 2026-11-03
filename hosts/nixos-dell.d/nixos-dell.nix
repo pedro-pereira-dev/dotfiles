@@ -50,7 +50,8 @@
   home-manager.useUserPackages = true;
   home-manager.users.chuck = { config, ... }: {
     imports = [
-      inputs.ags-deck-ui.homeManagerModules.default
+      inputs.ags.homeManagerModules.default
+      ../../flakes.d/modules/home/ags-deck-ui.nix
       ../../flakes.d/modules/home-clone-dotfiles.nix
     ];
     home.stateVersion = "26.11";
@@ -70,7 +71,7 @@
       _prepend_path "$HOME/.local/bin"
     '';
     programs.ags-deck-ui.enable = true;
-    xdg.configFile."labwc/autostart".text = "ags-deck-ui &\n";
+    xdg.configFile."labwc/autostart".text = "ags run &\n";
   };
 
   preservation.enable = true;
