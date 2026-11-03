@@ -9,7 +9,7 @@
     ./nixos-dell-disko.nix
 
     ../../flakes.d/profiles/base.nix
-    ../../flakes.d/users/chuck.nix
+    ../../flakes.d/users/superuser.nix
   ];
 
   networking.hostName = "nixos-dell";
@@ -17,4 +17,8 @@
   system.stateVersion = "26.11";
 
   preservation.enable = true;
+  dots.super.user = "chuck";
+  dots.super.authorizedKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
+  ];
 }
