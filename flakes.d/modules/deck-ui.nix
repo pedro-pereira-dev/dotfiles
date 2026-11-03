@@ -26,14 +26,21 @@ let
     ];
     installPhase = ''
       mkdir -p $out/bin
-      ags bundle app.tsx $out/bin/ags-deck-ui \
+      ags bundle app.tsx $out/bin/deck-ui \
         --gtk 4 -d "SRC='$src'"
     '';
   };
 in
 {
-  options.programs.ags-deck-ui.enable = lib.mkEnableOption "ags-deck-ui";
-  config = lib.mkIf config.programs.ags-deck-ui.enable {
+  options.programs.deck-ui.enable = lib.mkEnableOption "Deck UI";
+  config = lib.mkIf config.programs.deck-ui.enable {
     home.packages = [ package ];
+    wayland.windowManager.sway.enable = true;
+    wayland.windowManager.sway.config.startup = [
+      {
+        command = "${package}/bin/deck-ui";
+        always = true;
+      }
+    ];
   };
 }

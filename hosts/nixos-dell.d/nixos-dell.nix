@@ -1,4 +1,7 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  ...
+}:
 {
   imports = [
     inputs.disko.nixosModules.disko
@@ -10,6 +13,7 @@
 
     ../../flakes.d/profiles/base.nix
     ../../flakes.d/users/superuser.nix
+    ../../flakes.d/users/deckuser.nix
   ];
 
   networking.hostName = "nixos-dell";
@@ -17,8 +21,11 @@
   system.stateVersion = "26.11";
 
   preservation.enable = true;
-  dots.super.user = "chuck";
-  dots.super.authorizedKeys = [
+
+  dots.superuser.name = "chuck";
+  dots.superuser.authorizedKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
   ];
+
+  dots.deckuser.name = "deck";
 }
