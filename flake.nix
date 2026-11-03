@@ -27,12 +27,6 @@
         modules = [ ./hosts/nixos-dell.d/nixos-dell.nix ];
       };
 
-      # nixos-desktop
-      nixosConfigurations.nixos-desktop = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/nixos-desktop.d/nixos-desktop.nix ];
-      };
-
       formatter = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
         "aarch64-linux"

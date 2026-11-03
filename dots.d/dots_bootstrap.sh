@@ -37,7 +37,9 @@ dots_bootstrap() {
   fi
 
   host=$(get_parameter --host "$@") || true
-  if [[ -z $host && -n $target ]]; then host=$(ssh "${ssh_opts[@]}" -i /tmp/key "root@${target#*@}" hostname) || true; fi
+  if [[ -z $host && -n $target ]]; then
+    host=$(ssh "${ssh_opts[@]}" -i /tmp/key "root@${target#*@}" hostname) || true
+  fi
   host=$(select_host "$@" ${host:+--host "$host"})
 
   if is_nix_darwin "$host"; then

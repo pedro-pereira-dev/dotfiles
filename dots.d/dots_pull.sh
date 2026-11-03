@@ -35,7 +35,11 @@ dots_pull() {
   }
 
   dots_pull_maintain() {
-    if [[ -d $DOTFILES_WORKSPACE/.git ]]; then dots_pull_update; else dots_pull_clone; fi
+    if [[ -d $DOTFILES_WORKSPACE/.git ]]; then
+      dots_pull_update
+    else
+      dots_pull_clone
+    fi
   }
 
   ssh_opts=(
@@ -44,7 +48,9 @@ dots_pull() {
     -o UserKnownHostsFile=/dev/null
   )
 
-  if get_parameter --force "$@" >/dev/null; then DOTS_FORCE=1; fi
+  if get_parameter --force "$@" >/dev/null; then
+    DOTS_FORCE=1
+  fi
 
   if ! get_parameter --self "$@" >/dev/null && ! get_parameter --target "$@" >/dev/null; then
     printf 'Usage: dots pull --self|--target U@HOST [--force]\n' >&2
@@ -53,7 +59,9 @@ dots_pull() {
 
   target=$(select_target "$@")
   # starts ssh connection so ssh password prompt only happens here
-  if [[ -n $target ]] && ! ssh "${ssh_opts[@]}" "$target" true; then exit 1; fi
+  if [[ -n $target ]] && ! ssh "${ssh_opts[@]}" "$target" true; then
+    exit 1
+  fi
 
   if [[ -z $target ]]; then
     dots_pull_maintain

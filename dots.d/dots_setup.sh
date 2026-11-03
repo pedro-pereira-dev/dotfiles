@@ -24,12 +24,17 @@ dots_setup() {
     printf 'Usage: dots setup --self|--target U@HOST [--host NAME]\n' >&2
     return 2
   fi
+
   target=$(select_target "$@")
   # starts ssh connection so ssh password prompt only happens here
-  if [[ -n $target ]] && ! ssh "${ssh_opts[@]}" "$target" true; then exit 1; fi
+  if [[ -n $target ]] && ! ssh "${ssh_opts[@]}" "$target" true; then
+    exit 1
+  fi
 
   host=$(get_parameter --host "$@") || true
-  if [[ -z $host && -n $target ]]; then host=$(ssh "${ssh_opts[@]}" "$target" hostname) || true; fi
+  if [[ -z $host && -n $target ]]; then
+    host=$(ssh "${ssh_opts[@]}" "$target" hostname) || true
+  fi
   host=$(select_host "$@" ${host:+--host "$host"})
 
   if is_nix_darwin "$host" && [[ -n $target ]]; then
@@ -56,7 +61,9 @@ dots_setup() {
   if [[ -n $target ]]; then
     sudo=()
     target_args=(--build-host "$target" --target-host "$target")
-    if [[ $target != root@* ]]; then target_args+=(--ask-sudo-password --sudo); fi
+    if [[ $target != root@* ]]; then
+      target_args+=(--ask-sudo-password --sudo)
+    fi
   fi
 
   "${sudo[@]}" "${nix[@]}" run \
