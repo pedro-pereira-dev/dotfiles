@@ -1,6 +1,14 @@
-{ ... }: {
+{ ... }:
+let
+  volumes = {
+    persistent = "persistent";
+  };
+in
+{
+  _module.args.volumes = volumes;
+
+  fileSystems."/${volumes.persistent}".neededForBoot = true;
   fileSystems."/nix".neededForBoot = true;
-  fileSystems."/persistent".neededForBoot = true;
 
   disko.devices.nodev."/".fsType = "tmpfs";
   disko.devices.nodev."/".mountOptions = [
@@ -44,16 +52,23 @@
   ];
 
   disko.devices.disk.main.content.partitions.root.content.type = "btrfs";
+  disko.devices.disk.main.content.partitions.root.content.subvolumes = {
 
-  disko.devices.disk.main.content.partitions.root.content.subvolumes."/nix".mountpoint = "/nix";
-  disko.devices.disk.main.content.partitions.root.content.subvolumes."/nix".mountOptions = [
-    "compress=lzo"
-    "noatime"
-  ];
+    "/nix" = {
+      mountpoint = "/nix";
+      mountOptions = [
+        "compress=lzo"
+        "noatime"
+      ];
+    };
 
-  disko.devices.disk.main.content.partitions.root.content.subvolumes."/persistent".mountpoint = "/persistent";
-  disko.devices.disk.main.content.partitions.root.content.subvolumes."/persistent".mountOptions = [
-    "compress=lzo"
-    "noatime"
-  ];
+    "/${volumes.persistent}" = {
+      mountpoint = "/${volumes.persistent}";
+      mountOptions = [
+        "compress=lzo"
+        "noatime"
+      ];
+    };
+
+  };
 }

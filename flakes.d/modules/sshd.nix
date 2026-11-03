@@ -1,13 +1,19 @@
-{ ... }: {
+{
+  config,
+  lib,
+  volumes,
+  ...
+}:
+{
   services.openssh.enable = true;
 
   services.openssh.settings.KbdInteractiveAuthentication = false;
   services.openssh.settings.PasswordAuthentication = false;
   services.openssh.settings.PermitRootLogin = "no";
 
-  services.openssh.hostKeys = [
+  services.openssh.hostKeys = lib.mkIf (config.preservation.enable or false) [
     {
-      path = "/persistent/etc/ssh/ssh_host_ed25519_key";
+      path = "/${volumes.persistent}/etc/ssh/ssh_host_ed25519_key";
       type = "ed25519";
     }
   ];
