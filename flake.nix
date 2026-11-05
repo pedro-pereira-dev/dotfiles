@@ -27,6 +27,12 @@
         modules = [ ./hosts/nixos-dell.d/nixos-dell.nix ];
       };
 
+      # nixos-tv
+      nixosConfigurations.nixos-tv = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/nixos-tv.d/nixos-tv.nix ];
+      };
+
       formatter = nixpkgs.lib.genAttrs [
         "aarch64-darwin"
         "aarch64-linux"
