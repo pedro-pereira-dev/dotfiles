@@ -1,0 +1,141 @@
+# https://alacritty.org/config-alacritty.html
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+padding = { x = 8, y = 4 }
+dynamic_padding = true
+option_as_alt = "OnlyLeft"
+
+[font]
+size = 14
+normal.family = "CodeNewRoman Nerd Font Mono"
+
+[colors.primary]
+foreground = "#d2d1e6"
+background = "#000000"
+[colors.normal]
+black = "#2e3440"
+red = "#ff3242"
+green = "#44bc44"
+yellow = "#ff9400"
+blue = "#0883ff"
+magenta = "#d930d9"
+cyan = "#00d8eb"
+white = "#d8dee9"
+[colors.bright]
+black = "#4c566a"
+red = "#ff6e6e"
+green = "#9ec875"
+yellow = "#ffaf00"
+blue = "#47bfe6"
+magenta = "#d294ff"
+cyan = "#8ae2f0"
+white = "#eceff4"
+
+[selection]
+save_to_clipboard = true
+
+[cursor]
+style.blinking = "Always"
+blink_interval = 250
+blink_timeout = 0
+
+# reset font size -- ctrl + shift + 0
+[[keyboard.bindings]]
+key = "0"
+mods = "Control|Shift"
+action = "ResetFontSize"
+[[keyboard.bindings]]
+key = "="
+mods = "Control|Shift"
+action = "ResetFontSize"
+# decrease font size -- ctrl + shift + -
+[[keyboard.bindings]]
+key = "_"
+mods = "Control|Shift"
+action = "DecreaseFontSize"
+[[keyboard.bindings]]
+key = "-"
+mods = "Control|Shift"
+action = "DecreaseFontSize"
+# increase font size -- ctrl + shift + +
+[[keyboard.bindings]]
+key = "*"
+mods = "Control|Shift"
+action = "IncreaseFontSize"
+[[keyboard.bindings]]
+key = "+"
+mods = "Control|Shift"
+action = "IncreaseFontSize"
+
+# copy -- ctrl + shift + c
+[[keyboard.bindings]]
+key = "C"
+mods = "Control|Shift"
+action = "Copy"
+# paste -- ctrl + shift + v
+[[keyboard.bindings]]
+key = "V"
+mods = "Control|Shift"
+action = "Paste"
+# paste -- right click
+[[mouse.bindings]]
+mouse = "Right"
+action = "Paste"
+
+# scroll page up -- ctrl + shift + pageup
+[[keyboard.bindings]]
+key = "PageUp"
+mods = "Control|Shift"
+action = "ScrollPageUp"
+# scroll page down -- ctrl + shift + pagedown
+[[keyboard.bindings]]
+key = "PageDown"
+mods = "Control|Shift"
+action = "ScrollPageDown"
+
+# delete word backward -- ctrl + backspace
+[[keyboard.bindings]]
+key = "Back"
+mods = "Control"
+chars = "\u0017"
+# delete word forward -- ctrl + delete
+[[keyboard.bindings]]
+key = "Delete"
+mods = "Control"
+chars = "\u001bd"
+
+# move word backward -- ctrl + left
+[[keyboard.bindings]]
+key = "Left"
+mods = "Control"
+chars = "\u001bb"
+# move word forward -- ctrl + right
+[[keyboard.bindings]]
+key = "Right"
+mods = "Control"
+chars = "\u001bf"
+
+# search -- ctrl + shift + f
+[[keyboard.bindings]]
+key = "F"
+mods = "Control|Shift"
+mode = "~Search"
+action = "SearchBackward"
+# next occurrence -- ctrl + shift + f -- search mode
+[[keyboard.bindings]]
+key = "F"
+mods = "Control|Shift"
+mode = "Search"
+action = "SearchFocusNext"
+# stay at occurrence -- esc -- search mode
+[[keyboard.bindings]]
+key = "Escape"
+mode = "Search|~Vi"
+action = "ToggleViMode"
+[[keyboard.bindings]]
+key = "Escape"
+mode = "Search"
+action = "SearchConfirm"
