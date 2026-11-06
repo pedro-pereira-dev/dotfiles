@@ -33,6 +33,7 @@
   programs.gnupg.agent.enable = true;
 
   services.desktopManager.plasma6.enable = true;
+  programs.labwc.enable = true;
   services.displayManager.sddm = {
     enable = true;
     wayland.enable = true;
@@ -98,6 +99,7 @@
 
   environment.systemPackages = with pkgs; [
     alacritty
+    ags
     firefox
     git
     gnupg
