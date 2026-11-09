@@ -17,39 +17,30 @@ in
   time.timeZone = "Europe/Lisbon";
 
   environment.systemPackages = with pkgs; [
-    fastfetch
-    wtype
+    alacritty
   ];
 
   users.users.${user} = {
     extraGroups = [ "wheel" ];
     initialPassword = "changeme";
     isNormalUser = true;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
+    ];
   };
+
+  services.openssh.enable = true;
+  services.openssh.settings.PasswordAuthentication = false;
+  virtualisation.vmVariant.virtualisation.forwardPorts = [
+    {
+      from = "host";
+      host.address = "127.0.0.1";
+      host.port = 2222;
+      guest.port = 22;
+    }
+  ];
 
   programs.labwc.enable = true;
-
-  # Hide the pointer at session start; it reappears on the next mouse movement.
-  # labwc's HideCursor action is bound to an otherwise unused key, and autostart
-  # sends that key once the compositor is running.
-  environment.etc."xdg/labwc/rc.xml".text = ''
-    <?xml version="1.0"?>
-    <labwc_config>
-      <keyboard>
-        <keybind key="XF86Launch9">
-          <action name="HideCursor" />
-        </keybind>
-      </keyboard>
-    </labwc_config>
-  '';
-
-  environment.etc."xdg/labwc/autostart" = {
-    mode = "0755";
-    text = ''
-      sleep 1
-      ${pkgs.wtype}/bin/wtype -k XF86Launch9
-    '';
-  };
 
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = user;

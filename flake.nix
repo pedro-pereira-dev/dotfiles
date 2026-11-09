@@ -27,6 +27,12 @@
         modules = [ ./hosts/nixos-dell.d/nixos-dell.nix ];
       };
 
+      # nixos-desktop
+      nixosConfigurations.nixos-desktop = nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        modules = [ ./hosts/nixos-desktop.d/nixos-desktop.nix ];
+      };
+
       # nixos-tv
       nixosConfigurations.nixos-tv = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
