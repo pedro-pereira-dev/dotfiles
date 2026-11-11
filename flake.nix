@@ -8,8 +8,8 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    ags.url = "github:aylur/ags";
-    ags.inputs.nixpkgs.follows = "nixpkgs";
+    deck-ui.url = "github:pedro-pereira-dev/deck-ui/develop";
+    deck-ui.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

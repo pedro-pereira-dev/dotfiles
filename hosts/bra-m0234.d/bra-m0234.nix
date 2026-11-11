@@ -7,7 +7,6 @@
 {
   imports = [
     inputs.home-manager.darwinModules.home-manager
-    ../../flakes.d/modules/dots.nix
   ];
 
   nix.settings.experimental-features = [

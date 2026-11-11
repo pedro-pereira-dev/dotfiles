@@ -1,13 +1,14 @@
 { ... }:
 let
   volumes = {
-    persistent = "persistent";
+    data = "data";
+    secrets = "secrets";
   };
 in
 {
   _module.args.volumes = volumes;
 
-  fileSystems."/${volumes.persistent}".neededForBoot = true;
+  fileSystems."/${volumes.data}".neededForBoot = true;
   fileSystems."/nix".neededForBoot = true;
 
   disko.devices.nodev."/".fsType = "tmpfs";
@@ -62,8 +63,16 @@ in
       ];
     };
 
-    "/${volumes.persistent}" = {
-      mountpoint = "/${volumes.persistent}";
+    "/${volumes.data}" = {
+      mountpoint = "/${volumes.data}";
+      mountOptions = [
+        "compress=lzo"
+        "noatime"
+      ];
+    };
+
+    "/${volumes.secrets}" = {
+      mountpoint = "/${volumes.secrets}";
       mountOptions = [
         "compress=lzo"
         "noatime"
