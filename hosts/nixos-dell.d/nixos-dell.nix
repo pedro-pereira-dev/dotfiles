@@ -30,9 +30,18 @@ in
   time.timeZone = "Europe/Lisbon";
 
   boot.kernelParams = [ "quiet" ];
+  hardware.enableRedistributableFirmware = true;
+  boot.initrd.kernelModules = [ "i915" ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 4;
   boot.loader.systemd-boot.enable = true;
+  boot.loader.timeout = 0;
+
+  nix.settings.experimental-features = [
+    "flakes"
+    "nix-command"
+  ];
 
   users.users.${superuser} = {
     extraGroups = [ "wheel" ];
@@ -45,6 +54,11 @@ in
   };
 
   users.users.${user} = {
+    extraGroups = [
+      "audio"
+      "input"
+      "video"
+    ];
     hashedPassword = "";
     isNormalUser = true;
   };
@@ -53,6 +67,7 @@ in
     alacritty
     btop
     htop
+    jellyfin-media-player
   ];
 
   services.openssh.enable = true;
@@ -68,6 +83,7 @@ in
   ];
 
   networking.networkmanager.enable = true;
+  systemd.services.NetworkManager-wait-online.enable = false;
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
@@ -96,8 +112,17 @@ in
       "steam-unwrapped"
     ];
 
-  preservation.preserveAt."/${volumes.data}".users.${user}.directories = [
-    ".local/share/Steam"
-    ".steam"
-  ];
+  preservation.preserveAt."/${volumes.data}" = {
+    directories = [
+      "/etc/NetworkManager/system-connections"
+      "/var/lib/bluetooth"
+      "/var/lib/nixos"
+    ];
+    users.${user}.directories = [
+      ".config/jellyfin.org"
+      ".local/share/Steam"
+      ".local/share/jellyfinmediaplayer"
+      ".steam"
+    ];
+  };
 }
