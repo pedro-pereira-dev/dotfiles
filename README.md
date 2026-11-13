@@ -45,3 +45,8 @@ chmod 600 "/persistent/secrets/$user"
 - `flakes.d/lib/` – reusable Nix functions
 - `flakes.d/modules/` – system modules and home configuration files
 - `bin/` – macOS maintenance scripts
+
+
+```bash
+nix --extra-experimental-features 'flakes nix-command' flake update --update-input nixpkgs
+```

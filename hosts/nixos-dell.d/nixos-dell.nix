@@ -61,6 +61,9 @@ in
     ];
     hashedPassword = "";
     isNormalUser = true;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
+    ];
   };
 
   environment.systemPackages = with pkgs; [
@@ -98,7 +101,7 @@ in
   environment.etc."xdg/labwc/autostart" = {
     mode = "0755";
     text = ''
-      ${inputs.deck-ui.packages.${pkgs.system}.default}/bin/deck-ui &
+      ${inputs.deck-rs.packages.${pkgs.system}.default}/bin/deck-rs &
     '';
   };
 
