@@ -40,7 +40,7 @@ in
 
   preservation.preserveAt."/${volumes.data}" = {
     directories = [ "/var/lib/bluetooth" ];
-    users.${user}.directories = [ ".config/VacuumTube" ];
+    users.${user}.directories = [ ".local/share/Grayjay" ];
   };
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -116,7 +116,8 @@ in
 
   nixpkgs.config.allowUnfreePredicate =
     pkg:
-    builtins.elem (lib.getName pkg) [
+    lib.hasPrefix "grayjay" (lib.getName pkg)
+    || builtins.elem (lib.getName pkg) [
       "steam"
       "steam-unwrapped"
     ];
@@ -134,6 +135,6 @@ in
     htop
     jellyfin-desktop
     powertop
-    vacuum-tube
+    grayjay
   ];
 }
