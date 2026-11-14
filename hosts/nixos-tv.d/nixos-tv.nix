@@ -26,31 +26,36 @@ in
   ];
 
   networking.hostName = "nixos-tv";
-  networking.dhcpcd.wait = "background";
   nixpkgs.hostPlatform = "x86_64-linux";
   system.stateVersion = "26.11";
 
   console.keyMap = "pt-latin9";
   time.timeZone = "Europe/Lisbon";
 
-  preservation.enable = true;
-
   hardware.bluetooth.enable = true;
+  hardware.bluetooth.powerOnBoot = true;
   hardware.enableRedistributableFirmware = true;
 
+  preservation.enable = true;
   preservation.preserveAt."/${volumes.data}" = {
-    directories = [ "/var/lib/bluetooth" ];
-    users.${user}.directories = [ ".local/share/Grayjay" ];
+    directories = [
+      "/var/lib/bluetooth"
+      "/var/lib/iwd"
+    ];
+    users.${user}.directories = [ ".config/VacuumTube" ];
   };
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.consoleLogLevel = 3;
-  boot.kernelParams = [ "quiet" ];
   boot.initrd.kernelModules = [ "amdgpu" ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelParams = [ "quiet" ];
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.systemd-boot.configurationLimit = 4;
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 0;
+
+  networking.dhcpcd.wait = "background";
+  networking.wireless.iwd.enable = true;
 
   users.users.${superuser} = {
     extraGroups = [ "wheel" ];
@@ -74,27 +79,12 @@ in
     ];
   };
 
-  services.fwupd.enable = true;
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = user;
+  services.displayManager.defaultSession = "labwc";
+  services.displayManager.ly.enable = true;
 
-  security.sudo.extraRules = [
-    {
-      users = [
-        superuser
-        user
-      ];
-      commands =
-        map
-          (command: {
-            inherit command;
-            options = [ "NOPASSWD" ];
-          })
-          [
-            "/run/current-system/sw/bin/systemctl poweroff"
-            "/run/current-system/sw/bin/systemctl reboot"
-            "/run/current-system/sw/bin/systemctl suspend"
-          ];
-    }
-  ];
+  services.fwupd.enable = true;
 
   services.openssh.enable = true;
   services.openssh.settings.PasswordAuthentication = false;
@@ -106,22 +96,7 @@ in
     }
   ];
 
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = user;
-  services.displayManager.defaultSession = "labwc";
-  services.displayManager.ly.enable = true;
-
   programs.labwc.enable = true;
-  programs.steam.enable = true;
-
-  nixpkgs.config.allowUnfreePredicate =
-    pkg:
-    lib.hasPrefix "grayjay" (lib.getName pkg)
-    || builtins.elem (lib.getName pkg) [
-      "steam"
-      "steam-unwrapped"
-    ];
-
   environment.etc."xdg/labwc/autostart" = {
     mode = "0755";
     text = ''
@@ -129,12 +104,21 @@ in
     '';
   };
 
+  programs.steam.enable = true;
+  nixpkgs.config.allowUnfreePredicate =
+    pkg:
+    builtins.elem (lib.getName pkg) [
+      "steam"
+      "steam-unwrapped"
+    ];
+
   environment.systemPackages = with pkgs; [
     btop
     fastfetch
     htop
+    iwd
     jellyfin-desktop
     powertop
-    grayjay
+    vacuum-tube
   ];
 }

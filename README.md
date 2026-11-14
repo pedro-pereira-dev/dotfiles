@@ -48,5 +48,6 @@ chmod 600 "/persistent/secrets/$user"
 
 
 ```bash
-nix --extra-experimental-features 'flakes nix-command' flake update --update-input nixpkgs
+nix --extra-experimental-features 'flakes nix-command' flake update nixpkgs
+nix --extra-experimental-features 'flakes nix-command' flake update
 ```
