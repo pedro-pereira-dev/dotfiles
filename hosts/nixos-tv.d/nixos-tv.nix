@@ -7,7 +7,8 @@
   ...
 }:
 let
-  user = "chuck";
+  superuser = "chuck";
+  user = "tv";
 in
 {
   imports = [
@@ -35,13 +36,6 @@ in
   hardware.bluetooth.powerOnBoot = true;
   hardware.enableRedistributableFirmware = true;
 
-  preservation.enable = true;
-  preservation.preserveAt."/${volumes.data}" = {
-    directories = [
-      "/var/lib/bluetooth"
-    ];
-  };
-
   boot.consoleLogLevel = 3;
   boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
@@ -51,15 +45,21 @@ in
   boot.loader.systemd-boot.enable = true;
   boot.loader.timeout = 0;
 
-  networking.dhcpcd.wait = "background";
-  networking.wireless.iwd.enable = true;
+  users.users.${superuser} = {
+    extraGroups = [ "wheel" ];
+    hashedPasswordFile = "/${volumes.secrets}/${superuser}";
+    initialPassword = "changeme";
+    isNormalUser = true;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
+    ];
+  };
 
   users.users.${user} = {
     extraGroups = [
       "audio"
       "input"
       "video"
-      "wheel"
     ];
     hashedPasswordFile = "/${volumes.secrets}/${user}";
     initialPassword = "changeme";
@@ -69,23 +69,35 @@ in
     ];
   };
 
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager.sddm = {
-    enable = true;
-    wayland.enable = true;
+  networking.dhcpcd.wait = "background";
+  networking.wireless.iwd.enable = true;
+
+  preservation.enable = true;
+  preservation.preserveAt."/${volumes.data}" = {
+    directories = [
+      "/var/lib/bluetooth"
+    ];
   };
-  environment.systemPackages = [
-    pkgs.kdePackages.plasma-bigscreen
-    pkgs.kdePackages.kdeconnect-kde
-    pkgs.kdePackages.milou
-    pkgs.kdePackages.plasma-nm
-  ];
-  services.displayManager.sessionPackages = [ pkgs.kdePackages.plasma-bigscreen ];
-  services.displayManager.defaultSession = "plasma-bigscreen-wayland";
+
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = user;
+  services.displayManager.defaultSession = "plasma-bigscreen-wayland";
+  services.displayManager.plasma-login-manager.enable = true;
+  services.displayManager.sessionPackages = [ pkgs.kdePackages.plasma-bigscreen ];
 
-  services.fwupd.enable = true;
+  services.desktopManager.plasma6.enable = true;
+
+  environment.systemPackages = [
+    pkgs.kdePackages.kdeconnect-kde
+    pkgs.kdePackages.plasma-bigscreen
+    pkgs.kdePackages.plasma-nm
+  ];
+
+  environment.plasma6.excludePackages = with pkgs.kdePackages; [
+  ];
+
+  documentation.enable = false;
+  documentation.nixos.enable = false;
 
   services.openssh.enable = true;
   services.openssh.settings.PasswordAuthentication = false;
@@ -95,6 +107,4 @@ in
       type = "ed25519";
     }
   ];
-
-  fonts.packages = [ pkgs.maple-mono.NF ];
 }
