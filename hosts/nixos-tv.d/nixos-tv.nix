@@ -7,8 +7,7 @@
   ...
 }:
 let
-  superuser = "chuck";
-  user = "tv";
+  user = "chuck";
 in
 {
   imports = [
@@ -40,9 +39,7 @@ in
   preservation.preserveAt."/${volumes.data}" = {
     directories = [
       "/var/lib/bluetooth"
-      "/var/lib/iwd"
     ];
-    users.${user}.directories = [ ".config/VacuumTube" ];
   };
 
   boot.consoleLogLevel = 3;
@@ -57,9 +54,14 @@ in
   networking.dhcpcd.wait = "background";
   networking.wireless.iwd.enable = true;
 
-  users.users.${superuser} = {
-    extraGroups = [ "wheel" ];
-    hashedPasswordFile = "/${volumes.secrets}/${superuser}";
+  users.users.${user} = {
+    extraGroups = [
+      "audio"
+      "input"
+      "video"
+      "wheel"
+    ];
+    hashedPasswordFile = "/${volumes.secrets}/${user}";
     initialPassword = "changeme";
     isNormalUser = true;
     openssh.authorizedKeys.keys = [
@@ -67,28 +69,26 @@ in
     ];
   };
 
-  users.users.${user} = {
-    extraGroups = [
-      "audio"
-      "input"
-      "video"
-    ];
-    isNormalUser = true;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
-    ];
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager.sddm = {
+    enable = true;
+    wayland.enable = true;
   };
-
+  environment.systemPackages = [
+    pkgs.kdePackages.plasma-bigscreen
+    pkgs.kdePackages.kdeconnect-kde
+    pkgs.kdePackages.milou
+    pkgs.kdePackages.plasma-nm
+  ];
+  services.displayManager.sessionPackages = [ pkgs.kdePackages.plasma-bigscreen ];
+  services.displayManager.defaultSession = "plasma-bigscreen-wayland";
   services.displayManager.autoLogin.enable = true;
   services.displayManager.autoLogin.user = user;
-  services.displayManager.defaultSession = "labwc";
-  services.displayManager.ly.enable = true;
 
   services.fwupd.enable = true;
 
   services.openssh.enable = true;
   services.openssh.settings.PasswordAuthentication = false;
-  services.openssh.settings.PermitRootLogin = "no";
   services.openssh.hostKeys = lib.mkIf (config.preservation.enable or false) [
     {
       path = "/${volumes.data}/etc/ssh/ssh_host_ed25519_key";
@@ -96,29 +96,5 @@ in
     }
   ];
 
-  programs.labwc.enable = true;
-  environment.etc."xdg/labwc/autostart" = {
-    mode = "0755";
-    text = ''
-      ${inputs.deck-rs.packages.${pkgs.system}.default}/bin/deck-rs &
-    '';
-  };
-
-  programs.steam.enable = true;
-  nixpkgs.config.allowUnfreePredicate =
-    pkg:
-    builtins.elem (lib.getName pkg) [
-      "steam"
-      "steam-unwrapped"
-    ];
-
-  environment.systemPackages = with pkgs; [
-    btop
-    fastfetch
-    htop
-    iwd
-    jellyfin-desktop
-    powertop
-    vacuum-tube
-  ];
+  fonts.packages = [ pkgs.maple-mono.NF ];
 }

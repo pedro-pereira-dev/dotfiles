@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794773820,
-        "narHash": "sha256-NZF9y6gNo9i/YaUt2619/0jLWvK44IKZcjoV0hHvq+c=",
+        "lastModified": 1794865128,
+        "narHash": "sha256-ne4NkyXfZR9x00oZIk5EXExoL2ChVhnoMviUsOJwV7Y=",
         "owner": "pedro-pereira-dev",
         "repo": "deck-rs",
-        "rev": "e2890714007830c790a8a21abb5292b41bd0ef8f",
+        "rev": "78072a08e701cbddd69dafd9dca3310f2b55d13d",
         "type": "github"
       },
       "original": {

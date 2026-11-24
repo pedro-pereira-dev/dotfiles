@@ -7,14 +7,21 @@
   ...
 }:
 let
-  superuser = "chuck";
-  user = "tv";
+  user = "chuck";
+  retroarch = pkgs.retroarch-bare.wrapper {
+    cores = pkgs.retroarch-free.cores;
+    settings = {
+      savefile_directory = "/home/${user}/.local/share/retroarch/saves";
+      savestate_directory = "/home/${user}/.local/share/retroarch/states";
+    };
+  };
 in
 {
   imports = [
     inputs.disko.nixosModules.disko
     inputs.preservation.nixosModules.default
     inputs.home-manager.nixosModules.home-manager
+    inputs.deck-rs.nixosModules.default
 
     ./nixos-dell-hardware-configuration.nix
     ./nixos-dell-disko.nix
@@ -35,6 +42,8 @@ in
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   hardware.enableRedistributableFirmware = true;
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
 
   preservation.enable = true;
   preservation.preserveAt."/${volumes.data}" = {
@@ -42,7 +51,17 @@ in
       "/var/lib/bluetooth"
       "/var/lib/iwd"
     ];
-    users.${user}.directories = [ ".config/VacuumTube" ];
+    users.${user}.directories = [
+      ".config/deck-rs"
+      ".config/dconf"
+      ".config/retroarch"
+      ".config/Stremio"
+      ".config/VacuumTube"
+      ".local/share/retroarch"
+      ".local/share/stremio"
+      ".local/share/Steam"
+      ".steam"
+    ];
   };
 
   boot.consoleLogLevel = 3;
@@ -56,15 +75,12 @@ in
 
   networking.dhcpcd.wait = "background";
   networking.wireless.iwd.enable = true;
-
-  users.users.${superuser} = {
-    extraGroups = [ "wheel" ];
-    hashedPasswordFile = "/${volumes.secrets}/${superuser}";
-    initialPassword = "changeme";
-    isNormalUser = true;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
-    ];
+  security.rtkit.enable = true;
+  services.pipewire = {
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    enable = true;
+    pulse.enable = true;
   };
 
   users.users.${user} = {
@@ -72,7 +88,10 @@ in
       "audio"
       "input"
       "video"
+      "wheel"
     ];
+    hashedPasswordFile = "/${volumes.secrets}/${user}";
+    initialPassword = "changeme";
     isNormalUser = true;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbHkOpoucRSqD/zKiyC2xtjw0F/JeUtZlrmMuLy2iWd"
@@ -88,7 +107,6 @@ in
 
   services.openssh.enable = true;
   services.openssh.settings.PasswordAuthentication = false;
-  services.openssh.settings.PermitRootLogin = "no";
   services.openssh.hostKeys = lib.mkIf (config.preservation.enable or false) [
     {
       path = "/${volumes.data}/etc/ssh/ssh_host_ed25519_key";
@@ -97,10 +115,89 @@ in
   ];
 
   programs.labwc.enable = true;
+  programs.dconf = {
+    enable = true;
+    profiles.user.databases = [
+      {
+        settings."com/stremio/stremio" = {
+          "remember-window-state" = true;
+          "window-fullscreen" = true;
+          "window-maximized" = false;
+        };
+      }
+    ];
+  };
+  programs.deck-rs = {
+    enable = true;
+    settings = {
+      app = [
+        {
+          category = "games";
+          command = [
+            "steam"
+            "-gamepadui"
+          ];
+          env.GDK_BACKEND = "wayland,x11";
+          icon = "󰓓";
+          name = "steam";
+        }
+        {
+          category = "games";
+          command = [
+            "retroarch"
+            "--fullscreen"
+          ];
+          icon = "󰊗";
+          name = "retroarch";
+        }
+        {
+          category = "media";
+          command = [
+            "VacuumTube"
+            "--fullscreen"
+          ];
+          icon = "󰾎";
+          name = "vacuum-tube";
+        }
+        {
+          category = "media";
+          command = [
+            "stremio"
+            "--no-window-decorations"
+          ];
+          icon = "󰐊";
+          name = "stremio";
+        }
+      ];
+      network.backend = "iwd";
+      ui = {
+        favorites = [
+          "steam"
+          "retroarch"
+          "vacuum-tube"
+          "stremio"
+        ];
+        font = "${pkgs.maple-mono.NF}/share/fonts/truetype/NerdFonts/MapleMonoNerdFont-Regular.ttf";
+        font_family = "Maple Mono NF";
+        icons = {
+          games = "󰊗";
+          media = "󰒋";
+        };
+        modules = [
+          "home"
+          "favorites"
+          "games"
+          "media"
+          "settings"
+          "power"
+        ];
+      };
+    };
+  };
   environment.etc."xdg/labwc/autostart" = {
     mode = "0755";
     text = ''
-      ${inputs.deck-rs.packages.${pkgs.system}.default}/bin/deck-rs &
+      ${config.programs.deck-rs.package}/bin/deck-rs &
     '';
   };
 
@@ -108,6 +205,7 @@ in
   nixpkgs.config.allowUnfreePredicate =
     pkg:
     builtins.elem (lib.getName pkg) [
+      "stremio-linux-shell"
       "steam"
       "steam-unwrapped"
     ];
@@ -119,6 +217,10 @@ in
     iwd
     jellyfin-desktop
     powertop
+    retroarch
+    stremio-linux-shell
     vacuum-tube
   ];
+
+  fonts.packages = [ pkgs.maple-mono.NF ];
 }
