@@ -36,6 +36,7 @@ in
     ../../flakes.d/modules/bootloader.nix
     ../../flakes.d/modules/user.nix
     ../../flakes.d/modules/sshd.nix
+    ../../flakes.d/modules/login.nix
   ];
 
   dots.system.hostName = "nixos-tv";
@@ -68,6 +69,9 @@ in
 
   dots.sshd.enable = true;
   dots.sshd.preservation_volume = volumes.data;
+
+  # dots.login.autologin.user = user;
+  # dots.login.autologin.session = "plasma-bigscreen-wayland";
 
   # hardware.bluetooth.enable = true;
   # hardware.bluetooth.powerOnBoot = true;
