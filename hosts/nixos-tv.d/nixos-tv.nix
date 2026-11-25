@@ -37,6 +37,7 @@ in
     ../../flakes.d/modules/user.nix
     ../../flakes.d/modules/sshd.nix
     ../../flakes.d/modules/login.nix
+    ../../flakes.d/modules/deck.nix
   ];
 
   dots.system.hostName = "nixos-tv";
@@ -70,8 +71,10 @@ in
   dots.sshd.enable = true;
   dots.sshd.preservation_volume = volumes.data;
 
-  # dots.login.autologin.user = user;
-  # dots.login.autologin.session = "plasma-bigscreen-wayland";
+  dots.deck.user = user;
+
+  dots.login.autologin.user = user;
+  dots.login.autologin.session = config.dots.deck.session;
 
   # hardware.bluetooth.enable = true;
   # hardware.bluetooth.powerOnBoot = true;
