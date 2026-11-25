@@ -20,7 +20,10 @@
     {
       # bra-m0234
       darwinConfigurations.bra-m0234 = nix-darwin.lib.darwinSystem {
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+          platform = "aarch64-darwin";
+        };
         modules = [ ./hosts/bra-m0234.d/bra-m0234.nix ];
       };
 
