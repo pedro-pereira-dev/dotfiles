@@ -18,6 +18,22 @@
   system.stateVersion = 7;
   users.users.${config.system.primaryUser}.home = "/Users/${config.system.primaryUser}";
 
+  nixpkgs.overlays = [
+    (final: prev: {
+      opencode = prev.opencode.overrideAttrs (old: {
+        node_modules = old.node_modules.overrideAttrs (o: {
+          buildPhase =
+            pkgs.lib.throwIfNot (pkgs.lib.hasInfix "--frozen-lockfile" o.buildPhase)
+              "opencode node_modules buildPhase no longer contains --frozen-lockfile"
+              (
+                builtins.replaceStrings [ "--frozen-lockfile" ] [ "--backend=copyfile --frozen-lockfile" ]
+                  o.buildPhase
+              );
+        });
+      });
+    })
+  ];
+
   environment.shells = with pkgs; [ bashInteractive ];
   launchd.user.envVariables.LC_COLLATE = "C";
   programs.bash.completion.enable = true;
@@ -70,6 +86,8 @@
     tmux
     zoxide
   ];
+
+  ### WIP
 
   home-manager.users.${config.system.primaryUser} = {
     home.stateVersion = "25.11";
