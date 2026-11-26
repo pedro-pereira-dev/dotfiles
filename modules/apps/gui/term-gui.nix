@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.homeManager.term-gui = {
+  flake.modules.home-manager.term-gui = {
     programs.alacritty = {
       enable = true;
       settings = {

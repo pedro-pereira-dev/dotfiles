@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.homeManager.git = {
+  flake.modules.home-manager.git = {
     home.file.".gitconfig.default".text = ''
       [user]
         email = "11753516+pedro-pereira-dev@users.noreply.github.com"

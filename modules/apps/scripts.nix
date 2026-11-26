@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.homeManager.scripts = {
+  flake.modules.home-manager.scripts = {
     home.file.".local/bin/nvim-reloadable" = {
       executable = true;
       text = ''

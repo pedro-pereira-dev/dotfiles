@@ -1,3 +1,4 @@
+# https://nix-darwin.github.io/nix-darwin/manual/
 { inputs, ... }:
 let
   hostname = "bra-m0234";

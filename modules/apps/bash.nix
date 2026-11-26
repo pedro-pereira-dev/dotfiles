@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.homeManager.bash = {
+  flake.modules.home-manager.bash = {
     programs.bash = {
       enable = true;
       initExtra = ''

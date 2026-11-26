@@ -1,5 +1,5 @@
 { ... }: {
-  flake.modules.homeManager.tmux = {
+  flake.modules.home-manager.tmux = {
     programs.tmux = {
       enable = true;
       extraConfig = ''
