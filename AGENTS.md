@@ -1,7 +1,4 @@
-# Guidance
-
-- choose a validated solution that fulfills requirements with minimal code.
-- do not stage, commit, or push git changes; the user handles git operations.
-- prefer flat configuration, lowercase naming, alphabetized ui properties, and minimal or no comments.
-- lint and format all changed files every time you make changes.
-- ensure every change leaves the project building and running successfully.
+- git operations are handled by the user: do not stage, commit, or push git changes
+- when implementing, prefer the least amount of changes to achieve the requested prompt
+- prefer flatter objects and configurations, lowercase snake-case naming, alphabetized attributes and properties, and minimal or no comments at all
+- every change performed on the project should leave the project building and running successfully

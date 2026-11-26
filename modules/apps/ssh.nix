@@ -1,0 +1,20 @@
+{ ... }: {
+  flake.modules.homeManager.ssh = {
+    programs.ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+      settings."*" = { };
+      extraConfig = ''
+        Host github.com
+          HostName github.com
+          IdentityFile ~/.ssh/secrets/ssh-github-pedro-pereira-dev/private.key
+
+        Host git.i.mercedes-benz.com
+          HostName git.i.mercedes-benz.com
+          IdentityFile ~/.ssh/secrets/ssh-mercedes-github-pesoare/private.key
+
+        Include config.d/*
+      '';
+    };
+  };
+}

@@ -15,11 +15,11 @@ _main() {
   root=$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd) ||
     root=""
 
-  if [[ ! -d $root/dots.d && -x $DOTFILES_WORKSPACE/dots && -d $DOTFILES_WORKSPACE/dots.d ]]; then
+  if [[ ! -d $root/scripts && -x $DOTFILES_WORKSPACE/dots && -d $DOTFILES_WORKSPACE/scripts ]]; then
     exec "$DOTFILES_WORKSPACE/dots" "$@"
   fi
 
-  if [[ ! -d $root/dots.d ]]; then
+  if [[ ! -d $root/scripts ]]; then
     rm -fr /tmp/dotfiles
     mkdir -p /tmp/dotfiles
     printf 'Downloading the latest dotfiles tarball...\n'
@@ -33,8 +33,7 @@ _main() {
   shift || true
 
   for _script in \
-    "$DOTS_ROOT"/dots.d/*.sh \
-    "$DOTS_ROOT"/dots.d/lib/*.sh; do
+    "$DOTS_ROOT"/scripts/*.sh; do
     source "$_script"
   done
 

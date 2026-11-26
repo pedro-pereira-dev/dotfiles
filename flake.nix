@@ -1,54 +1,34 @@
+# DO-NOT-EDIT. This file was auto-generated using github:denful/flake-file.
+# Use `nix run .#write-flake` to regenerate it.
 {
+  outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
+
   inputs = {
+    darwin = {
+      url = "github:nix-darwin/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    deck-rs = {
+      url = "github:pedro-pereira-dev/deck-rs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-compat.url = "github:NixOS/flake-compat";
+    flake-file.url = "github:vic/flake-file";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+    flake-utils.url = "github:numtide/flake-utils";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    import-tree.url = "github:vic/import-tree";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     preservation.url = "github:nix-community/preservation";
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-    plasma-manager.url = "github:nix-community/plasma-manager";
-    plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
-    plasma-manager.inputs.home-manager.follows = "home-manager";
-    nix-darwin.url = "github:nix-darwin/nix-darwin";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    deck-rs.url = "github:pedro-pereira-dev/deck-rs";
-    deck-rs.inputs.nixpkgs.follows = "nixpkgs";
   };
-
-  outputs =
-    { nix-darwin, nixpkgs, ... }@inputs:
-    {
-      # bra-m0234
-      darwinConfigurations.bra-m0234 = nix-darwin.lib.darwinSystem {
-        specialArgs = {
-          inherit inputs;
-          platform = "aarch64-darwin";
-        };
-        modules = [ ./hosts/bra-m0234.d/bra-m0234.nix ];
-      };
-
-      # nixos-dell
-      nixosConfigurations.nixos-dell = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/nixos-dell.d/nixos-dell.nix ];
-      };
-
-      # nixos-desktop
-      nixosConfigurations.nixos-desktop = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/nixos-desktop.d/nixos-desktop.nix ];
-      };
-
-      # nixos-tv
-      nixosConfigurations.nixos-tv = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/nixos-tv.d/nixos-tv.nix ];
-      };
-
-      formatter = nixpkgs.lib.genAttrs [
-        "aarch64-darwin"
-        "aarch64-linux"
-        "x86_64-linux"
-      ] (system: nixpkgs.legacyPackages.${system}.nixfmt);
-    };
 }
