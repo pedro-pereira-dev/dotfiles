@@ -20,17 +20,17 @@ in
   ];
 
   config = {
-    # auto generated flake.nix
+    # nixpkgs channel
     flake-file.inputs.nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
     # dendritic
-    flake-file.inputs.flake-file.url = "github:vic/flake-file";
+    flake-file.inputs.flake-file.url = "github:denful/flake-file";
     flake-file.inputs.flake-parts.url = "github:hercules-ci/flake-parts";
-    flake-file.inputs.import-tree.url = "github:vic/import-tree";
+    flake-file.inputs.import-tree.url = "github:denful/import-tree";
 
     # lockfile deduplication
-    flake-file.inputs.flake-compat.url = "github:NixOS/flake-compat";
-    flake-file.inputs.flake-utils.url = "github:numtide/flake-utils";
+    # flake-file.inputs.flake-compat.url = "github:nixos/flake-compat";
+    # flake-file.inputs.flake-utils.url = "github:numtide/flake-utils";
 
     systems = [
       "aarch64-darwin"

@@ -1,5 +1,6 @@
 {
   flake-parts-lib,
+  inputs,
   lib,
   moduleLocation,
   self,

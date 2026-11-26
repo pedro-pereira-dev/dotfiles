@@ -11,8 +11,6 @@ let
     "bra-m0234-config"
 
     # system configuration
-    "base"
-    "base-darwin"
   ];
 
   darwinModules = filterModules inputs.self.darwinModules wantedModules;

@@ -3,6 +3,12 @@
 {
   outputs = inputs: inputs.flake-parts.lib.mkFlake { inherit inputs; } (inputs.import-tree ./modules);
 
+  nixConfig = {
+    extra-experimental-features = "flakes nix-command pipe-operators";
+    extra-substituters = [ "https://cache.nixos.org?priority=1" ];
+    extra-trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
+  };
+
   inputs = {
     darwin = {
       url = "github:nix-darwin/nix-darwin";
@@ -16,19 +22,17 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    flake-compat.url = "github:NixOS/flake-compat";
-    flake-file.url = "github:vic/flake-file";
+    flake-file.url = "github:denful/flake-file";
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
-    flake-utils.url = "github:numtide/flake-utils";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    import-tree.url = "github:vic/import-tree";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    import-tree.url = "github:denful/import-tree";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     preservation.url = "github:nix-community/preservation";
   };
 }
