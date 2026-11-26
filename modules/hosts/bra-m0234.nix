@@ -9,18 +9,22 @@ let
   wantedModules = [
     # own configuration
     "bra-m0234-config"
-
-    # system configuration
   ];
 
   darwinModules = filterModules inputs.self.darwinModules wantedModules;
-  homeModules = filterModules inputs.self.modules.homeManager wantedModules;
+  homeManagerModules = filterModules inputs.self.modules.home-manager wantedModules;
 in
 {
+  # adds home manager
+  flake-file.inputs.home-manager.inputs.nixpkgs.follows = "nixpkgs";
+  flake-file.inputs.home-manager.url = "github:nix-community/home-manager";
+
+  # imports home manager
   flake.darwinConfigurations.${hostname} = inputs.darwin.lib.darwinSystem {
-    modules = darwinModules;
+    modules = [ inputs.home-manager.darwinModules.home-manager ] ++ darwinModules;
   };
 
+  # configures system
   flake.darwinModules.bra-m0234-config =
     { config, pkgs, ... }:
     {
@@ -111,7 +115,7 @@ in
       home-manager.useUserPackages = true;
 
       home-manager.users.${username} = {
-        imports = homeModules;
+        imports = homeManagerModules;
         home.stateVersion = "25.11";
         targets.darwin.copyApps.enable = true;
         targets.darwin.linkApps.enable = false;
