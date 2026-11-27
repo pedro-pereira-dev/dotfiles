@@ -14,7 +14,6 @@
       imports = [ inputs.nix-homebrew.darwinModules.nix-homebrew ];
 
       nix-homebrew.enable = true;
-      nix-homebrew.mutableTaps = false;
       nix-homebrew.user = config.system.primaryUser;
 
       # latest homebrew version package
