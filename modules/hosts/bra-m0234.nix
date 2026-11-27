@@ -15,6 +15,9 @@ let
     "base"
     "darwin-homebrew"
     "darwin-settings"
+
+    # apps
+    "darwin-karabiner"
   ];
 
   darwinModules = filterModules (inputs.self.darwinModules or { }) wantedModules;
@@ -58,8 +61,13 @@ in
       ];
 
       homebrew.casks = [
+        "alt-tab"
+        "firefox"
+        "google-chrome"
+        "handy"
         "microsoft-outlook"
         "microsoft-teams"
+        "rectangle"
         "tunnelblick"
       ];
 
@@ -85,21 +93,13 @@ in
 
       environment.systemPackages = with pkgs; [
         alacritty
-        alt-tab-macos
-        fastfetch
-        firefox
         fzf
         git
-        google-chrome
-        handy
-        karabiner-elements
         lazygit
         lima
         neovim
         qemu
-        rectangle
         tmux
-        zoxide
       ];
 
       home-manager.useGlobalPkgs = true;

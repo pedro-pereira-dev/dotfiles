@@ -1,5 +1,9 @@
 {
-  "global": { "check_for_updates": false, "enable_notification_window": false, "show_in_menu_bar": true },
+  "global": {
+    "check_for_updates": false,
+    "enable_notification_window": false,
+    "show_in_menu_bar": true
+  },
   "profiles": [
     {
       "complex_modifications": {
