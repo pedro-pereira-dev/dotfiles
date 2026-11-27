@@ -25,5 +25,10 @@
       # homebrew custom taps
       nix-homebrew.taps."homebrew/homebrew-cask" = inputs.homebrew-cask;
       nix-homebrew.taps."homebrew/homebrew-core" = inputs.homebrew-core;
+
+      homebrew.taps = [
+        "homebrew/cask"
+        "homebrew/core"
+      ];
     };
 }

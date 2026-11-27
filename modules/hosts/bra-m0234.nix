@@ -43,6 +43,28 @@ in
         shell = pkgs.bash;
       };
 
+      # homebrew.onActivation.extraEnv.HOMEBREW_NO_ENV_HINTS = "1";
+      homebrew.enable = true;
+      homebrew.greedyCasks = true;
+      homebrew.onActivation.autoUpdate = true;
+      homebrew.onActivation.cleanup = "zap";
+      homebrew.user = config.system.primaryUser;
+
+      homebrew.casks = [
+        "alt-tab"
+        "firefox"
+        "font-code-new-roman-nerd-font"
+        "google-chrome"
+        "handy"
+        "karabiner-elements"
+        "microsoft-outlook"
+        "microsoft-teams"
+        "rectangle"
+        "stay"
+        "tastytrade"
+        "tunnelblick"
+      ];
+
       # wip
       # environment.systemPath = [
       #   "/run/current-system/sw/bin"
@@ -88,26 +110,6 @@ in
 
       security.pam.services.sudo_local.touchIdAuth = true;
 
-      homebrew.enable = true;
-      homebrew.onActivation.autoUpdate = true;
-      homebrew.onActivation.cleanup = "zap";
-      homebrew.onActivation.extraEnv.HOMEBREW_NO_ENV_HINTS = "1";
-      homebrew.onActivation.upgrade = true;
-
-      homebrew.casks = [
-        "alt-tab"
-        "firefox"
-        "font-code-new-roman-nerd-font"
-        "google-chrome"
-        "handy"
-        "karabiner-elements"
-        "microsoft-outlook"
-        "microsoft-teams"
-        "rectangle"
-        "stay"
-        "tastytrade"
-        "tunnelblick"
-      ];
 
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
