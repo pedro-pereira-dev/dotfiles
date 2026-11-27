@@ -69,5 +69,5 @@ dots_setup() {
   "${sudo[@]}" "${nix[@]}" run \
     "${nix_cmd[@]}" -- switch \
     --flake "$flake" \
-    "${target_args[@]}"
+    ${target_args[@]+"${target_args[@]}"}
 }

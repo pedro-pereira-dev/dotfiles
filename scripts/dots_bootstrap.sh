@@ -70,5 +70,5 @@ dots_bootstrap() {
     github:nix-community/nixos-anywhere -- \
     --generate-hardware-config nixos-generate-config "$DOTS_ROOT/modules/hosts/_$host.d/$host-hardware-configuration.nix" \
     --flake "path:$DOTS_ROOT#$host" \
-    "${target_args[@]}"
+    ${target_args[@]+"${target_args[@]}"}
 }
