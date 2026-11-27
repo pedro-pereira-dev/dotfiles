@@ -11,12 +11,12 @@
     security.pam.services.sudo_local.reattach = true;
     security.pam.services.sudo_local.touchIdAuth = true;
 
+    system.defaults.NSGlobalDomain.AppleFontSmoothing = 2;
     system.defaults.NSGlobalDomain.InitialKeyRepeat = 200;
     system.defaults.NSGlobalDomain.KeyRepeat = 100;
 
     system.defaults.CustomUserPreferences."com.apple.desktopservices".DSDontWriteNetworkStores = true;
     system.defaults.CustomUserPreferences."com.apple.desktopservices".DSDontWriteUSBStores = true;
-
     system.defaults.CustomUserPreferences."com.apple.screensaver".askForPassword = 0;
 
     system.defaults.dock.autohide = false;

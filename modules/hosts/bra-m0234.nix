@@ -12,6 +12,7 @@ let
     "bra-m0234-config"
 
     # system configuration
+    "base"
     "darwin-homebrew"
     "darwin-settings"
   ];
@@ -44,18 +45,11 @@ in
         shell = pkgs.bash;
       };
 
+      fonts.packages = [ pkgs.nerd-fonts.code-new-roman ];
+
       homebrew.casks = [
-        "alt-tab"
-        "firefox"
-        "font-code-new-roman-nerd-font"
-        "google-chrome"
-        "handy"
-        "karabiner-elements"
         "microsoft-outlook"
         "microsoft-teams"
-        "rectangle"
-        "stay"
-        "tastytrade"
         "tunnelblick"
       ];
 
@@ -81,13 +75,19 @@ in
 
       environment.systemPackages = with pkgs; [
         alacritty
+        alt-tab-macos
         fastfetch
+        firefox
         fzf
         git
+        google-chrome
+        handy
+        karabiner-elements
         lazygit
         lima
         neovim
         qemu
+        rectangle
         tmux
         zoxide
       ];
@@ -101,8 +101,6 @@ in
         user=${config.system.primaryUser}
         if ! dscl . -read "/Users/$user" UserShell | grep -qxF "UserShell: $bash"; then sudo chsh -s "$bash" "$user"; fi
       '';
-
-      security.pam.services.sudo_local.touchIdAuth = true;
 
 
       home-manager.useGlobalPkgs = true;

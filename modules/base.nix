@@ -41,7 +41,7 @@ in
     flake-file.nixConfig = nixConfig;
     flake.nixConfig = nixConfig;
 
-    flake.darwinModules.system.nixpkgs.config = nixpkgsConfig;
-    flake.nixosModules.system.nixpkgs.config = nixpkgsConfig;
+    flake.darwinModules.base.nixpkgs.config = nixpkgsConfig;
+    flake.nixosModules.base.nixpkgs.config = nixpkgsConfig;
   };
 }
