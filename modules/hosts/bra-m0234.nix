@@ -10,10 +10,13 @@ let
   wantedModules = [
     # own configuration
     "bra-m0234-config"
+
+    # system configuration
+    "darwin-homebrew"
   ];
 
-  darwinModules = filterModules inputs.self.darwinModules wantedModules;
-  homeManagerModules = filterModules inputs.self.modules.home-manager wantedModules;
+  darwinModules = filterModules (inputs.self.darwinModules or { }) wantedModules;
+  homeManagerModules = filterModules (inputs.self.modules.home-manager or { }) wantedModules;
 in
 {
   # adds home manager

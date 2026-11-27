@@ -16,6 +16,10 @@
   };
 
   inputs = {
+    brew-src = {
+      url = "github:homebrew/brew";
+      flake = false;
+    };
     darwin = {
       url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -37,7 +41,16 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
     import-tree.url = "github:denful/import-tree";
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     preservation.url = "github:nix-community/preservation";
   };
