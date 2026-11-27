@@ -32,7 +32,11 @@ in
 
   # configures system
   flake.darwinModules.bra-m0234-config =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      ...
+    }:
     {
       networking.hostName = hostname;
       nixpkgs.hostPlatform = "aarch64-darwin";
@@ -40,12 +44,18 @@ in
       system.primaryUser = username;
       system.stateVersion = 7;
 
+      environment.shells = [ pkgs.bashInteractive ];
+      programs.bash.completion.enable = true;
+      programs.bash.enable = true;
+
       users.users.${username} = {
         home = "/Users/${username}";
-        shell = pkgs.bash;
+        shell = pkgs.bashInteractive;
       };
 
-      fonts.packages = [ pkgs.nerd-fonts.code-new-roman ];
+      fonts.packages = with pkgs; [
+        nerd-fonts.code-new-roman
+      ];
 
       homebrew.casks = [
         "microsoft-outlook"
@@ -91,17 +101,6 @@ in
         tmux
         zoxide
       ];
-
-      environment.shells = with pkgs; [ bashInteractive ];
-      launchd.user.envVariables.LC_COLLATE = "C";
-      programs.bash.completion.enable = true;
-      programs.bash.enable = true;
-      system.activationScripts.postActivation.text = ''
-        bash=${pkgs.bashInteractive}/bin/bash
-        user=${config.system.primaryUser}
-        if ! dscl . -read "/Users/$user" UserShell | grep -qxF "UserShell: $bash"; then sudo chsh -s "$bash" "$user"; fi
-      '';
-
 
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;

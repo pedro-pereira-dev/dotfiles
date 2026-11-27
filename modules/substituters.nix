@@ -1,4 +1,5 @@
-_: let
+_:
+let
   substituters = [
     {
       url = "https://cache.nixos.org";
@@ -17,9 +18,12 @@ _: let
     }
   ];
 
-  nixConfig.extra-substituters = map (def: "${def.url}?priority=${toString def.priority}") substituters;
+  nixConfig.extra-substituters = map (
+    def: "${def.url}?priority=${toString def.priority}"
+  ) substituters;
   nixConfig.extra-trusted-public-keys = builtins.catAttrs "publicKey" substituters;
-in {
+in
+{
   flake-file.nixConfig = nixConfig;
   flake.nixConfig = nixConfig;
 }
