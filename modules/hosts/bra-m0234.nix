@@ -64,6 +64,7 @@ in
       # wip
 
       environment.systemPackages = with pkgs; [
+        alacritty
         fastfetch
         fzf
         git
@@ -93,12 +94,6 @@ in
       homebrew.onActivation.extraEnv.HOMEBREW_NO_ENV_HINTS = "1";
       homebrew.onActivation.upgrade = true;
 
-      homebrew.taps = [
-        {
-          name = "mattness/alacritty";
-          trusted = true;
-        }
-      ];
       homebrew.casks = [
         "alt-tab"
         "firefox"
@@ -106,7 +101,6 @@ in
         "google-chrome"
         "handy"
         "karabiner-elements"
-        "mattness/alacritty/alacritty-signed"
         "microsoft-outlook"
         "microsoft-teams"
         "rectangle"
