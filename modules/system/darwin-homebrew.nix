@@ -1,3 +1,4 @@
+# https://github.com/zhaofengli/nix-homebrew/blob/main/modules/default.nix
 { inputs, ... }:
 {
   flake-file.inputs.brew-src.flake = false;

@@ -13,6 +13,7 @@ let
 
     # system configuration
     "darwin-homebrew"
+    "darwin-settings"
   ];
 
   darwinModules = filterModules (inputs.self.darwinModules or { }) wantedModules;
@@ -42,13 +43,6 @@ in
         home = "/Users/${username}";
         shell = pkgs.bash;
       };
-
-      # homebrew.onActivation.extraEnv.HOMEBREW_NO_ENV_HINTS = "1";
-      homebrew.enable = true;
-      homebrew.greedyCasks = true;
-      homebrew.onActivation.autoUpdate = true;
-      homebrew.onActivation.cleanup = "zap";
-      homebrew.user = config.system.primaryUser;
 
       homebrew.casks = [
         "alt-tab"
